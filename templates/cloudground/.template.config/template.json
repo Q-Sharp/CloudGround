@@ -11,7 +11,6 @@
   "name": "CloudGround",
   "shortName": "cloudground",
   "description": "Container-based .NET solution with Aspire, a modular monolith and a visible architecture.",
-  "sourceName": "CloudGround.App",
   "preferNameDirectory": true,
   "tags": {
     "language": "C#",
@@ -33,5 +32,32 @@
   ],
   "guids": [
     "9193ce95-4777-4b80-b4af-2eb5f52325f6"
-  ]
+  ],
+  "forms": {
+    "namespaceSafe": {
+      "identifier": "replace",
+      "pattern": "(((?<=\\.)|^)(?=\\d)|[^\\w.])",
+      "replacement": "_"
+    },
+    "classNameSafe": {
+      "identifier": "replace",
+      "pattern": "(((?<=\\.)|^)(?=\\d)|\\W)",
+      "replacement": "_"
+    }
+  },
+  "symbols": {
+    "solutionNamespace": {
+      "type": "derived",
+      "valueSource": "name",
+      "valueTransform": "namespaceSafe",
+      "replaces": "CloudGround.App",
+      "fileRename": "CloudGround.App"
+    },
+    "solutionClassNamePrefix": {
+      "type": "derived",
+      "valueSource": "name",
+      "valueTransform": "classNameSafe",
+      "replaces": "CloudGround_App"
+    }
+  }
 }

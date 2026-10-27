@@ -25,6 +25,4 @@ dotnet_style_qualification_for_field = false:warning
 dotnet_style_qualification_for_property = false:warning
 dotnet_style_qualification_for_method = false:warning
 dotnet_style_qualification_for_event = false:warning
-
-[tests/**/*.cs]
 dotnet_diagnostic.CA1707.severity = none

@@ -9,7 +9,8 @@ public static class ProcessRunner
 {
     private static readonly TimeSpan Timeout = TimeSpan.FromMinutes(10);
 
-    private static readonly string[] InheritedBuildVariablePrefixes = ["MSBuild", "MSBUILD", "VSTEST", "DOTNET_HOST_PATH"];
+    private static readonly string[] InheritedBuildVariablePrefixes =
+        ["MSBuild", "MSBUILD", "_MSBUILD", "VSTEST", "DOTNET_HOST_PATH", "DOTNET_CLI_TEST_", "TESTINGPLATFORM_"];
 
     private static readonly Dictionary<string, string> IsolatedBuildVariables = new()
     {
