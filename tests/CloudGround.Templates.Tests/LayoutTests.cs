@@ -37,4 +37,12 @@ public sealed class LayoutTests(TemplatePackage package)
 
         Assert.DoesNotContain("LICENSE", solution.RelativeFiles());
     }
+
+    [Fact]
+    public async Task Generated_gitignore_ignores_artifacts_output()
+    {
+        var solution = await package.GenerateAsync("Contoso.Shop");
+
+        Assert.Contains("artifacts/", File.ReadAllLines(Path.Combine(solution.Root, ".gitignore")));
+    }
 }

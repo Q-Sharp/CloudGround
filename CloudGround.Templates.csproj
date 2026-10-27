@@ -8,6 +8,7 @@
     <Description>dotnet new template for container-based .NET solutions with Aspire, Angular and a visible architecture.</Description>
     <PackageTags>dotnet-new;templates;aspire;angular;modular-monolith</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/Q-Sharp/CloudGround</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Q-Sharp/CloudGround</RepositoryUrl>
     <IncludeBuildOutput>false</IncludeBuildOutput>
@@ -21,6 +22,7 @@
 
   <ItemGroup>
     <Content Include="templates/**/*" Exclude="templates/**/bin/**;templates/**/obj/**;templates/**/.vs/**;templates/**/*.user" />
+    <None Include="docs/nuget/README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 
 </Project>

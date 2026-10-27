@@ -1,5 +1,7 @@
 # CloudGround
 
+[![CI](https://github.com/Q-Sharp/CloudGround/actions/workflows/ci.yml/badge.svg)](https://github.com/Q-Sharp/CloudGround/actions/workflows/ci.yml)
+
 > **Status: work in progress.** Phase 1 of 7 (foundation) is being built. The plans live in
 > [`docs/superpowers/plans/`](docs/superpowers/plans/), the design in
 > [`docs/superpowers/specs/`](docs/superpowers/specs/).
@@ -41,6 +43,9 @@ dotnet run --project src/Contoso.Shop.AppHost
 ```
 
 The Aspire dashboard opens in the browser and shows every resource, its logs and its traces.
+
+The name becomes the namespace, so characters that are not valid there turn into underscores:
+`--name my-shop` creates `my_shop.slnx` and `src/my_shop.Api`.
 
 ## Test
 

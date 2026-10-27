@@ -24,6 +24,14 @@ public sealed class PackageContentTests(TemplatePackage package)
         Assert.DoesNotContain(entries, IsBuildOutput);
     }
 
+    [Fact]
+    public void Package_contains_readme()
+    {
+        var entries = ReadEntries(package.PackagePath);
+
+        Assert.Contains("README.md", entries);
+    }
+
     private static bool IsBuildOutput(string entry) =>
         entry.Contains("/bin/", StringComparison.Ordinal)
         || entry.Contains("/obj/", StringComparison.Ordinal)

@@ -19,6 +19,12 @@ solutions and builds and tests them. The second builds and tests the template co
   version.
 - Every change comes with tests.
 
+## Releases
+
+release-please keeps a release pull request open. Merging it tags the version and runs the
+publish job, which pushes the package to NuGet with the repository secret `NUGET_API_KEY`
+(a nuget.org API key scoped to `CloudGround.Templates`). Without that secret the publish job fails.
+
 ## Code style
 
 - Code and configuration contain no explanatory comments. Names, small functions and tests carry

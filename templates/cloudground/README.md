@@ -5,7 +5,6 @@ Created with the [CloudGround](https://github.com/Q-Sharp/CloudGround) template.
 ## Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- Docker or Podman for the containers the AppHost starts
 
 ## Run
 

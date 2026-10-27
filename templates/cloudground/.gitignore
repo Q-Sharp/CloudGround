@@ -1,4 +1,3 @@
-
 .env
 
 *.rsuser
@@ -45,6 +44,7 @@ BenchmarkDotNet.Artifacts/
 
 project.lock.json
 project.fragment.lock.json
+artifacts/
 
 .tye/
 
