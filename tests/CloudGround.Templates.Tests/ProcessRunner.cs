@@ -22,7 +22,14 @@ public static class ProcessRunner
         ["UseRazorBuildServer"] = "false",
     };
 
-    public static async Task<CliResult> RunAsync(string fileName, string workingDirectory, params string[] arguments)
+    public static Task<CliResult> RunAsync(string fileName, string workingDirectory, params string[] arguments) =>
+        RunAsync(fileName, workingDirectory, new Dictionary<string, string>(), arguments);
+
+    public static async Task<CliResult> RunAsync(
+        string fileName,
+        string workingDirectory,
+        IReadOnlyDictionary<string, string> environmentOverrides,
+        params string[] arguments)
     {
         var startInfo = new ProcessStartInfo(fileName)
         {
@@ -37,6 +44,10 @@ public static class ProcessRunner
         }
 
         IsolateFromParentBuild(startInfo.Environment);
+        foreach (var (name, value) in environmentOverrides)
+        {
+            startInfo.Environment[name] = value;
+        }
 
         using var process = new Process { StartInfo = startInfo };
         var output = new StringBuilder();

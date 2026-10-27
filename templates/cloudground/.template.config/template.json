@@ -58,6 +58,78 @@
       "valueSource": "name",
       "valueTransform": "classNameSafe",
       "replaces": "CloudGround_App"
+    },
+    "appHostHttpsPort": {
+      "type": "generated",
+      "generator": "port",
+      "parameters": {
+        "low": 17000,
+        "high": 17300
+      },
+      "replaces": "17297"
+    },
+    "appHostHttpPort": {
+      "type": "generated",
+      "generator": "port",
+      "parameters": {
+        "low": 15000,
+        "high": 15300
+      },
+      "replaces": "15295"
+    },
+    "dashboardOtlpHttpsPort": {
+      "type": "generated",
+      "generator": "port",
+      "parameters": {
+        "low": 21000,
+        "high": 21300
+      },
+      "replaces": "21032"
+    },
+    "dashboardOtlpHttpPort": {
+      "type": "generated",
+      "generator": "port",
+      "parameters": {
+        "low": 19000,
+        "high": 19300
+      },
+      "replaces": "19218"
+    },
+    "resourceServiceHttpsPort": {
+      "type": "generated",
+      "generator": "port",
+      "parameters": {
+        "low": 22000,
+        "high": 22300
+      },
+      "replaces": "22029"
+    },
+    "resourceServiceHttpPort": {
+      "type": "generated",
+      "generator": "port",
+      "parameters": {
+        "low": 20000,
+        "high": 20300
+      },
+      "replaces": "20215"
+    },
+    "apiHttpsPort": {
+      "type": "generated",
+      "generator": "port",
+      "parameters": {
+        "low": 7000,
+        "high": 7300
+      },
+      "replaces": "7311"
+    },
+    "apiHttpPort": {
+      "type": "generated",
+      "generator": "port",
+      "parameters": {
+        "low": 5000,
+        "high": 5300
+      },
+      "replaces": "5311"
     }
   }
 }
