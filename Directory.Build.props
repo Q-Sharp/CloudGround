@@ -6,5 +6,10 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);MINVER1001</WarningsNotAsErrors>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MinVer" PrivateAssets="all" />
+  </ItemGroup>
 </Project>
