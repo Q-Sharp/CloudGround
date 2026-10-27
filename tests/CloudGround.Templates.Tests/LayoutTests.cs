@@ -20,10 +20,21 @@ public sealed class LayoutTests(TemplatePackage package)
     [InlineData(".github/workflows/release-please.yml")]
     [InlineData("release-please-config.json")]
     [InlineData(".release-please-manifest.json")]
+    [InlineData(".github/dependabot.yml")]
+    [InlineData(".github/pull_request_template.md")]
+    [InlineData("README.md")]
     public async Task Generated_solution_has_root_file(string relativePath)
     {
         var solution = await package.GenerateAsync("Contoso.Shop");
 
         Assert.Contains(relativePath, solution.RelativeFiles());
+    }
+
+    [Fact]
+    public async Task Generated_solution_has_no_license_file()
+    {
+        var solution = await package.GenerateAsync("Contoso.Shop");
+
+        Assert.DoesNotContain("LICENSE", solution.RelativeFiles());
     }
 }

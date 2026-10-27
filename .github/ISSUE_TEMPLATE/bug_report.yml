@@ -1,0 +1,32 @@
+name: Bug report
+description: Something in the template or a generated solution does not work as described.
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you ran, what you expected and what you got instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. dotnet new cloudground -n Contoso.Shop
+        2. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: CloudGround version
+      placeholder: 1.2.3
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Output of `dotnet --info`, operating system, Docker or Podman version.
