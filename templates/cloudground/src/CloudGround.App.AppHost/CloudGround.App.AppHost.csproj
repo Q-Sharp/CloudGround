@@ -1,0 +1,13 @@
+<Project Sdk="Aspire.AppHost.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AspireUseCliBundle>true</AspireUseCliBundle>
+    <UserSecretsId>9193ce95-4777-4b80-b4af-2eb5f52325f6</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../CloudGround.App.Api/CloudGround.App.Api.csproj" />
+  </ItemGroup>
+
+</Project>

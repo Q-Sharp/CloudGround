@@ -1,7 +1,12 @@
 {
   "$schema": "http://json.schemastore.org/template",
   "author": "Q-Sharp",
-  "classifications": ["Web", "Aspire", "Cloud", "Solution"],
+  "classifications": [
+    "Web",
+    "Aspire",
+    "Cloud",
+    "Solution"
+  ],
   "identity": "CloudGround.Templates.Solution",
   "name": "CloudGround",
   "shortName": "cloudground",
@@ -16,9 +21,17 @@
     {
       "modifiers": [
         {
-          "exclude": ["**/bin/**", "**/obj/**", "**/.vs/**", "**/*.user"]
+          "exclude": [
+            "**/bin/**",
+            "**/obj/**",
+            "**/.vs/**",
+            "**/*.user"
+          ]
         }
       ]
     }
+  ],
+  "guids": [
+    "9193ce95-4777-4b80-b4af-2eb5f52325f6"
   ]
 }
