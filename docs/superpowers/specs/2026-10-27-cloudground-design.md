@@ -294,8 +294,10 @@ module structure says it should not.
   `feat!:` or a `BREAKING CHANGE` footer the major version.
 - release-please (GitHub Action) keeps a release pull request open with the changelog and the next
   version. Merging it creates the tag `vX.Y.Z` and a GitHub Release.
-- MinVer derives the version from the latest tag at build time. No version number is stored in any
-  file. Builds between releases get pre-release versions automatically.
+- MinVer derives the version from the latest tag at build time. No version number is maintained by
+  hand, and the build never reads one from a file. release-please keeps its own bookkeeping in
+  `.release-please-manifest.json` and, for its `simple` release type, `version.txt`; nothing else
+  uses them. Builds between releases get pre-release versions automatically.
 - CI computes the version once and applies it to every artifact: assembly versions, the NuGet
   package where there is one, and the tags of all container images, including the Angular SSR image.
 
@@ -318,6 +320,7 @@ and a separate contracts project per module is a **Default**; the rest follows t
 Contoso.Shop/
 ├── .devcontainer/
 ├── .github/
+│   ├── actions/build-and-test/                composite action, reused by the template repo's CI
 │   ├── workflows/
 │   ├── dependabot.yml
 │   └── pull_request_template.md
@@ -400,7 +403,7 @@ CloudGround/
 ├── templates/
 │   └── cloudground/                           template content, see 8.12
 │       ├── .template.config/template.json
-│       ├── CloudGround.slnx                   becomes Contoso.Shop.slnx when generated
+│       ├── CloudGround.App.slnx               becomes Contoso.Shop.slnx when generated
 │       └── …                                  src/, tests/, docs/ etc. as in 8.12
 ├── tests/
 │   └── CloudGround.Templates.Tests/           template instantiation tests
@@ -423,9 +426,13 @@ CloudGround/
 
   Two solutions, deliberately. `CloudGround.Templates.slnx` at the root covers packaging and the
   template tests. The template content is itself a complete, buildable solution with its own
-  `CloudGround.slnx`, `Directory.Build.props` and `Directory.Packages.props`, so it can be opened,
-  built and run directly while working on the template. MSBuild uses the nearest
+  `CloudGround.App.slnx`, `Directory.Build.props` and `Directory.Packages.props`, so it can be
+  opened, built and run directly while working on the template. MSBuild uses the nearest
   `Directory.*.props`, so the two sets do not interfere.
+
+  The template's source name is the dotted `CloudGround.App`, not `CloudGround`. The template engine
+  replaces derived forms of the source name, such as `CloudGround_App` in Aspire's generated
+  `Projects.*` types, only when those forms differ from the plain name.
 
   **Builder:** if the current dotnet/templating guidance prefers a different name than
   `templates/` for the content folder, follow it.
