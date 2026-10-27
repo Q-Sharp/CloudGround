@@ -9,6 +9,24 @@ public sealed class ToolchainTests(TemplatePackage package)
     public async Task Generated_solution_builds_without_aspire_cli_or_dnx_on_path()
     {
         var solution = await package.GenerateAsync("Offline.App");
+
+        var build = await RunOnFreshMachineAsync(solution, "build");
+
+        Assert.True(build.ExitCode == 0, build.Output);
+    }
+
+    [Fact]
+    public async Task Generated_solution_tests_pass_without_a_trusted_developer_certificate()
+    {
+        var solution = await package.GenerateAsync("Untrusted.App");
+
+        var test = await RunOnFreshMachineAsync(solution, "test", "--solution", "Untrusted.App.slnx");
+
+        Assert.True(test.ExitCode == 0, test.Output);
+    }
+
+    private static async Task<CliResult> RunOnFreshMachineAsync(GeneratedSolution solution, params string[] arguments)
+    {
         var machine = Directory.CreateTempSubdirectory("cloudground-machine-").FullName;
         try
         {
@@ -21,9 +39,7 @@ public sealed class ToolchainTests(TemplatePackage package)
                 ["NUGET_PACKAGES"] = NuGetPackagesFolder(),
             };
 
-            var build = await DotnetCli.RunWithEnvironmentAsync(solution.Root, freshMachine, "build");
-
-            Assert.True(build.ExitCode == 0, build.Output);
+            return await DotnetCli.RunWithEnvironmentAsync(solution.Root, freshMachine, arguments);
         }
         finally
         {

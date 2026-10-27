@@ -13,7 +13,7 @@ public sealed class ApiHealthTests
         await app.StartAsync(cancellation);
         await app.ResourceNotifications.WaitForResourceHealthyAsync("api", cancellation);
 
-        using var client = app.CreateHttpClient("api");
+        using var client = app.CreateHttpClient("api", "http");
         using var response = await client.GetAsync(new Uri("/health", UriKind.Relative), cancellation);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
