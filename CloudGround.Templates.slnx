@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="CloudGround.Templates.csproj" />
+  <Project Path="tests/CloudGround.Templates.Tests/CloudGround.Templates.Tests.csproj" />
+</Solution>
