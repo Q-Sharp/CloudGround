@@ -366,7 +366,7 @@ Expected: FAIL on the new rows.
   5. generating a solution: `dotnet new cloudground -n Contoso.Shop`
   6. running it: `dotnet run --project src/Contoso.Shop.AppHost`
   7. testing it
-- `templates/cloudground/README.md`: running and testing the generated solution.
+- `templates/cloudground/README.md`: running and testing the generated solution, plus a "GitHub setup" section: enable *Settings → Actions → General → Allow GitHub Actions to create and approve pull requests* (or `gh api -X PUT repos/<owner>/<repo>/actions/permissions/workflow -f default_workflow_permissions=read -F can_approve_pull_request_reviews=true`), otherwise release-please cannot open its release pull request.
 - `AGENTS.md`: the repository's working rules from Global Constraints, the template test commands and the layout.
 - `CLAUDE.md`: a single line `@AGENTS.md`.
 
@@ -396,6 +396,7 @@ Creating the public repository is visible to everyone and permanent. Confirm wit
 Run: `gh repo create Q-Sharp/CloudGround --public --description "dotnet new template for container-based .NET solutions with Aspire, Angular and a visible architecture" --source ~/Sources/CloudGround --remote origin`
 Run: `gh api -X PATCH repos/Q-Sharp/CloudGround -F allow_merge_commit=false -F allow_rebase_merge=false -F allow_squash_merge=true -f squash_merge_commit_title=PR_TITLE -f squash_merge_commit_message=COMMIT_MESSAGES -F delete_branch_on_merge=true` (`COMMIT_MESSAGES` keeps the `Co-Authored-By` trailers of the squashed commits)
 Run: `gh api -X PUT repos/Q-Sharp/CloudGround/private-vulnerability-reporting`
+Run: `gh api -X PUT repos/Q-Sharp/CloudGround/actions/permissions/workflow -f default_workflow_permissions=read -F can_approve_pull_request_reviews=true` (lets release-please open its release pull request with `GITHUB_TOKEN`)
 Expected: each command exits 0.
 
 - [ ] **Step 2: Push `main` and the phase branch**

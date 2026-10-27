@@ -1,0 +1,25 @@
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directories:
+      - /
+    schedule:
+      interval: weekly
+    groups:
+      nuget:
+        patterns: ["*"]
+    ignore:
+      - dependency-name: Microsoft.Extensions.*
+        update-types: [version-update:semver-major]
+      - dependency-name: Microsoft.AspNetCore.*
+        update-types: [version-update:semver-major]
+
+  - package-ecosystem: github-actions
+    directories:
+      - /
+      - /.github/actions/build-and-test
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns: ["*"]

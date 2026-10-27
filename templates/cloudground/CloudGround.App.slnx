@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CloudGround.App.Api/CloudGround.App.Api.csproj" />
+    <Project Path="src/CloudGround.App.AppHost/CloudGround.App.AppHost.csproj" />
+    <Project Path="src/CloudGround.App.ServiceDefaults/CloudGround.App.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CloudGround.App.Integration.Tests/CloudGround.App.Integration.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,18 @@
+name: Feature request
+description: Suggest something the template should provide.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What do you have to set up by hand today that the template could provide?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What should a generated solution contain, and why?
+    validations:
+      required: true
