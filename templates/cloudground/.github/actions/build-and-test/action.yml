@@ -1,0 +1,35 @@
+name: Build and test
+description: Restore, check formatting, build and test the solution.
+
+inputs:
+  working-directory:
+    description: Directory that contains the solution.
+    required: false
+    default: .
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-dotnet@v6
+      with:
+        global-json-file: ${{ inputs.working-directory }}/global.json
+
+    - name: Restore
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: dotnet restore
+
+    - name: Check formatting
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: dotnet format --verify-no-changes --no-restore
+
+    - name: Build
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: dotnet build --no-restore --configuration Release
+
+    - name: Test
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: dotnet test --no-build --configuration Release

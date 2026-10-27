@@ -14,6 +14,12 @@ public sealed class LayoutTests(TemplatePackage package)
     [InlineData("src/Contoso.Shop.ServiceDefaults/Contoso.Shop.ServiceDefaults.csproj")]
     [InlineData("src/Contoso.Shop.Api/Contoso.Shop.Api.csproj")]
     [InlineData("tests/Contoso.Shop.Integration.Tests/Contoso.Shop.Integration.Tests.csproj")]
+    [InlineData(".github/actions/build-and-test/action.yml")]
+    [InlineData(".github/workflows/ci.yml")]
+    [InlineData(".github/workflows/pr-title.yml")]
+    [InlineData(".github/workflows/release-please.yml")]
+    [InlineData("release-please-config.json")]
+    [InlineData(".release-please-manifest.json")]
     public async Task Generated_solution_has_root_file(string relativePath)
     {
         var solution = await package.GenerateAsync("Contoso.Shop");

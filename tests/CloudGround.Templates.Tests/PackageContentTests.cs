@@ -13,6 +13,7 @@ public sealed class PackageContentTests(TemplatePackage package)
         Assert.Contains(entries, entry => entry.EndsWith("cloudground/.gitignore", StringComparison.Ordinal));
         Assert.Contains(entries, entry => entry.EndsWith("cloudground/.editorconfig", StringComparison.Ordinal));
         Assert.Contains(entries, entry => entry.EndsWith("cloudground/.template.config/template.json", StringComparison.Ordinal));
+        Assert.Contains(entries, entry => entry.EndsWith("cloudground/.github/workflows/ci.yml", StringComparison.Ordinal));
     }
 
     [Fact]
