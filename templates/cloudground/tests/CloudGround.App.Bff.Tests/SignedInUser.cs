@@ -6,6 +6,8 @@ namespace CloudGround.App.Bff.Tests;
 
 internal sealed class SignedInUser(string? accessToken) : IAuthenticationService
 {
+    public bool SignedOut { get; private set; }
+
     public Task<AuthenticateResult> AuthenticateAsync(HttpContext context, string? scheme)
     {
         if (accessToken is null)
@@ -25,5 +27,9 @@ internal sealed class SignedInUser(string? accessToken) : IAuthenticationService
 
     public Task SignInAsync(HttpContext context, string? scheme, ClaimsPrincipal principal, AuthenticationProperties? properties) => Task.CompletedTask;
 
-    public Task SignOutAsync(HttpContext context, string? scheme, AuthenticationProperties? properties) => Task.CompletedTask;
+    public Task SignOutAsync(HttpContext context, string? scheme, AuthenticationProperties? properties)
+    {
+        SignedOut = true;
+        return Task.CompletedTask;
+    }
 }

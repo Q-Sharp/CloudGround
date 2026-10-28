@@ -42,7 +42,10 @@ For a signed-in user, the BFF sets an `XSRF-TOKEN` cookie and expects its value 
 `X-XSRF-TOKEN` header on every state-changing request, which is what Angular's `HttpClient` does
 on its own. The session ticket and the Data Protection keys live in Garnet, so several BFF
 instances share the same sessions; the integration tests run two of them. Access tokens are
-refreshed a minute before they expire.
+refreshed a minute before they expire. Parallel requests of one session may refresh at the same
+time with the same refresh token, so the realm keeps used refresh tokens valid
+(`revokeRefreshToken: false`); turning rotation on needs a lock around the refresh first. While
+Keycloak is unreachable, a session keeps its access token until it expires.
 
 The API accepts Keycloak access tokens for the `cloudground-app-api` audience. Reads are anonymous;
 every write endpoint requires the policy of its module (`<Module>Policies.Edit`), which requires

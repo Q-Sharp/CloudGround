@@ -1,6 +1,7 @@
 {
   "realm": "cloudground-app",
   "enabled": true,
+  "revokeRefreshToken": false,
   "roles": {
     "realm": [
       {

@@ -2,25 +2,19 @@ using System.Globalization;
 using System.Net;
 using CloudGround.App.Bff.Authentication;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.IdentityModel.Protocols;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using static CloudGround.App.Bff.Tests.TokenSessions;
 
 namespace CloudGround.App.Bff.Tests;
 
 public sealed class AccessTokenRefresherTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 10, 28, 9, 0, 0, TimeSpan.Zero);
-
-    private const string NewTokens = """{"access_token":"new-access","refresh_token":"new-refresh","expires_in":300}""";
-
     private static CancellationToken Cancellation => TestContext.Current.CancellationToken;
 
     [Fact]
     public async Task Token_close_to_expiry_is_refreshed()
     {
         var endpoint = new StubTokenEndpoint(HttpStatusCode.OK, NewTokens);
-        var properties = SessionExpiringAt(Now.AddSeconds(30));
+        var properties = ExpiringAt(Now.AddSeconds(30));
 
         var result = await RefresherFor(endpoint).RefreshIfCloseToExpiryAsync(properties, Options(), Cancellation);
 
@@ -36,7 +30,7 @@ public sealed class AccessTokenRefresherTests
     public async Task Token_far_from_expiry_is_kept()
     {
         var endpoint = new StubTokenEndpoint(HttpStatusCode.OK, NewTokens);
-        var properties = SessionExpiringAt(Now.AddMinutes(4));
+        var properties = ExpiringAt(Now.AddMinutes(4));
 
         var result = await RefresherFor(endpoint).RefreshIfCloseToExpiryAsync(properties, Options(), Cancellation);
 
@@ -46,10 +40,10 @@ public sealed class AccessTokenRefresherTests
     }
 
     [Fact]
-    public async Task Failed_refresh_reports_failure()
+    public async Task Rejected_refresh_token_reports_failure()
     {
         var endpoint = new StubTokenEndpoint(HttpStatusCode.BadRequest, """{"error":"invalid_grant"}""");
-        var properties = SessionExpiringAt(Now.AddSeconds(30));
+        var properties = ExpiringAt(Now.AddSeconds(30));
 
         var result = await RefresherFor(endpoint).RefreshIfCloseToExpiryAsync(properties, Options(), Cancellation);
 
@@ -57,26 +51,38 @@ public sealed class AccessTokenRefresherTests
         Assert.Equal("old-access", properties.GetTokenValue("access_token"));
     }
 
-    private static AccessTokenRefresher RefresherFor(StubTokenEndpoint endpoint) =>
-        new(new HttpClient(endpoint), new FixedClock(Now));
-
-    private static AuthenticationProperties SessionExpiringAt(DateTimeOffset expiresAt)
+    [Fact]
+    public async Task Unreachable_identity_provider_keeps_a_still_valid_token()
     {
-        var properties = new AuthenticationProperties();
-        properties.StoreTokens(
-        [
-            new AuthenticationToken { Name = "access_token", Value = "old-access" },
-            new AuthenticationToken { Name = "refresh_token", Value = "old-refresh" },
-            new AuthenticationToken { Name = "expires_at", Value = expiresAt.ToString("o", CultureInfo.InvariantCulture) },
-        ]);
-        return properties;
+        var properties = ExpiringAt(Now.AddSeconds(30));
+
+        var result = await RefresherFor(new UnreachableTokenEndpoint()).RefreshIfCloseToExpiryAsync(properties, Options(), Cancellation);
+
+        Assert.Equal(TokenRefresh.NotNeeded, result);
+        Assert.Equal("old-access", properties.GetTokenValue("access_token"));
     }
 
-    private static OpenIdConnectOptions Options() => new()
+    [Fact]
+    public async Task Server_error_keeps_a_still_valid_token()
     {
-        ClientId = "cloudground-app-bff",
-        ClientSecret = "secret",
-        ConfigurationManager = new StaticConfigurationManager<OpenIdConnectConfiguration>(
-            new OpenIdConnectConfiguration { TokenEndpoint = "https://identity.example/token" }),
-    };
+        var properties = ExpiringAt(Now.AddSeconds(30));
+
+        var result = await RefresherFor(new StubTokenEndpoint(HttpStatusCode.ServiceUnavailable, "{}")).RefreshIfCloseToExpiryAsync(properties, Options(), Cancellation);
+
+        Assert.Equal(TokenRefresh.NotNeeded, result);
+        Assert.Equal("old-access", properties.GetTokenValue("access_token"));
+    }
+
+    [Fact]
+    public async Task Unreachable_identity_provider_after_expiry_reports_failure()
+    {
+        var properties = ExpiringAt(Now.AddSeconds(-10));
+
+        var result = await RefresherFor(new UnreachableTokenEndpoint()).RefreshIfCloseToExpiryAsync(properties, Options(), Cancellation);
+
+        Assert.Equal(TokenRefresh.Failed, result);
+    }
+
+    internal static AccessTokenRefresher RefresherFor(HttpMessageHandler endpoint) =>
+        new(new HttpClient(endpoint), new FixedClock(Now));
 }

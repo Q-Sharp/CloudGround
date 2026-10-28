@@ -35,6 +35,18 @@ public sealed class KeycloakTests(AppHostFixture fixture)
         Assert.DoesNotContain("editor", Roles(payload));
     }
 
+    [Fact]
+    public async Task Used_refresh_tokens_stay_valid()
+    {
+        var refreshToken = (await Tokens.GrantAsync(fixture.App, "alice", Cancellation)).GetProperty("refresh_token").GetString()!;
+
+        var first = await Tokens.RefreshAsync(fixture.App, refreshToken, Cancellation);
+        var second = await Tokens.RefreshAsync(fixture.App, refreshToken, Cancellation);
+
+        Assert.True(first.TryGetProperty("access_token", out _));
+        Assert.True(second.TryGetProperty("access_token", out _));
+    }
+
     private static List<string> Audiences(JsonElement payload) =>
         payload.GetProperty("aud") is { ValueKind: JsonValueKind.Array } audiences
             ? [.. audiences.EnumerateArray().Select(audience => audience.GetString()!)]
