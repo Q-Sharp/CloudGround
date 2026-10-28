@@ -6,7 +6,7 @@ namespace CloudGround.App.Bff.Proxy;
 
 internal static class ApiProxy
 {
-    private const string ApiServiceAddress = "https+http://api";
+    private const string ApiServiceAddress = "http://api";
 
     public static RouteConfig Route { get; } = new()
     {
