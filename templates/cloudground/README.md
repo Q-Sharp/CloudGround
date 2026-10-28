@@ -5,7 +5,7 @@ Created with the [CloudGround](https://github.com/Q-Sharp/CloudGround) template.
 ## Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- Docker or Podman; the AppHost starts PostgreSQL, Garnet and RabbitMQ as containers
+- Docker or Podman; the AppHost starts PostgreSQL, Garnet, RabbitMQ and Keycloak as containers
 
 ## Run
 
@@ -14,12 +14,46 @@ dotnet run --project src/CloudGround.App.AppHost
 ```
 
 The Aspire dashboard opens in the browser and shows every resource, its logs and its traces.
-PostgreSQL keeps its data in a container volume, so it survives restarts; remove the volume
-whose name ends in `postgres-data` to start over. The integration tests always start without
-volumes, on an empty database.
+PostgreSQL and Keycloak keep their data in container volumes, so it survives restarts; remove the
+volume whose name ends in `postgres-data` or `keycloak-data` to start over. The integration tests
+always start without volumes, on an empty database and a freshly imported realm.
 Before the API starts, the AppHost applies the EF Core migrations of every module. In Development
 the API serves its OpenAPI document at `/openapi/v1.json` and the Scalar UI at `/scalar`. The
 dashboard links the RabbitMQ management UI of the `messaging` resource.
+
+## Sign-in
+
+The browser talks only to the BFF in `src/CloudGround.App.Bff`; tokens never reach it. Open the
+BFF's `/bff/login` from the dashboard and sign in as one of the demo users:
+
+| User | Password | Roles |
+|---|---|---|
+| `alice` | `alice` | `editor` |
+| `bob` | `bob` | none |
+
+The BFF signs users in with OpenID Connect against Keycloak and offers:
+
+- `GET /bff/login?returnUrl=/path` starts the login and returns only to local paths
+- `POST /bff/logout` ends the session at the BFF and at Keycloak
+- `GET /bff/user` returns the user's name and roles, or 401
+- `/api/*` is forwarded to the API with the user's access token; the browser's cookies stay at the BFF
+
+For a signed-in user, the BFF sets an `XSRF-TOKEN` cookie and expects its value in the
+`X-XSRF-TOKEN` header on every state-changing request, which is what Angular's `HttpClient` does
+on its own. The session ticket and the Data Protection keys live in Garnet, so several BFF
+instances share the same sessions; the integration tests run two of them. Access tokens are
+refreshed a minute before they expire.
+
+The API accepts Keycloak access tokens for the `cloudground-app-api` audience. Reads are anonymous;
+every write endpoint requires the policy of its module (`<Module>Policies.Edit`), which requires
+the `editor` realm role. A test reads the OpenAPI document and checks that every write endpoint
+rejects anonymous callers.
+
+The realm lives in `src/CloudGround.App.AppHost/Realms/realm.json` and is imported
+when Keycloak starts on an empty volume; after editing the file, remove the `keycloak-data`
+volume. The realm is for local development only: it accepts any redirect URI and contains the
+`cloudground-app-tests` client, which lets the integration tests get tokens with a password. Locally
+Keycloak serves plain HTTP, so the solution runs without a trusted developer certificate.
 
 ## Architecture
 

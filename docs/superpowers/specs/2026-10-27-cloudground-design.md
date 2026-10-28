@@ -181,6 +181,10 @@ flowchart LR
   build time, because no API runs during the image build. (**Default**)
 - BFF session state and Data Protection keys are persisted outside the process so the BFF can run
   more than one instance. (**Builder:** Garnet, 2026-10-28.)
+- Keycloak keeps its data in a volume like PostgreSQL; the realm file is imported on an empty
+  volume (**Author**, 2026-10-28). Locally Keycloak serves plain HTTP and the BFF reaches the API
+  over its http endpoint, so a solution works without a trusted developer certificate; the demo
+  realm contains a password-grant client for the integration tests only. (**Builder**, 2026-10-28)
 - The Aspire AppHost wires all of the above, including a Keycloak realm import with demo users and
   roles, so `dotnet run` on the AppHost is the whole quickstart.
 
