@@ -1,13 +1,17 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-var database = builder.AddPostgres("postgres").AddDatabase("database");
+var database = builder.AddPostgres("postgres").WithDataVolume().AddDatabase("database");
 var cache = builder.AddGarnet("cache");
+var messaging = builder.AddRabbitMQ("messaging").WithManagementPlugin();
 
 var api = builder.AddProject<Projects.CloudGround_App_Api>("api")
+    .WithHttpHealthCheck("/health", endpointName: "http")
     .WithReference(database)
     .WaitFor(database)
     .WithReference(cache)
-    .WaitFor(cache);
+    .WaitFor(cache)
+    .WithReference(messaging)
+    .WaitFor(messaging);
 
 #if (sample)
 var projectsMigrations = api
@@ -17,7 +21,15 @@ var projectsMigrations = api
     .WaitFor(database)
     .RunDatabaseUpdateOnStart();
 
-api.WaitForCompletion(projectsMigrations);
+var tasksMigrations = api
+    .AddEFMigrations("tasks-migrations", "CloudGround.App.Modules.Tasks.Persistence.TasksDbContext")
+    .WithMigrationsProject("../Modules/CloudGround.App.Modules.Tasks/CloudGround.App.Modules.Tasks.csproj")
+    .WithReference(database)
+    .WaitFor(database)
+    .RunDatabaseUpdateOnStart();
+
+api.WaitForCompletion(projectsMigrations)
+    .WaitForCompletion(tasksMigrations);
 #endif
 
 builder.Build().Run();

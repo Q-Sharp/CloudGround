@@ -7,6 +7,8 @@
   <!--#if (sample) -->
   <Folder Name="/src/Modules/">
     <Project Path="src/Modules/CloudGround.App.Modules.Projects/CloudGround.App.Modules.Projects.csproj" />
+    <Project Path="src/Modules/CloudGround.App.Modules.Projects.Contracts/CloudGround.App.Modules.Projects.Contracts.csproj" />
+    <Project Path="src/Modules/CloudGround.App.Modules.Tasks/CloudGround.App.Modules.Tasks.csproj" />
   </Folder>
   <!--#endif -->
   <Folder Name="/tests/">
@@ -14,6 +16,7 @@
     <Project Path="tests/CloudGround.App.Integration.Tests/CloudGround.App.Integration.Tests.csproj" />
     <!--#if (sample) -->
     <Project Path="tests/CloudGround.App.Modules.Projects.Tests/CloudGround.App.Modules.Projects.Tests.csproj" />
+    <Project Path="tests/CloudGround.App.Modules.Tasks.Tests/CloudGround.App.Modules.Tasks.Tests.csproj" />
     <!--#endif -->
   </Folder>
 </Solution>

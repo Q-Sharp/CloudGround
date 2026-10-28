@@ -12,7 +12,7 @@ public sealed class AppHostFixture : IAsyncLifetime
     {
         var cancellation = TestContext.Current.CancellationToken;
         var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.CloudGround_App_AppHost>(cancellation);
-        app = await appHost.BuildAsync(cancellation);
+        app = await appHost.WithoutDataVolumes().BuildAsync(cancellation);
         await app.StartAsync(cancellation);
         await app.ResourceNotifications.WaitForResourceHealthyAsync("api", cancellation);
     }

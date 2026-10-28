@@ -192,6 +192,11 @@ flowchart LR
 - Integration events go through RabbitMQ with Wolverine. They are written to the outbox in the same
   database transaction as the change that raised them. Handlers are idempotent through Wolverine's
   inbox, failed messages are retried and then moved to an error queue.
+- Wolverine compiles handler code at runtime in development (`WolverineFx.RuntimeCompilation`);
+  container images use pre-generated code (phase 6). Wolverine needs public handlers, so a module
+  exposes them in its `Messaging` namespace and forwards to its internals through an interface.
+  Module `DbContext`s keep EF Core's retry on transient failures; publishing through the outbox
+  runs as one retriable unit of the execution strategy. (**Builder**, 2026-10-28)
 - Each module gets its own database schema. (**Default**)
 - Migrations run through Aspire's EF Core migration resource (`AddEFMigrations`) before the API
   starts; in operation they are published as a migration bundle. (**Author**, 2026-10-28)

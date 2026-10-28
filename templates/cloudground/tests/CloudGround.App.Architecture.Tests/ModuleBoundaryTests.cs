@@ -1,3 +1,4 @@
+using System.Reflection;
 using ArchUnitNET.xUnitV3;
 using Microsoft.EntityFrameworkCore.Migrations;
 using static ArchUnitNET.Fluent.ArchRuleDefinition;
@@ -21,16 +22,21 @@ public sealed class ModuleBoundaryTests
     }
 
     [Fact]
-    public void Modules_expose_only_their_module_class_and_validated_requests()
+    public void Modules_expose_only_their_module_class_validated_requests_and_message_handlers()
     {
         foreach (var module in ModuleCatalog.Modules)
         {
             var unexpected = module.GetExportedTypes()
                 .Where(type => type.Name != $"{ModuleCatalog.NameOf(module)}Module")
                 .Where(type => !type.Name.EndsWith("Request", StringComparison.Ordinal))
+                .Where(type => !IsMessageHandlerSurface(module, type))
                 .Where(type => !type.IsSubclassOf(typeof(Migration)));
 
             Assert.Empty(unexpected);
         }
     }
+
+    private static bool IsMessageHandlerSurface(Assembly module, Type type) =>
+        type.Namespace == $"{module.GetName().Name}.Messaging"
+        && (type.IsInterface || (type.IsAbstract && type.IsSealed && type.Name.EndsWith("Handler", StringComparison.Ordinal)));
 }

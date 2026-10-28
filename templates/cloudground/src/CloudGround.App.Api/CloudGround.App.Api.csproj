@@ -6,12 +6,17 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" />
     <PackageReference Include="Scalar.AspNetCore" />
+    <PackageReference Include="WolverineFx.EntityFrameworkCore" />
+    <PackageReference Include="WolverineFx.Postgresql" />
+    <PackageReference Include="WolverineFx.RabbitMQ" />
+    <PackageReference Include="WolverineFx.RuntimeCompilation" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../CloudGround.App.ServiceDefaults/CloudGround.App.ServiceDefaults.csproj" />
     <!--#if (sample) -->
     <ProjectReference Include="../Modules/CloudGround.App.Modules.Projects/CloudGround.App.Modules.Projects.csproj" />
+    <ProjectReference Include="../Modules/CloudGround.App.Modules.Tasks/CloudGround.App.Modules.Tasks.csproj" />
     <!--#endif -->
   </ItemGroup>
 

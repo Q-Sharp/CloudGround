@@ -32,7 +32,10 @@
           "exclude": [
             "src/Modules/**",
             "tests/CloudGround.App.Modules.*/**",
-            "tests/CloudGround.App.Integration.Tests/Projects*.cs"
+            "tests/CloudGround.App.Integration.Tests/Projects*.cs",
+            "tests/CloudGround.App.Integration.Tests/Tasks*.cs",
+            "tests/CloudGround.App.Integration.Tests/ProjectArchived*.cs",
+            "tests/CloudGround.App.Integration.Tests/ModuleAssertions.cs"
           ]
         }
       ]
@@ -58,7 +61,7 @@
       "type": "parameter",
       "datatype": "bool",
       "defaultValue": "true",
-      "description": "Include the Projects sample module."
+      "description": "Include the Projects and Tasks sample modules."
     },
     "solutionNamespace": {
       "type": "derived",
