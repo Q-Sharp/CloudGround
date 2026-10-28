@@ -1,5 +1,8 @@
 <mat-toolbar>
   <a mat-button routerLink="/">Home</a>
+  <!--#if (sample) -->
+  <a mat-button routerLink="/explore">Explore</a>
+  <!--#endif -->
   <span class="spacer"></span>
   @if (session.user(); as user) {
     <span data-test="user">{{ user.name }}</span>

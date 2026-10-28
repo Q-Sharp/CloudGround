@@ -5,10 +5,12 @@ public sealed class WebAppTests(TemplatePackage package)
 {
     private static readonly string[][] Steps = [["ci"], ["run", "build"], ["test"]];
 
-    [Fact]
-    public async Task Generated_web_app_lints_builds_and_tests()
+    [Theory]
+    [InlineData("true")]
+    [InlineData("false")]
+    public async Task Generated_web_app_lints_builds_and_tests(string sample)
     {
-        var solution = await package.GenerateAsync("Contoso.Shop");
+        var solution = await package.GenerateAsync("Contoso.Shop", "--sample", sample);
         var web = Path.Combine(solution.Root, "src", "Contoso.Shop.Web");
 
         foreach (var step in Steps)
