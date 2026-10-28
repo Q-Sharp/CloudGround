@@ -35,6 +35,17 @@ public sealed class AppHostModelTests
     }
 
     [Fact]
+    public async Task Tests_run_two_bff_instances()
+    {
+        await using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.CloudGround_App_AppHost>(TestContext.Current.CancellationToken);
+
+        appHost.WithTwoBffInstances();
+
+        var bff = appHost.Resources.Single(resource => resource.Name == "bff");
+        Assert.Equal(BffInstances.Count, Assert.Single(bff.Annotations.OfType<ReplicaAnnotation>()).Replicas);
+    }
+
+    [Fact]
     public async Task Tests_start_without_data_volumes()
     {
         await using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.CloudGround_App_AppHost>(TestContext.Current.CancellationToken);
