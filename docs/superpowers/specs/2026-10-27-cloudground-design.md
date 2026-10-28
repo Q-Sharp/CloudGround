@@ -144,6 +144,7 @@ The project fails, even if it technically works, if any of these is true:
 | Node.js (SSR, tooling, devcontainer) | newest Active LTS | **Builder** verifies at build time |
 | Container base images | images built on the newest LTS of their distribution, e.g. Ubuntu LTS for .NET images | **Builder** |
 | PostgreSQL, Keycloak, RabbitMQ, Garnet, Aspire, NuGet and npm packages | no LTS line in the open-source edition: newest stable release | **Builder** |
+| `Aspire.Hosting.EntityFrameworkCore` | preview, because Aspire's migration integration has no stable release yet | **Author** exception (2026-10-28) |
 
 - Dependabot (GitHub's built-in updater) keeps NuGet, npm, container image and GitHub Actions
   versions current, grouped into few pull requests. It is configured not to propose major updates
@@ -192,6 +193,8 @@ flowchart LR
   database transaction as the change that raised them. Handlers are idempotent through Wolverine's
   inbox, failed messages are retried and then moved to an error queue.
 - Each module gets its own database schema. (**Default**)
+- Migrations run through Aspire's EF Core migration resource (`AddEFMigrations`) before the API
+  starts; in operation they are published as a migration bundle. (**Author**, 2026-10-28)
 - Endpoints are Minimal APIs grouped per feature, registered by the module.
 - Validation uses .NET 10's built-in Minimal API validation; failures and errors return
   `ProblemDetails`.

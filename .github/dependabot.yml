@@ -3,7 +3,7 @@ updates:
   - package-ecosystem: nuget
     directories:
       - /
-      - /templates/cloudground/.github/workflows
+      - /templates/cloudground
     schedule:
       interval: weekly
     groups:
@@ -13,6 +13,10 @@ updates:
       - dependency-name: Microsoft.Extensions.*
         update-types: [version-update:semver-major]
       - dependency-name: Microsoft.AspNetCore.*
+        update-types: [version-update:semver-major]
+      - dependency-name: Microsoft.EntityFrameworkCore.*
+        update-types: [version-update:semver-major]
+      - dependency-name: dotnet-ef
         update-types: [version-update:semver-major]
 
   - package-ecosystem: github-actions
