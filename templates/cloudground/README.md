@@ -23,7 +23,8 @@ The API host in `src/CloudGround.App.Api` is a modular monolith. It owns the cro
 concerns: errors as `ProblemDetails`, OpenAPI, and `HybridCache` backed by Garnet. Each module in
 `src/Modules/` is a class library that owns its endpoints, handlers, persistence and its own
 PostgreSQL schema. A feature slice keeps its request, handler and endpoint in one file, and the
-endpoint calls the handler directly. Requests are validated by the built-in Minimal API
+endpoint calls the handler directly. Cached reads skip `HybridCache`'s in-process copy and use
+Garnet only, so a change that removes a cache entry is visible on every API instance at once. Requests are validated by the built-in Minimal API
 validation, and Mapperly maps entities to responses; a response member without a source fails the
 build.
 

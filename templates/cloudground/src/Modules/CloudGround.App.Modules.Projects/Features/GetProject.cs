@@ -18,6 +18,7 @@ internal sealed class GetProjectHandler(ProjectsDbContext database, HybridCache 
                 .Where(project => project.Id == projectId)
                 .ProjectToResponse()
                 .SingleOrDefaultAsync(token),
+            ProjectCache.SharedAcrossInstances,
             cancellationToken: cancellationToken);
 }
 
