@@ -14,6 +14,9 @@ dotnet run --project src/CloudGround.App.AppHost
 ```
 
 The Aspire dashboard opens in the browser and shows every resource, its logs and its traces.
+PostgreSQL keeps its data in a container volume, so it survives restarts; remove the volume
+whose name ends in `postgres-data` to start over. The integration tests always start without
+volumes, on an empty database.
 Before the API starts, the AppHost applies the EF Core migrations of every module. In Development
 the API serves its OpenAPI document at `/openapi/v1.json` and the Scalar UI at `/scalar`.
 

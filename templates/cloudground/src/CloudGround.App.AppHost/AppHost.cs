@@ -1,6 +1,6 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-var database = builder.AddPostgres("postgres").AddDatabase("database");
+var database = builder.AddPostgres("postgres").WithDataVolume().AddDatabase("database");
 var cache = builder.AddGarnet("cache");
 
 var api = builder.AddProject<Projects.CloudGround_App_Api>("api")
