@@ -5,7 +5,7 @@ var cache = builder.AddGarnet("cache");
 var messaging = builder.AddRabbitMQ("messaging").WithManagementPlugin();
 
 var api = builder.AddProject<Projects.CloudGround_App_Api>("api")
-    .WithHttpHealthCheck("/health")
+    .WithHttpHealthCheck("/health", endpointName: "http")
     .WithReference(database)
     .WaitFor(database)
     .WithReference(cache)
