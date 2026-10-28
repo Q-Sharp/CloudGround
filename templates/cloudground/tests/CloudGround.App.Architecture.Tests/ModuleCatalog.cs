@@ -1,0 +1,51 @@
+using System.Reflection;
+using ArchUnitNET.Loader;
+using ArchitectureModel = ArchUnitNET.Domain.Architecture;
+
+namespace CloudGround.App.Architecture.Tests;
+
+internal static class ModuleCatalog
+{
+    private const string ApiAssemblyName = "CloudGround.App.Api";
+    private const string ModulePrefix = "CloudGround.App.Modules.";
+    private const string ContractsSuffix = ".Contracts";
+
+    public static IReadOnlyList<Assembly> Modules { get; } = DiscoverModules();
+
+    public static IReadOnlyList<Assembly> HostAndModules { get; } = [Assembly.Load(ApiAssemblyName), .. Modules];
+
+    public static IReadOnlyList<string> ModuleProjectNames { get; } = FindModuleProjectNames();
+
+    public static ArchitectureModel Architecture { get; } = new ArchLoader().LoadAssemblies([.. HostAndModules]).Build();
+
+    public static string NameOf(Assembly module) => module.GetName().Name![ModulePrefix.Length..];
+
+    private static List<Assembly> DiscoverModules() =>
+        Directory.EnumerateFiles(AppContext.BaseDirectory, $"{ModulePrefix}*.dll")
+            .Select(file => Path.GetFileNameWithoutExtension(file))
+            .Where(name => !name.EndsWith(ContractsSuffix, StringComparison.Ordinal))
+            .Select(name => Assembly.Load(name))
+            .ToList();
+
+    private static List<string> FindModuleProjectNames()
+    {
+        var modules = new DirectoryInfo(Path.Combine(SolutionRoot(), "src", "Modules"));
+        return modules.Exists
+            ? modules.EnumerateDirectories()
+                .Select(directory => directory.Name)
+                .Where(name => !name.EndsWith(ContractsSuffix, StringComparison.Ordinal))
+                .ToList()
+            : [];
+    }
+
+    private static string SolutionRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null && !directory.EnumerateFiles("*.slnx").Any())
+        {
+            directory = directory.Parent;
+        }
+
+        return directory?.FullName ?? throw new InvalidOperationException("No solution file above the test output.");
+    }
+}

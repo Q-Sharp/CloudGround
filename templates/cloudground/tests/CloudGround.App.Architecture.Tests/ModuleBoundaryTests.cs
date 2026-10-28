@@ -1,0 +1,36 @@
+using ArchUnitNET.xUnitV3;
+using Microsoft.EntityFrameworkCore.Migrations;
+using static ArchUnitNET.Fluent.ArchRuleDefinition;
+
+namespace CloudGround.App.Architecture.Tests;
+
+public sealed class ModuleBoundaryTests
+{
+    [Fact]
+    public void Modules_do_not_depend_on_each_others_internals()
+    {
+        foreach (var module in ModuleCatalog.Modules)
+        {
+            foreach (var other in ModuleCatalog.Modules.Where(other => other != module))
+            {
+                Types().That().ResideInAssembly(module)
+                    .Should().NotDependOnAny(Types().That().ResideInAssembly(other))
+                    .Check(ModuleCatalog.Architecture);
+            }
+        }
+    }
+
+    [Fact]
+    public void Modules_expose_only_their_module_class_and_validated_requests()
+    {
+        foreach (var module in ModuleCatalog.Modules)
+        {
+            var unexpected = module.GetExportedTypes()
+                .Where(type => type.Name != $"{ModuleCatalog.NameOf(module)}Module")
+                .Where(type => !type.Name.EndsWith("Request", StringComparison.Ordinal))
+                .Where(type => !type.IsSubclassOf(typeof(Migration)));
+
+            Assert.Empty(unexpected);
+        }
+    }
+}
