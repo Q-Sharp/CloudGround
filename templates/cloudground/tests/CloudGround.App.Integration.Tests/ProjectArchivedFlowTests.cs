@@ -12,7 +12,7 @@ public sealed class ProjectArchivedFlowTests(AppHostFixture fixture)
     [Fact]
     public async Task Archiving_a_project_closes_its_open_tasks()
     {
-        using var client = fixture.CreateApiClient();
+        using var client = await fixture.CreateApiClientAsync("alice");
         var projectId = await PostForIdAsync(client, "/api/projects", new { Name = "Product launch" });
         var openTaskId = await PostForIdAsync(client, $"/api/projects/{projectId}/tasks", new { Title = "Write the press release" });
         var completedTaskId = await PostForIdAsync(client, $"/api/projects/{projectId}/tasks", new { Title = "Book the venue" });

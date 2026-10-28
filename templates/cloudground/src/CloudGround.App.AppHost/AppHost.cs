@@ -3,6 +3,14 @@ var builder = DistributedApplication.CreateBuilder(args);
 var database = builder.AddPostgres("postgres").WithDataVolume().AddDatabase("database");
 var cache = builder.AddGarnet("cache");
 var messaging = builder.AddRabbitMQ("messaging").WithManagementPlugin();
+var bffClientSecret = builder.AddParameter("bff-client-secret", new GenerateParameterDefault { MinLength = 32, Special = false }, secret: true, persist: true);
+#pragma warning disable ASPIRECERTIFICATES001
+var keycloak = builder.AddKeycloak("keycloak", port: 8380)
+    .WithDataVolume()
+    .WithoutHttpsCertificate()
+    .WithRealmImport("./Realms")
+    .WithEnvironment("BFF_CLIENT_SECRET", bffClientSecret);
+#pragma warning restore ASPIRECERTIFICATES001
 
 var api = builder.AddProject<Projects.CloudGround_App_Api>("api")
     .WithHttpHealthCheck("/health", endpointName: "http")
@@ -11,7 +19,19 @@ var api = builder.AddProject<Projects.CloudGround_App_Api>("api")
     .WithReference(cache)
     .WaitFor(cache)
     .WithReference(messaging)
-    .WaitFor(messaging);
+    .WaitFor(messaging)
+    .WithReference(keycloak)
+    .WaitFor(keycloak);
+
+builder.AddProject<Projects.CloudGround_App_Bff>("bff")
+    .WithHttpHealthCheck("/health", endpointName: "http")
+    .WithReference(cache)
+    .WaitFor(cache)
+    .WithReference(keycloak)
+    .WaitFor(keycloak)
+    .WithReference(api)
+    .WaitFor(api)
+    .WithEnvironment("Bff__ClientSecret", bffClientSecret);
 
 #if (sample)
 var projectsMigrations = api

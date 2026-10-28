@@ -2,8 +2,8 @@
 
 [![CI](https://github.com/Q-Sharp/CloudGround/actions/workflows/ci.yml/badge.svg)](https://github.com/Q-Sharp/CloudGround/actions/workflows/ci.yml)
 
-> **Status: work in progress.** Phases 1 (foundation), 2 (modules and data) and 3 (messaging) of 7
-> are built.
+> **Status: work in progress.** Phases 1 (foundation), 2 (modules and data), 3 (messaging) and 4 (BFF
+> and login) of 7 are built.
 > The plans live in [`docs/superpowers/plans/`](docs/superpowers/plans/), the design in
 > [`docs/superpowers/specs/`](docs/superpowers/specs/).
 
@@ -13,9 +13,12 @@ through [Aspire](https://aspire.dev).
 
 What a generated solution contains today:
 
-- an Aspire AppHost with PostgreSQL, Garnet and RabbitMQ containers, and shared service defaults
+- an Aspire AppHost with PostgreSQL, Garnet, RabbitMQ and Keycloak containers, and shared service defaults
   (OpenTelemetry, health checks, resilience, service discovery)
-- a modular Minimal API host: `ProblemDetails`, built-in validation, OpenAPI with Scalar,
+- a BFF that signs users in against Keycloak, keeps sessions in Garnet, protects writes with
+  Angular-compatible XSRF tokens and forwards `/api/*` with the user's access token, so tokens never
+  reach the browser
+- a modular Minimal API host: `ProblemDetails`, built-in validation, OpenAPI with Scalar, role checks on writes,
   `HybridCache` on Garnet
 - *Projects* and *Tasks* sample modules, each with its own schema, EF Core migrations that Aspire
   applies before the API starts, Mapperly mapping and caching on a read path
@@ -29,13 +32,13 @@ What a generated solution contains today:
 - GitHub Actions for build, tests, formatting and Conventional Commit pull request titles
 - Dependabot configuration
 
-The roadmap adds a BFF with login, an Angular frontend, container deployment and an AI
-collaboration kit, one phase at a time.
+The roadmap adds an Angular frontend, container deployment and an AI collaboration kit, one phase
+at a time.
 
 ## Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- Docker or Podman (the AppHost starts PostgreSQL, Garnet and RabbitMQ as containers)
+- Docker or Podman (the AppHost starts PostgreSQL, Garnet, RabbitMQ and Keycloak as containers)
 
 ## Install from source
 
@@ -55,7 +58,7 @@ dotnet run --project src/Contoso.Shop.AppHost
 The Aspire dashboard opens in the browser and shows every resource, its logs and its traces.
 
 `--sample false` creates the solution without the *Projects* and *Tasks* sample modules; the module
-infrastructure and messaging stay.
+infrastructure, messaging, the BFF and the login stay.
 
 The name becomes the namespace, so characters that are not valid there turn into underscores:
 `--name my-shop` creates `my_shop.slnx` and `src/my_shop.Api`.

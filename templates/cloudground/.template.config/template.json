@@ -50,6 +50,18 @@
       "pattern": "(((?<=\\.)|^)(?=\\d)|[^\\w.])",
       "replacement": "_"
     },
+    "kebabSeparators": {
+      "identifier": "replace",
+      "pattern": "[^A-Za-z0-9]+",
+      "replacement": "-"
+    },
+    "kebabCase": {
+      "identifier": "chain",
+      "steps": [
+        "kebabSeparators",
+        "lowerCaseInvariant"
+      ]
+    },
     "classNameSafe": {
       "identifier": "replace",
       "pattern": "(((?<=\\.)|^)(?=\\d)|\\W)",
@@ -69,6 +81,12 @@
       "valueTransform": "namespaceSafe",
       "replaces": "CloudGround.App",
       "fileRename": "CloudGround.App"
+    },
+    "solutionKebab": {
+      "type": "derived",
+      "valueSource": "name",
+      "valueTransform": "kebabCase",
+      "replaces": "cloudground-app"
     },
     "solutionClassNamePrefix": {
       "type": "derived",
@@ -138,6 +156,33 @@
         "high": 7300
       },
       "replaces": "7311"
+    },
+    "bffHttpsPort": {
+      "type": "generated",
+      "generator": "port",
+      "parameters": {
+        "low": 7400,
+        "high": 7700
+      },
+      "replaces": "7411"
+    },
+    "bffHttpPort": {
+      "type": "generated",
+      "generator": "port",
+      "parameters": {
+        "low": 5400,
+        "high": 5700
+      },
+      "replaces": "5411"
+    },
+    "keycloakPort": {
+      "type": "generated",
+      "generator": "port",
+      "parameters": {
+        "low": 8300,
+        "high": 8600
+      },
+      "replaces": "8380"
     },
     "apiHttpPort": {
       "type": "generated",

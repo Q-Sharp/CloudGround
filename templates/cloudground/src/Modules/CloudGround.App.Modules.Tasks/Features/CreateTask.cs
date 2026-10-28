@@ -66,7 +66,7 @@ internal static class CreateTaskEndpoint
 {
     public static RouteGroupBuilder MapCreateTask(this RouteGroupBuilder group)
     {
-        group.MapPost("/projects/{projectId:guid}/tasks", CreateAsync).ProducesValidationProblem();
+        group.MapPost("/projects/{projectId:guid}/tasks", CreateAsync).ProducesValidationProblem().RequireAuthorization(TasksPolicies.Edit);
         return group;
     }
 

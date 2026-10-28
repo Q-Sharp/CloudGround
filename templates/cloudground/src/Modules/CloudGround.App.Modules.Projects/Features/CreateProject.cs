@@ -27,7 +27,7 @@ internal static class CreateProjectEndpoint
 {
     public static RouteGroupBuilder MapCreateProject(this RouteGroupBuilder group)
     {
-        group.MapPost("/", CreateAsync).ProducesValidationProblem();
+        group.MapPost("/", CreateAsync).ProducesValidationProblem().RequireAuthorization(ProjectsPolicies.Edit);
         return group;
     }
 

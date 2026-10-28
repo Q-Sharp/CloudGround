@@ -5,7 +5,7 @@ namespace CloudGround.Templates.Tests;
 [Collection(SharedTemplatePackage.Name)]
 public sealed partial class PortTests(TemplatePackage package)
 {
-    private static readonly string[] ProjectsWithLaunchSettings = ["AppHost", "Api"];
+    private static readonly string[] ProjectsWithLaunchSettings = ["AppHost", "Api", "Bff"];
 
     [Fact]
     public async Task Two_generated_solutions_use_different_ports()

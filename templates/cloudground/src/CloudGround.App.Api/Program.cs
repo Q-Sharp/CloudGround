@@ -13,6 +13,7 @@ builder.Services.AddHybridCache();
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 builder.AddMessaging();
+builder.AddApiAuthentication();
 #if (sample)
 builder.AddProjectsModule();
 builder.AddTasksModule();
@@ -27,6 +28,8 @@ app.UseExceptionHandler(new ExceptionHandlerOptions
         : StatusCodes.Status500InternalServerError,
 });
 app.UseStatusCodePages();
+app.UseAuthentication();
+app.UseAuthorization();
 
 if (app.Environment.IsDevelopment())
 {

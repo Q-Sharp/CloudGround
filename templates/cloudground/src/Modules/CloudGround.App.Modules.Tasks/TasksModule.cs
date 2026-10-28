@@ -22,6 +22,8 @@ public static class TasksModule
         builder.AddNpgsqlDbContext<TasksDbContext>("database", configureDbContextOptions: options =>
             options.UseNpgsql(npgsql => npgsql.MigrationsHistoryTable(HistoryRepository.DefaultTableName, TasksDbContext.Schema)));
 
+        builder.Services.AddAuthorizationBuilder()
+            .AddPolicy(TasksPolicies.Edit, policy => policy.RequireRole(TasksPolicies.EditorRole));
         builder.Services.AddValidation();
         builder.Services.TryAddSingleton(TimeProvider.System);
         builder.Services.AddScoped<CreateTaskHandler>();

@@ -12,12 +12,21 @@ public sealed class AppHostFixture : IAsyncLifetime
     {
         var cancellation = TestContext.Current.CancellationToken;
         var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.CloudGround_App_AppHost>(cancellation);
-        app = await appHost.WithoutDataVolumes().BuildAsync(cancellation);
+        app = await appHost.WithoutDataVolumes().WithTwoBffInstances().BuildAsync(cancellation);
         await app.StartAsync(cancellation);
         await app.ResourceNotifications.WaitForResourceHealthyAsync("api", cancellation);
+        await app.ResourceNotifications.WaitForResourceHealthyAsync("keycloak", cancellation);
+        await app.ResourceNotifications.WaitForResourceHealthyAsync("bff", cancellation);
     }
 
     public HttpClient CreateApiClient() => App.CreateHttpClient("api", "http");
+
+    public async Task<HttpClient> CreateApiClientAsync(string user)
+    {
+        var client = CreateApiClient();
+        client.DefaultRequestHeaders.Authorization = new("Bearer", await Tokens.ForAsync(App, user, TestContext.Current.CancellationToken));
+        return client;
+    }
 
     public async ValueTask DisposeAsync()
     {

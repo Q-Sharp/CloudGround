@@ -10,12 +10,14 @@
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.EntityFrameworkCore" />
     <PackageReference Include="Aspire.Hosting.Garnet" />
+    <PackageReference Include="Aspire.Hosting.Keycloak" />
     <PackageReference Include="Aspire.Hosting.PostgreSQL" />
     <PackageReference Include="Aspire.Hosting.RabbitMQ" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../CloudGround.App.Api/CloudGround.App.Api.csproj" />
+    <ProjectReference Include="../CloudGround.App.Bff/CloudGround.App.Bff.csproj" />
   </ItemGroup>
 
 </Project>

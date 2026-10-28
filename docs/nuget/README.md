@@ -9,13 +9,15 @@ cd Contoso.Shop
 dotnet run --project src/Contoso.Shop.AppHost
 ```
 
-A generated solution contains an Aspire AppHost with PostgreSQL, Garnet and RabbitMQ, shared
-service defaults (OpenTelemetry, health checks, resilience, service discovery), a modular Minimal
-API host with ProblemDetails, validation, OpenAPI and HybridCache, messaging with Wolverine and a
-transactional outbox, *Projects* and *Tasks* sample modules that meet only through contracts,
+A generated solution contains an Aspire AppHost with PostgreSQL, Garnet, RabbitMQ and Keycloak,
+shared service defaults (OpenTelemetry, health checks, resilience, service discovery), a BFF that
+signs users in and keeps tokens away from the browser, a modular Minimal API host with
+ProblemDetails, validation, OpenAPI, HybridCache and role checks on writes, messaging with Wolverine
+and a transactional outbox, *Projects* and *Tasks* sample modules that meet only through contracts,
 architecture tests, integration tests that start the whole application, automatic semantic
 versioning from Git tags, GitHub Actions and Dependabot.
 
-`--sample false` leaves out the sample modules and keeps the module infrastructure and messaging.
+`--sample false` leaves out the sample modules and keeps the module infrastructure, messaging, the
+BFF and the login.
 
 Source, roadmap and documentation: <https://github.com/Q-Sharp/CloudGround>
