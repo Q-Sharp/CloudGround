@@ -29,9 +29,18 @@ jobs:
       - name: Install the template
         run: dotnet new install artifacts/CloudGround.Templates.*.nupkg
 
-      - name: Generate a solution
+      - name: Generate a solution with the sample
         run: dotnet new cloudground --name Contoso.Shop --output generated/contoso-shop
 
-      - uses: ./generated/contoso-shop/.github/actions/build-and-test
+      - name: Generate a solution without the sample
+        run: dotnet new cloudground --name Contoso.Empty --sample false --output generated/contoso-empty
+
+      - name: Build and test the solution with the sample
+        uses: ./generated/contoso-shop/.github/actions/build-and-test
         with:
           working-directory: generated/contoso-shop
+
+      - name: Build and test the solution without the sample
+        uses: ./generated/contoso-empty/.github/actions/build-and-test
+        with:
+          working-directory: generated/contoso-empty

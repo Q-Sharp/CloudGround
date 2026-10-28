@@ -1,4 +1,6 @@
+#if (sample)
 using CloudGround.App.Modules.Projects;
+#endif
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,7 +10,9 @@ builder.AddRedisDistributedCache("cache");
 builder.Services.AddHybridCache();
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
+#if (sample)
 builder.AddProjectsModule();
+#endif
 
 var app = builder.Build();
 
@@ -27,6 +31,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapDefaultEndpoints();
+#if (sample)
 app.MapProjectsModule();
+#endif
 
 app.Run();

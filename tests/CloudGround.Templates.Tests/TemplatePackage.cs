@@ -21,10 +21,10 @@ public sealed class TemplatePackage : IAsyncLifetime
         Assert.True(install.ExitCode == 0, install.Output);
     }
 
-    public async ValueTask<GeneratedSolution> GenerateAsync(string name)
+    public async ValueTask<GeneratedSolution> GenerateAsync(string name, params string[] options)
     {
         var root = Path.Combine(workspace, "solutions", Guid.NewGuid().ToString("N"), name);
-        var generate = await DotnetCli.RunAsync(workspace, "new", "cloudground", "-n", name, "-o", root, "--debug:custom-hive", Hive);
+        var generate = await DotnetCli.RunAsync(workspace, ["new", "cloudground", "-n", name, "-o", root, "--debug:custom-hive", Hive, .. options]);
         Assert.True(generate.ExitCode == 0, generate.Output);
         return new GeneratedSolution(root, name);
     }

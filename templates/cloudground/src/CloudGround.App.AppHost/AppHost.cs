@@ -9,6 +9,7 @@ var api = builder.AddProject<Projects.CloudGround_App_Api>("api")
     .WithReference(cache)
     .WaitFor(cache);
 
+#if (sample)
 var projectsMigrations = api
     .AddEFMigrations("projects-migrations", "CloudGround.App.Modules.Projects.Persistence.ProjectsDbContext")
     .WithMigrationsProject("../Modules/CloudGround.App.Modules.Projects/CloudGround.App.Modules.Projects.csproj")
@@ -17,5 +18,6 @@ var projectsMigrations = api
     .RunDatabaseUpdateOnStart();
 
 api.WaitForCompletion(projectsMigrations);
+#endif
 
 builder.Build().Run();
