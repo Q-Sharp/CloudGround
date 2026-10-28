@@ -3,10 +3,19 @@ var builder = DistributedApplication.CreateBuilder(args);
 var database = builder.AddPostgres("postgres").AddDatabase("database");
 var cache = builder.AddGarnet("cache");
 
-builder.AddProject<Projects.CloudGround_App_Api>("api")
+var api = builder.AddProject<Projects.CloudGround_App_Api>("api")
     .WithReference(database)
     .WaitFor(database)
     .WithReference(cache)
     .WaitFor(cache);
+
+var projectsMigrations = api
+    .AddEFMigrations("projects-migrations", "CloudGround.App.Modules.Projects.Persistence.ProjectsDbContext")
+    .WithMigrationsProject("../Modules/CloudGround.App.Modules.Projects/CloudGround.App.Modules.Projects.csproj")
+    .WithReference(database)
+    .WaitFor(database)
+    .RunDatabaseUpdateOnStart();
+
+api.WaitForCompletion(projectsMigrations);
 
 builder.Build().Run();

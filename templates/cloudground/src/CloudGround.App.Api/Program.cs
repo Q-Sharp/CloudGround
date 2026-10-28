@@ -1,3 +1,4 @@
+using CloudGround.App.Modules.Projects;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,10 +8,16 @@ builder.AddRedisDistributedCache("cache");
 builder.Services.AddHybridCache();
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
+builder.AddProjectsModule();
 
 var app = builder.Build();
 
-app.UseExceptionHandler();
+app.UseExceptionHandler(new ExceptionHandlerOptions
+{
+    StatusCodeSelector = exception => exception is BadHttpRequestException badRequest
+        ? badRequest.StatusCode
+        : StatusCodes.Status500InternalServerError,
+});
 app.UseStatusCodePages();
 
 if (app.Environment.IsDevelopment())
@@ -20,5 +27,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapDefaultEndpoints();
+app.MapProjectsModule();
 
 app.Run();

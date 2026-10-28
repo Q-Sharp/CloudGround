@@ -3,12 +3,14 @@
   <ItemGroup>
     <PackageReference Include="Aspire.StackExchange.Redis.DistributedCaching" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" />
     <PackageReference Include="Scalar.AspNetCore" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../CloudGround.App.ServiceDefaults/CloudGround.App.ServiceDefaults.csproj" />
+    <ProjectReference Include="../Modules/CloudGround.App.Modules.Projects/CloudGround.App.Modules.Projects.csproj" />
   </ItemGroup>
 
 </Project>

@@ -4,7 +4,11 @@
     <Project Path="src/CloudGround.App.AppHost/CloudGround.App.AppHost.csproj" />
     <Project Path="src/CloudGround.App.ServiceDefaults/CloudGround.App.ServiceDefaults.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/">
+    <Project Path="src/Modules/CloudGround.App.Modules.Projects/CloudGround.App.Modules.Projects.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/CloudGround.App.Integration.Tests/CloudGround.App.Integration.Tests.csproj" />
+    <Project Path="tests/CloudGround.App.Modules.Projects.Tests/CloudGround.App.Modules.Projects.Tests.csproj" />
   </Folder>
 </Solution>
