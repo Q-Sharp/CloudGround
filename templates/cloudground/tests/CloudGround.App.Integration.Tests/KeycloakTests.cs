@@ -22,7 +22,7 @@ public sealed class KeycloakTests(AppHostFixture fixture)
     {
         var payload = Tokens.PayloadOf(await Tokens.ForAsync(fixture.App, "alice", Cancellation));
 
-        Assert.Contains("cloudground-api", Audiences(payload));
+        Assert.Contains("cloudground-app-api", Audiences(payload));
         Assert.Contains("editor", Roles(payload));
     }
 
@@ -31,7 +31,7 @@ public sealed class KeycloakTests(AppHostFixture fixture)
     {
         var payload = Tokens.PayloadOf(await Tokens.ForAsync(fixture.App, "bob", Cancellation));
 
-        Assert.Contains("cloudground-api", Audiences(payload));
+        Assert.Contains("cloudground-app-api", Audiences(payload));
         Assert.DoesNotContain("editor", Roles(payload));
     }
 

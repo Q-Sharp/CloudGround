@@ -1,9 +1,11 @@
+using System.Text.Json;
+
 namespace CloudGround.Templates.Tests;
 
 [Collection(SharedTemplatePackage.Name)]
 public sealed class NamingTests(TemplatePackage package)
 {
-    private static readonly string[] SourceNameForms = ["cloudground.app", "cloudground_app"];
+    private static readonly string[] SourceNameForms = ["cloudground.app", "cloudground_app", "cloudground-app"];
 
     [Fact]
     public async Task Generated_solution_contains_no_source_name_form()
@@ -13,6 +15,18 @@ public sealed class NamingTests(TemplatePackage package)
 
         Assert.DoesNotContain(files, ContainsSourceNameForm);
         Assert.All(files, file => Assert.False(ContainsSourceNameForm(File.ReadAllText(Path.Combine(solution.Root, file))), file));
+    }
+
+    [Fact]
+    public async Task Identity_names_follow_the_solution_name()
+    {
+        var solution = await package.GenerateAsync("Contoso.Shop");
+
+        using var realm = JsonDocument.Parse(File.ReadAllText(Path.Combine(solution.Root, "src", "Contoso.Shop.AppHost", "Realms", "realm.json")));
+        var clients = realm.RootElement.GetProperty("clients").EnumerateArray().Select(client => client.GetProperty("clientId").GetString());
+
+        Assert.Equal("contoso-shop", realm.RootElement.GetProperty("realm").GetString());
+        Assert.Equal(["contoso-shop-bff", "contoso-shop-tests"], clients.Order());
     }
 
     [Fact]

@@ -6,9 +6,9 @@ namespace CloudGround.App.Integration.Tests;
 
 internal static class Tokens
 {
-    public const string Realm = "cloudground";
+    public const string Realm = "cloudground-app";
 
-    private const string TestClientId = "cloudground-tests";
+    private const string TestClientId = "cloudground-app-tests";
 
     public static async Task<string> ForAsync(DistributedApplication app, string user, CancellationToken cancellationToken)
     {

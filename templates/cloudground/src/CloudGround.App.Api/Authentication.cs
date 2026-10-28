@@ -3,8 +3,8 @@ namespace CloudGround.App.Api;
 internal static class Authentication
 {
     private const string IdentityProviderName = "keycloak";
-    private const string Realm = "cloudground";
-    private const string Audience = "cloudground-api";
+    private const string Realm = "cloudground-app";
+    private const string Audience = "cloudground-app-api";
     private const string RoleClaim = "roles";
     private const string NameClaim = "preferred_username";
 

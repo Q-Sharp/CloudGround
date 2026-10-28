@@ -14,8 +14,8 @@ internal static class BffAuthentication
     public const string NameClaim = "preferred_username";
 
     private const string IdentityProviderName = "keycloak";
-    private const string Realm = "cloudground";
-    private const string ClientId = "cloudground-bff";
+    private const string Realm = "cloudground-app";
+    private const string ClientId = "cloudground-app-bff";
     private const string ClientSecretSetting = "Bff:ClientSecret";
     private const string SessionCookieName = "bff";
     private const string ApplicationName = "CloudGround.App.Bff";

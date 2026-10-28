@@ -74,7 +74,7 @@ public sealed class AccessTokenRefresherTests
 
     private static OpenIdConnectOptions Options() => new()
     {
-        ClientId = "cloudground-bff",
+        ClientId = "cloudground-app-bff",
         ClientSecret = "secret",
         ConfigurationManager = new StaticConfigurationManager<OpenIdConnectConfiguration>(
             new OpenIdConnectConfiguration { TokenEndpoint = "https://identity.example/token" }),
