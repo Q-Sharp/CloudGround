@@ -141,7 +141,7 @@ The project fails, even if it technically works, if any of these is true:
 |---|---|---|
 | .NET SDK and runtime | newest LTS | .NET 10 |
 | Angular | newest stable major. Angular supports every major for about 18 months, so its "LTS" phase is the end of a major's life, not a longer support line; the newest major has the longest support | Angular 22 (**Author**, 2026-10-28: newest version instead of newest LTS) |
-| Node.js (SSR, tooling, devcontainer) | newest Active LTS | Node.js 24 (**Builder**, 2026-10-28) |
+| Node.js (SSR, tooling, devcontainer) | newest even-numbered release line, which becomes the next Active LTS | Node.js 26 (**Author**, 2026-10-28) |
 | Container base images | images built on the newest LTS of their distribution, e.g. Ubuntu LTS for .NET images | **Builder** |
 | PostgreSQL, Keycloak, RabbitMQ, Garnet, Aspire, NuGet and npm packages | no LTS line in the open-source edition: newest stable release | **Builder** |
 | `Aspire.Hosting.EntityFrameworkCore` | preview, because Aspire's migration integration has no stable release yet | **Author** exception (2026-10-28) |
