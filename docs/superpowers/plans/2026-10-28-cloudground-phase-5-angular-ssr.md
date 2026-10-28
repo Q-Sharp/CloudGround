@@ -4,16 +4,16 @@
 
 **Goal:** Generated solutions get an Angular SSR frontend behind the BFF: a public, server-rendered page that shows data from the API's anonymous endpoints, and a client-rendered area for signed-in users, with lint, unit tests, OpenTelemetry in Node, a Dockerfile and Playwright end-to-end tests.
 
-**Architecture:** `src/CloudGround.App.Web` is an Angular CLI workspace (newest LTS major) with SSR and per-route render modes. The AppHost runs it as a JavaScript app; the BFF forwards every path that is not `/api` or `/bff` to it, so the browser still talks only to the BFF. The SSR server calls the API directly through service discovery for public data; the browser calls `/api` through the BFF with Angular's built-in XSRF support. Node is instrumented with the OpenTelemetry Node SDK. Playwright for .NET drives the whole stack through `Aspire.Hosting.Testing`.
+**Architecture:** `src/CloudGround.App.Web` is an Angular CLI workspace (newest stable major) with SSR and per-route render modes. The AppHost runs it as a JavaScript app; the BFF forwards every path that is not `/api` or `/bff` to it, so the browser still talks only to the BFF. The SSR server calls the API directly through service discovery for public data; the browser calls `/api` through the BFF with Angular's built-in XSRF support. Node is instrumented with the OpenTelemetry Node SDK. Playwright for .NET drives the whole stack through `Aspire.Hosting.Testing`.
 
-**Tech Stack:** Angular 21 (newest LTS major on 2026-10-28: `v21-lts` → 21.2.x; Angular 22 is the active major), Angular Material, angular-eslint, the CLI's default unit test runner, Node.js 24 (newest Active LTS), OpenTelemetry Node SDK, `Aspire.Hosting.JavaScript` 13.6.4, `Microsoft.Playwright.Xunit.v3` 1.64.1.
+**Tech Stack:** Angular 22 (newest stable major on 2026-10-28: 22.2.x; the author chose the newest version over the newest LTS), Angular Material, angular-eslint, the CLI's default unit test runner, Node.js 24 (newest Active LTS), OpenTelemetry Node SDK, `Aspire.Hosting.JavaScript` 13.6.4, `Microsoft.Playwright.Xunit.v3` 1.64.1.
 
 **Spec:** `docs/superpowers/specs/2026-10-27-cloudground-design.md` (7.1 Frontend and Rendering, 7.4, 8.1, 8.2 Sample, 8.3, 8.4, 8.5, 8.7, 8.12)
 
 ## Global Constraints
 
 - Everything in the Global Constraints of the phase 1 to 4 plans still holds.
-- Versions (2026-10-28): Angular 21 (`@angular/*` 21.2.x, CLI 21.2.x), Node.js 24 (`.nvmrc` `24`), `Aspire.Hosting.JavaScript` 13.6.4, `Microsoft.Playwright.Xunit.v3` 1.64.1; npm packages at their newest stable versions compatible with Angular 21.
+- Versions (2026-10-28): Angular 22 (`@angular/*` 22.2.x, CLI 22.2.x), Node.js 24 (`.nvmrc` `24`), `Aspire.Hosting.JavaScript` 13.6.4, `Microsoft.Playwright.Xunit.v3` 1.64.1; npm packages at their newest stable versions compatible with Angular 22.
 - "Angular CLI project with the current defaults (standalone, zoneless, signals, built-in control flow, the CLI's default unit test runner)." "Route-level render modes as in 7.1." "Calls go to the same origin (`/api/...`, `/bff/...`); no tokens in the browser." "ESLint via angular-eslint; the build fails on lint errors." "Containerized with its own Dockerfile." (spec 8.3)
 - "SSR renders public pages anonymously … the SSR server calls the API's anonymous public endpoints directly, using Aspire service discovery. Routes that need data are server-rendered at request time, not prerendered." (spec 8.1)
 - Generated files from `ng new`/`ng add` lose their comments (user rule: comments come out of one-off scaffolds); `package-lock.json` is committed.
@@ -39,7 +39,7 @@
 ### Task 1: Angular workspace
 
 **Files:**
-- Create: `src/CloudGround.App.Web/` from `ng new cloudground-app-web --ssr --style=scss --skip-git` with Angular CLI 21, then `ng add @angular/material` and `ng add angular-eslint`; `.nvmrc` with `24`; comments removed from generated files
+- Create: `src/CloudGround.App.Web/` from `ng new cloudground-app-web --ssr --style=scss --skip-git` with Angular CLI 22, then `ng add @angular/material` and `ng add angular-eslint`; `.nvmrc` with `24`; comments removed from generated files
 - Modify: `CloudGround.Templates.csproj` and `.template.config/template.json` (exclude `**/node_modules/**`, `**/dist/**`, `**/.angular/**`), `tests/CloudGround.Templates.Tests/{LayoutTests,WebAppTests}.cs`
 
 **Interfaces:**

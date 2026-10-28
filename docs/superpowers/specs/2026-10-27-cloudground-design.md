@@ -95,7 +95,7 @@ The project fails, even if it technically works, if any of these is true:
 |---|---|---|
 | Language / runtime | C#, .NET 10 | Author / Approved |
 | Orchestration | Aspire (AppHost + ServiceDefaults) | Approved |
-| Frontend | Angular, newest LTS major (7.4), standalone components, signals, zoneless, built-in control flow | Author (Angular, LTS) / Default (rest) |
+| Frontend | Angular, newest stable major (7.4), standalone components, signals, zoneless, built-in control flow | Author (Angular, LTS) / Default (rest) |
 | Rendering | Angular SSR with per-route render modes: public pages server-rendered or prerendered, authenticated area client-rendered | Approved; follows from the author's requirement that generated apps suit public websites |
 | UI components | Angular Material | Default |
 | API style | Minimal APIs, one endpoint group per feature | Author |
@@ -140,7 +140,7 @@ The project fails, even if it technically works, if any of these is true:
 | Component | Rule | At the time of writing |
 |---|---|---|
 | .NET SDK and runtime | newest LTS | .NET 10 |
-| Angular | newest major that is in LTS. Angular keeps each major in active support for six months and then in LTS, so the newest LTS major is usually one behind the newest release | Angular 21 (**Builder**, 2026-10-28) |
+| Angular | newest stable major. Angular supports every major for about 18 months, so its "LTS" phase is the end of a major's life, not a longer support line; the newest major has the longest support | Angular 22 (**Author**, 2026-10-28: newest version instead of newest LTS) |
 | Node.js (SSR, tooling, devcontainer) | newest Active LTS | Node.js 24 (**Builder**, 2026-10-28) |
 | Container base images | images built on the newest LTS of their distribution, e.g. Ubuntu LTS for .NET images | **Builder** |
 | PostgreSQL, Keycloak, RabbitMQ, Garnet, Aspire, NuGet and npm packages | no LTS line in the open-source edition: newest stable release | **Builder** |
