@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
 
 namespace CloudGround.App.Modules.Projects.Features;
@@ -29,7 +30,15 @@ internal sealed class ArchiveProjectHandler(ProjectsDbContext database, HybridCa
             return ArchiveProjectOutcome.AlreadyArchived;
         }
 
-        await database.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await database.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return ArchiveProjectOutcome.AlreadyArchived;
+        }
+
         await cache.RemoveAsync(ProjectCache.Key(projectId), cancellationToken);
         return ArchiveProjectOutcome.Archived;
     }

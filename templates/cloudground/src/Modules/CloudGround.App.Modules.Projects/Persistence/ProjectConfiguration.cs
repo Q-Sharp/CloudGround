@@ -10,5 +10,6 @@ internal sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
     {
         builder.Property(project => project.Name).HasMaxLength(Project.NameMaxLength);
         builder.Property(project => project.Description).HasMaxLength(Project.DescriptionMaxLength);
+        builder.Property<uint>("Version").IsRowVersion();
     }
 }

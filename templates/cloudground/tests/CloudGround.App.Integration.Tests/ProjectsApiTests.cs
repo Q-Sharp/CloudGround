@@ -42,6 +42,7 @@ public sealed class ProjectsApiTests(AppHostFixture fixture)
         using var response = await client.PostAsJsonAsync(ProjectsUri, new { Name = "   " }, Cancellation);
 
         await AssertValidationProblemAsync(response, "Name");
+        await AssertNoProjectNamedAsync(client, "   ");
     }
 
     [Fact]
@@ -49,9 +50,12 @@ public sealed class ProjectsApiTests(AppHostFixture fixture)
     {
         using var client = fixture.CreateApiClient();
 
-        using var response = await client.PostAsJsonAsync(ProjectsUri, new { Name = new string('x', 101) }, Cancellation);
+        var name = new string('x', 101);
+
+        using var response = await client.PostAsJsonAsync(ProjectsUri, new { Name = name }, Cancellation);
 
         await AssertValidationProblemAsync(response, "Name");
+        await AssertNoProjectNamedAsync(client, name);
     }
 
     [Fact]
@@ -105,6 +109,31 @@ public sealed class ProjectsApiTests(AppHostFixture fixture)
     }
 
     [Fact]
+    public async Task Concurrent_archives_conflict()
+    {
+        using var client = fixture.CreateApiClient();
+        var created = await CreateProjectAsync(client, "Data center exit");
+
+        var responses = await Task.WhenAll(Enumerable.Range(0, 10).Select(_ => client.PostAsync(ArchiveUri(created.Id), null, Cancellation)));
+        var statuses = responses.Select(response => response.StatusCode).ToList();
+        Array.ForEach(responses, response => response.Dispose());
+
+        Assert.Single(statuses, HttpStatusCode.NoContent);
+        Assert.All(statuses.Where(status => status != HttpStatusCode.NoContent), status => Assert.Equal(HttpStatusCode.Conflict, status));
+    }
+
+    [Fact]
+    public async Task Api_documents_validation_errors_for_creating_a_project()
+    {
+        using var client = fixture.CreateApiClient();
+
+        using var document = JsonDocument.Parse(await client.GetStringAsync(new Uri("/openapi/v1.json", UriKind.Relative), Cancellation));
+        var responses = document.RootElement.GetProperty("paths").GetProperty("/api/projects").GetProperty("post").GetProperty("responses");
+
+        Assert.True(responses.TryGetProperty("400", out _));
+    }
+
+    [Fact]
     public async Task Projects_tables_live_in_the_projects_schema()
     {
         var connectionString = await fixture.App.GetConnectionStringAsync("database", Cancellation);
@@ -142,6 +171,12 @@ public sealed class ProjectsApiTests(AppHostFixture fixture)
         using var problem = JsonDocument.Parse(await response.Content.ReadAsStringAsync(Cancellation));
         var errors = problem.RootElement.GetProperty("errors").EnumerateObject().Select(error => error.Name);
         Assert.Contains(errors, error => error.Equals(field, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static async Task AssertNoProjectNamedAsync(HttpClient client, string name)
+    {
+        var projects = await client.GetFromJsonAsync<ProjectDto[]>(ProjectsUri, Cancellation);
+        Assert.DoesNotContain(projects!, project => project.Name == name);
     }
 
     private static Uri ProjectUri(Guid id) => new($"/api/projects/{id}", UriKind.Relative);
