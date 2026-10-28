@@ -133,7 +133,7 @@ public sealed class ProjectsApiTests(AppHostFixture fixture)
     [Fact]
     public async Task Projects_tables_live_in_the_projects_schema()
     {
-        var tables = await TablesInSchemaAsync(fixture.App, "projects");
+        var tables = await DatabaseTables.InSchemaAsync(fixture.App, "projects");
 
         Assert.Contains("Projects", tables);
         Assert.Contains("__EFMigrationsHistory", tables);

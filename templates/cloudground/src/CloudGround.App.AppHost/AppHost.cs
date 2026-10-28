@@ -2,12 +2,16 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 var database = builder.AddPostgres("postgres").WithDataVolume().AddDatabase("database");
 var cache = builder.AddGarnet("cache");
+var messaging = builder.AddRabbitMQ("messaging").WithManagementPlugin();
 
 var api = builder.AddProject<Projects.CloudGround_App_Api>("api")
+    .WithHttpHealthCheck("/health")
     .WithReference(database)
     .WaitFor(database)
     .WithReference(cache)
-    .WaitFor(cache);
+    .WaitFor(cache)
+    .WithReference(messaging)
+    .WaitFor(messaging);
 
 #if (sample)
 var projectsMigrations = api

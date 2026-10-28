@@ -15,6 +15,7 @@ public static class Extensions
     private const string HealthEndpointPath = "/health";
     private const string AlivenessEndpointPath = "/alive";
     private const string LivenessTag = "live";
+    private const string WolverineInstrumentation = "Wolverine";
 
     public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
@@ -42,9 +43,11 @@ public static class Extensions
             .WithMetrics(metrics => metrics
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation()
-                .AddRuntimeInstrumentation())
+                .AddRuntimeInstrumentation()
+                .AddMeter(WolverineInstrumentation))
             .WithTracing(tracing => tracing
                 .AddSource(builder.Environment.ApplicationName)
+                .AddSource(WolverineInstrumentation)
                 .AddAspNetCoreInstrumentation(options => options.Filter = context => !IsHealthProbe(context.Request.Path))
                 .AddHttpClientInstrumentation());
 

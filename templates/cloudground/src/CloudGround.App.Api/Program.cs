@@ -1,3 +1,4 @@
+using CloudGround.App.Api;
 #if (sample)
 using CloudGround.App.Modules.Projects;
 using CloudGround.App.Modules.Tasks;
@@ -11,6 +12,7 @@ builder.AddRedisDistributedCache("cache");
 builder.Services.AddHybridCache();
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
+builder.AddMessaging();
 #if (sample)
 builder.AddProjectsModule();
 builder.AddTasksModule();

@@ -15,6 +15,16 @@ public sealed class AppHostModelTests
     }
 
     [Fact]
+    public async Task Api_counts_as_healthy_only_when_its_health_endpoint_answers()
+    {
+        await using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.CloudGround_App_AppHost>(TestContext.Current.CancellationToken);
+
+        var api = appHost.Resources.Single(resource => resource.Name == "api");
+
+        Assert.NotEmpty(api.Annotations.OfType<HealthCheckAnnotation>());
+    }
+
+    [Fact]
     public async Task Tests_start_without_data_volumes()
     {
         await using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.CloudGround_App_AppHost>(TestContext.Current.CancellationToken);
