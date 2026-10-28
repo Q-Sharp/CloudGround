@@ -7,7 +7,11 @@
 
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.Testing" />
+    <!--#if (sample) -->
+    <PackageReference Include="Npgsql" />
+    <!--#endif -->
     <PackageReference Include="xunit.v3" />
+    <Using Include="Aspire.Hosting" />
     <Using Include="Aspire.Hosting.Testing" />
     <Using Include="Xunit" />
   </ItemGroup>

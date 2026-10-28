@@ -9,6 +9,11 @@
     <MinVerTagPrefix>v</MinVerTagPrefix>
     <WarningsNotAsErrors>$(WarningsNotAsErrors);MINVER1001</WarningsNotAsErrors>
   </PropertyGroup>
+  <!--#if (false) -->
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);sample</DefineConstants>
+  </PropertyGroup>
+  <!--#endif -->
   <ItemGroup>
     <PackageReference Include="MinVer" PrivateAssets="all" />
   </ItemGroup>

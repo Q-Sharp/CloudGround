@@ -9,8 +9,12 @@ cd Contoso.Shop
 dotnet run --project src/Contoso.Shop.AppHost
 ```
 
-A generated solution contains an Aspire AppHost, shared service defaults (OpenTelemetry, health
-checks, resilience, service discovery), a Minimal API host, an integration test that starts the
-whole application, automatic semantic versioning from Git tags, GitHub Actions and Dependabot.
+A generated solution contains an Aspire AppHost with PostgreSQL and Garnet, shared service
+defaults (OpenTelemetry, health checks, resilience, service discovery), a modular Minimal API host
+with ProblemDetails, validation, OpenAPI and HybridCache, a *Projects* sample module with EF Core
+migrations and Mapperly, architecture tests, integration tests that start the whole application,
+automatic semantic versioning from Git tags, GitHub Actions and Dependabot.
+
+`--sample false` leaves out the sample module and keeps the module infrastructure.
 
 Source, roadmap and documentation: <https://github.com/Q-Sharp/CloudGround>

@@ -26,6 +26,14 @@
             "**/.vs/**",
             "**/*.user"
           ]
+        },
+        {
+          "condition": "(!sample)",
+          "exclude": [
+            "src/Modules/**",
+            "tests/CloudGround.App.Modules.*/**",
+            "tests/CloudGround.App.Integration.Tests/Projects*.cs"
+          ]
         }
       ]
     }
@@ -46,6 +54,12 @@
     }
   },
   "symbols": {
+    "sample": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "true",
+      "description": "Include the Projects sample module."
+    },
     "solutionNamespace": {
       "type": "derived",
       "valueSource": "name",
