@@ -26,6 +26,7 @@ var api = builder.AddProject<Projects.CloudGround_App_Api>("api")
 var web = builder.AddJavaScriptApp("web", "../CloudGround.App.Web", "start")
     .WithNpm()
     .WithHttpEndpoint(env: "PORT")
+    .WithEnvironment("NODE_OPTIONS", "--import ./src/instrumentation.mjs")
     .WithReference(api)
     .WaitFor(api);
 web.WithArgs("--", "--port", web.GetEndpoint("http").Property(EndpointProperty.TargetPort));

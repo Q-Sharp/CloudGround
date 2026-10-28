@@ -1,4 +1,5 @@
 using Aspire.Hosting.ApplicationModel;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CloudGround.App.Integration.Tests;
 
@@ -43,6 +44,24 @@ public sealed class AppHostModelTests
 
         var bff = appHost.Resources.Single(resource => resource.Name == "bff");
         Assert.Equal(BffInstances.Count, Assert.Single(bff.Annotations.OfType<ReplicaAnnotation>()).Replicas);
+    }
+
+    [Fact]
+    public async Task Web_app_loads_its_telemetry_instrumentation()
+    {
+        var cancellation = TestContext.Current.CancellationToken;
+        await using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.CloudGround_App_AppHost>(cancellation);
+        var web = appHost.Resources.Single(resource => resource.Name == "web");
+        await using var app = await appHost.BuildAsync(cancellation);
+        var environment = new EnvironmentCallbackContext(app.Services.GetRequiredService<DistributedApplicationExecutionContext>(), web, [], cancellation);
+
+        foreach (var callback in web.Annotations.OfType<EnvironmentCallbackAnnotation>())
+        {
+            await callback.Callback(environment);
+        }
+
+        Assert.Contains("--import ./src/instrumentation.mjs", environment.EnvironmentVariables["NODE_OPTIONS"].ToString(), StringComparison.Ordinal);
+        Assert.True(environment.EnvironmentVariables.ContainsKey("OTEL_EXPORTER_OTLP_ENDPOINT"));
     }
 
     [Fact]
