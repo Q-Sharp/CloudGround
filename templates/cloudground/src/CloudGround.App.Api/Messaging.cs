@@ -24,6 +24,7 @@ internal static class Messaging
             options.PersistMessagesWithPostgresqlUsingNamedConnection(DatabaseConnectionName, StorageSchema);
             options.UseEntityFrameworkCoreTransactions();
             options.Policies.AutoApplyTransactions();
+            options.Policies.DisableConventionalLocalRouting();
             options.Policies.UseDurableInboxOnAllListeners();
             options.Policies.UseDurableOutboxOnAllSendingEndpoints();
             options.Policies.OnException<Exception>()

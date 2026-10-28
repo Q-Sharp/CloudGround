@@ -1,3 +1,4 @@
+using CloudGround.App.Modules.Projects.Contracts;
 using CloudGround.App.Modules.Projects.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -5,6 +6,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
+using Wolverine.EntityFrameworkCore;
 
 namespace CloudGround.App.Modules.Projects.Features;
 
@@ -15,11 +17,11 @@ internal enum ArchiveProjectOutcome
     AlreadyArchived,
 }
 
-internal sealed class ArchiveProjectHandler(ProjectsDbContext database, HybridCache cache, TimeProvider clock)
+internal sealed class ArchiveProjectHandler(IDbContextOutbox<ProjectsDbContext> outbox, HybridCache cache, TimeProvider clock)
 {
     public async Task<ArchiveProjectOutcome> HandleAsync(Guid projectId, CancellationToken cancellationToken)
     {
-        var project = await database.Projects.FindAsync([projectId], cancellationToken);
+        var project = await outbox.DbContext.Projects.FindAsync([projectId], cancellationToken);
         if (project is null)
         {
             return ArchiveProjectOutcome.NotFound;
@@ -32,7 +34,8 @@ internal sealed class ArchiveProjectHandler(ProjectsDbContext database, HybridCa
 
         try
         {
-            await database.SaveChangesAsync(cancellationToken);
+            await outbox.DbContext.Database.CreateExecutionStrategy()
+                .ExecuteAsync(token => SaveAndPublishAsync(new ProjectArchived(project.Id, project.ArchivedAt!.Value), token), cancellationToken);
         }
         catch (DbUpdateConcurrencyException)
         {
@@ -41,6 +44,13 @@ internal sealed class ArchiveProjectHandler(ProjectsDbContext database, HybridCa
 
         await cache.RemoveAsync(ProjectCache.Key(projectId), cancellationToken);
         return ArchiveProjectOutcome.Archived;
+    }
+
+    private async Task SaveAndPublishAsync(ProjectArchived archived, CancellationToken cancellationToken)
+    {
+        await using var transaction = await outbox.DbContext.Database.BeginTransactionAsync(cancellationToken);
+        await outbox.PublishAsync(archived);
+        await outbox.SaveChangesAndFlushMessagesAsync(cancellationToken);
     }
 }
 

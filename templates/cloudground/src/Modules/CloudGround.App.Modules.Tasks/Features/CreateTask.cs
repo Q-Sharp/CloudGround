@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 
 namespace CloudGround.App.Modules.Tasks.Features;
 
@@ -38,7 +39,26 @@ internal sealed class CreateTaskHandler(TasksDbContext database, IProjectCatalog
         var task = TaskItem.Create(projectId, request.Title, clock.GetUtcNow());
         database.Tasks.Add(task);
         await database.SaveChangesAsync(cancellationToken);
+        await CloseIfProjectWasArchivedMeanwhileAsync(task, cancellationToken);
         return new CreateTaskResult.Created(task.ToResponse());
+    }
+
+    private async Task CloseIfProjectWasArchivedMeanwhileAsync(TaskItem task, CancellationToken cancellationToken)
+    {
+        if (await projects.FindAsync(task.ProjectId, cancellationToken) is not { IsArchived: true })
+        {
+            return;
+        }
+
+        task.Close(clock.GetUtcNow());
+        try
+        {
+            await database.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            await database.Entry(task).ReloadAsync(cancellationToken);
+        }
     }
 }
 
