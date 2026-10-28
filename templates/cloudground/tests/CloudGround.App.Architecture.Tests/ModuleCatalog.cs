@@ -10,20 +10,25 @@ internal static class ModuleCatalog
     private const string ModulePrefix = "CloudGround.App.Modules.";
     private const string ContractsSuffix = ".Contracts";
 
-    public static IReadOnlyList<Assembly> Modules { get; } = DiscoverModules();
+    public static IReadOnlyList<Assembly> Modules { get; } = DiscoverAssemblies(contracts: false);
+
+    public static IReadOnlyList<Assembly> Contracts { get; } = DiscoverAssemblies(contracts: true);
 
     public static IReadOnlyList<Assembly> HostAndModules { get; } = [Assembly.Load(ApiAssemblyName), .. Modules];
 
     public static IReadOnlyList<string> ModuleProjectNames { get; } = FindModuleProjectNames();
 
-    public static ArchitectureModel Architecture { get; } = new ArchLoader().LoadAssemblies([.. HostAndModules]).Build();
+    public static IReadOnlyList<string> ModuleProjectFiles { get; } =
+        [.. ModuleProjectNames.Select(name => Path.Combine(SolutionRoot(), "src", "Modules", name, $"{name}.csproj"))];
+
+    public static ArchitectureModel Architecture { get; } = new ArchLoader().LoadAssemblies([.. HostAndModules, .. Contracts]).Build();
 
     public static string NameOf(Assembly module) => module.GetName().Name![ModulePrefix.Length..];
 
-    private static List<Assembly> DiscoverModules() =>
+    private static List<Assembly> DiscoverAssemblies(bool contracts) =>
         Directory.EnumerateFiles(AppContext.BaseDirectory, $"{ModulePrefix}*.dll")
             .Select(file => Path.GetFileNameWithoutExtension(file))
-            .Where(name => !name.EndsWith(ContractsSuffix, StringComparison.Ordinal))
+            .Where(name => name.EndsWith(ContractsSuffix, StringComparison.Ordinal) == contracts)
             .Select(name => Assembly.Load(name))
             .ToList();
 
