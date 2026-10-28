@@ -61,7 +61,7 @@
       "type": "parameter",
       "datatype": "bool",
       "defaultValue": "true",
-      "description": "Include the Projects sample module."
+      "description": "Include the Projects and Tasks sample modules."
     },
     "solutionNamespace": {
       "type": "derived",
