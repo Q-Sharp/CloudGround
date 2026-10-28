@@ -29,6 +29,8 @@ builder.AddProject<Projects.CloudGround_App_Bff>("bff")
     .WaitFor(cache)
     .WithReference(keycloak)
     .WaitFor(keycloak)
+    .WithReference(api)
+    .WaitFor(api)
     .WithEnvironment("Bff__ClientSecret", bffClientSecret);
 
 #if (sample)
