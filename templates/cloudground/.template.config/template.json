@@ -139,6 +139,24 @@
       },
       "replaces": "7311"
     },
+    "bffHttpsPort": {
+      "type": "generated",
+      "generator": "port",
+      "parameters": {
+        "low": 7400,
+        "high": 7700
+      },
+      "replaces": "7411"
+    },
+    "bffHttpPort": {
+      "type": "generated",
+      "generator": "port",
+      "parameters": {
+        "low": 5400,
+        "high": 5700
+      },
+      "replaces": "5411"
+    },
     "keycloakPort": {
       "type": "generated",
       "generator": "port",

@@ -15,6 +15,16 @@ public sealed class AppHostModelTests
     }
 
     [Fact]
+    public async Task Identity_provider_keeps_its_data_in_a_volume()
+    {
+        await using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.CloudGround_App_AppHost>(TestContext.Current.CancellationToken);
+
+        var keycloak = appHost.Resources.Single(resource => resource.Name == "keycloak");
+
+        Assert.Contains(keycloak.Annotations.OfType<ContainerMountAnnotation>(), mount => mount.Type == ContainerMountType.Volume);
+    }
+
+    [Fact]
     public async Task Api_counts_as_healthy_only_when_its_health_endpoint_answers()
     {
         await using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.CloudGround_App_AppHost>(TestContext.Current.CancellationToken);
