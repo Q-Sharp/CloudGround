@@ -37,6 +37,8 @@ public sealed class ToolchainTests(TemplatePackage package)
                 ["PATH"] = string.Join(Path.PathSeparator, [dotnetOnly, .. PathEntries().Where(HasNoAspireLauncher)]),
                 ["HOME"] = Directory.CreateDirectory(Path.Combine(machine, "home")).FullName,
                 ["NUGET_PACKAGES"] = NuGetPackagesFolder(),
+                ["XDG_DATA_HOME"] = ContainerRuntimeFolder("XDG_DATA_HOME", ".local", "share"),
+                ["XDG_CONFIG_HOME"] = ContainerRuntimeFolder("XDG_CONFIG_HOME", ".config"),
             };
 
             return await DotnetCli.RunWithEnvironmentAsync(solution.Root, freshMachine, arguments);
@@ -57,6 +59,10 @@ public sealed class ToolchainTests(TemplatePackage package)
     private static string NuGetPackagesFolder() =>
         Environment.GetEnvironmentVariable("NUGET_PACKAGES")
         ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
+
+    private static string ContainerRuntimeFolder(string variable, params string[] defaultBelowHome) =>
+        Environment.GetEnvironmentVariable(variable)
+        ?? Path.Combine([Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), .. defaultBelowHome]);
 
     private static bool HasNoAspireLauncher(string directory) =>
         !AspireLaunchers.Any(launcher => File.Exists(Path.Combine(directory, launcher)));
