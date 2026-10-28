@@ -2,8 +2,8 @@
 
 [![CI](https://github.com/Q-Sharp/CloudGround/actions/workflows/ci.yml/badge.svg)](https://github.com/Q-Sharp/CloudGround/actions/workflows/ci.yml)
 
-> **Status: work in progress.** Phase 1 of 7 (foundation) is being built. The plans live in
-> [`docs/superpowers/plans/`](docs/superpowers/plans/), the design in
+> **Status: work in progress.** Phases 1 (foundation) and 2 (modules and data) of 7 are built.
+> The plans live in [`docs/superpowers/plans/`](docs/superpowers/plans/), the design in
 > [`docs/superpowers/specs/`](docs/superpowers/specs/).
 
 CloudGround is a `dotnet new` template for container-based .NET solutions. One command creates a
@@ -12,20 +12,26 @@ through [Aspire](https://aspire.dev).
 
 What a generated solution contains today:
 
-- an Aspire AppHost, shared service defaults (OpenTelemetry, health checks, resilience, service
-  discovery) and a Minimal API host
-- an integration test that starts the whole application through `Aspire.Hosting.Testing`
+- an Aspire AppHost with PostgreSQL and Garnet containers, and shared service defaults
+  (OpenTelemetry, health checks, resilience, service discovery)
+- a modular Minimal API host: `ProblemDetails`, built-in validation, OpenAPI with Scalar,
+  `HybridCache` on Garnet
+- a *Projects* sample module with its own schema, EF Core migrations that Aspire applies before the
+  API starts, Mapperly mapping and caching on the read path
+- architecture tests that enforce the module boundaries for whatever modules exist
+- unit tests and integration tests that start the whole application through
+  `Aspire.Hosting.Testing`
 - automatic semantic versioning from Git tags (MinVer) and release pull requests (release-please)
 - GitHub Actions for build, tests, formatting and Conventional Commit pull request titles
 - Dependabot configuration
 
-The roadmap adds modules and data, messaging, a BFF with login, an Angular frontend, container
-deployment and an AI collaboration kit, one phase at a time.
+The roadmap adds messaging, a BFF with login, an Angular frontend, container deployment and an
+AI collaboration kit, one phase at a time.
 
 ## Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- Docker or Podman (needed from phase 2 on, when the solution starts containers)
+- Docker or Podman (the AppHost starts PostgreSQL and Garnet as containers)
 
 ## Install from source
 
@@ -43,6 +49,9 @@ dotnet run --project src/Contoso.Shop.AppHost
 ```
 
 The Aspire dashboard opens in the browser and shows every resource, its logs and its traces.
+
+`--sample false` creates the solution without the *Projects* sample module; the module
+infrastructure stays.
 
 The name becomes the namespace, so characters that are not valid there turn into underscores:
 `--name my-shop` creates `my_shop.slnx` and `src/my_shop.Api`.

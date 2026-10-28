@@ -5,6 +5,7 @@ Created with the [CloudGround](https://github.com/Q-Sharp/CloudGround) template.
 ## Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- Docker or Podman; the AppHost starts PostgreSQL and Garnet as containers
 
 ## Run
 
@@ -13,6 +14,42 @@ dotnet run --project src/CloudGround.App.AppHost
 ```
 
 The Aspire dashboard opens in the browser and shows every resource, its logs and its traces.
+Before the API starts, the AppHost applies the EF Core migrations of every module. In Development
+the API serves its OpenAPI document at `/openapi/v1.json` and the Scalar UI at `/scalar`.
+
+## Architecture
+
+The API host in `src/CloudGround.App.Api` is a modular monolith. It owns the cross-cutting
+concerns: errors as `ProblemDetails`, OpenAPI, and `HybridCache` backed by Garnet. Each module in
+`src/Modules/` is a class library that owns its endpoints, handlers, persistence and its own
+PostgreSQL schema. A feature slice keeps its request, handler and endpoint in one file, and the
+endpoint calls the handler directly. Requests are validated by the built-in Minimal API
+validation, and Mapperly maps entities to responses; a response member without a source fails the
+build.
+
+The architecture tests in `tests/CloudGround.App.Architecture.Tests` enforce these rules for every
+module they find:
+
+- every project in `src/Modules/` is referenced by the API host
+- modules do not depend on each other's types
+- a module exposes only its module class and its request types
+- domain types do not depend on ASP.NET Core or EF Core
+- every module's `DbContext` uses a schema named after the module
+- no endpoint is an MVC controller
+
+## Add a migration
+
+Change the model, then use the *Add Migration...* command of the module's migration resource in the
+Aspire dashboard, or run the pinned `dotnet-ef` from the solution root:
+
+```bash
+dotnet tool restore
+ConnectionStrings__database="Host=localhost" ConnectionStrings__cache="localhost" \
+  dotnet ef migrations add <Name> --project src/Modules/CloudGround.App.Modules.<Module> \
+  --startup-project src/CloudGround.App.Api --output-dir Persistence/Migrations
+```
+
+The design-time host only needs the connection strings to exist; it does not connect.
 
 ## Test
 
