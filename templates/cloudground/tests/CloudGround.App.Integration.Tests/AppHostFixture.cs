@@ -15,6 +15,7 @@ public sealed class AppHostFixture : IAsyncLifetime
         app = await appHost.WithoutDataVolumes().BuildAsync(cancellation);
         await app.StartAsync(cancellation);
         await app.ResourceNotifications.WaitForResourceHealthyAsync("api", cancellation);
+        await app.ResourceNotifications.WaitForResourceHealthyAsync("keycloak", cancellation);
     }
 
     public HttpClient CreateApiClient() => App.CreateHttpClient("api", "http");

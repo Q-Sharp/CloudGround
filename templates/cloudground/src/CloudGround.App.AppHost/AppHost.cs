@@ -3,6 +3,10 @@ var builder = DistributedApplication.CreateBuilder(args);
 var database = builder.AddPostgres("postgres").WithDataVolume().AddDatabase("database");
 var cache = builder.AddGarnet("cache");
 var messaging = builder.AddRabbitMQ("messaging").WithManagementPlugin();
+var bffClientSecret = builder.AddParameter("bff-client-secret", new GenerateParameterDefault { MinLength = 32, Special = false }, secret: true, persist: true);
+var keycloak = builder.AddKeycloak("keycloak", port: 8380)
+    .WithRealmImport("./Realms")
+    .WithEnvironment("BFF_CLIENT_SECRET", bffClientSecret);
 
 var api = builder.AddProject<Projects.CloudGround_App_Api>("api")
     .WithHttpHealthCheck("/health", endpointName: "http")

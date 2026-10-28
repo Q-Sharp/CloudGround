@@ -139,6 +139,15 @@
       },
       "replaces": "7311"
     },
+    "keycloakPort": {
+      "type": "generated",
+      "generator": "port",
+      "parameters": {
+        "low": 8300,
+        "high": 8600
+      },
+      "replaces": "8380"
+    },
     "apiHttpPort": {
       "type": "generated",
       "generator": "port",
