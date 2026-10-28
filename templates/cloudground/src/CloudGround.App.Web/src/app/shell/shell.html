@@ -1,0 +1,16 @@
+<mat-toolbar>
+  <a mat-button routerLink="/">Home</a>
+  <span class="spacer"></span>
+  @if (session.user(); as user) {
+    <span data-test="user">{{ user.name }}</span>
+    <form data-test="logout" method="post" action="/bff/logout">
+      <input type="hidden" name="__RequestVerificationToken" [value]="xsrfToken()" />
+      <button mat-button type="submit">Log out</button>
+    </form>
+  } @else {
+    <a mat-button data-test="login" [href]="loginUrl()">Log in</a>
+  }
+</mat-toolbar>
+<main>
+  <router-outlet />
+</main>
