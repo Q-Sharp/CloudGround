@@ -46,7 +46,7 @@ internal static class CompleteTaskEndpoint
 {
     public static RouteGroupBuilder MapCompleteTask(this RouteGroupBuilder group)
     {
-        group.MapPost("/tasks/{id:guid}/complete", CompleteAsync);
+        group.MapPost("/tasks/{id:guid}/complete", CompleteAsync).RequireAuthorization(TasksPolicies.Edit);
         return group;
     }
 

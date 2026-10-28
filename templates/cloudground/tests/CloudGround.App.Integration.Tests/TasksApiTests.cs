@@ -11,7 +11,7 @@ public sealed class TasksApiTests(AppHostFixture fixture)
     [Fact]
     public async Task Created_task_can_be_read()
     {
-        using var client = fixture.CreateApiClient();
+        using var client = await fixture.CreateApiClientAsync("alice");
         var projectId = await CreateProjectAsync(client, "Trade fair");
         var created = await CreateTaskAsync(client, projectId, "Book the booth");
 
@@ -24,7 +24,7 @@ public sealed class TasksApiTests(AppHostFixture fixture)
     [Fact]
     public async Task Project_tasks_are_listed()
     {
-        using var client = fixture.CreateApiClient();
+        using var client = await fixture.CreateApiClientAsync("alice");
         var projectId = await CreateProjectAsync(client, "Customer survey");
         var first = await CreateTaskAsync(client, projectId, "Draft the questions");
         var second = await CreateTaskAsync(client, projectId, "Send the invitations");
@@ -37,7 +37,7 @@ public sealed class TasksApiTests(AppHostFixture fixture)
     [Fact]
     public async Task Task_for_unknown_project_is_rejected()
     {
-        using var client = fixture.CreateApiClient();
+        using var client = await fixture.CreateApiClientAsync("alice");
         await CreateTaskAsync(client, await CreateProjectAsync(client, "Known project"), "Proves the route exists");
 
         using var response = await client.PostAsJsonAsync(ProjectTasksUri(Guid.CreateVersion7()), new { Title = "Orphan" }, Cancellation);
@@ -48,7 +48,7 @@ public sealed class TasksApiTests(AppHostFixture fixture)
     [Fact]
     public async Task Task_for_archived_project_is_rejected()
     {
-        using var client = fixture.CreateApiClient();
+        using var client = await fixture.CreateApiClientAsync("alice");
         var projectId = await CreateProjectAsync(client, "Old campaign");
         using var archive = await client.PostAsync(new Uri($"/api/projects/{projectId}/archive", UriKind.Relative), null, Cancellation);
         Assert.Equal(HttpStatusCode.NoContent, archive.StatusCode);
@@ -62,7 +62,7 @@ public sealed class TasksApiTests(AppHostFixture fixture)
     [Fact]
     public async Task Blank_title_is_rejected()
     {
-        using var client = fixture.CreateApiClient();
+        using var client = await fixture.CreateApiClientAsync("alice");
         var projectId = await CreateProjectAsync(client, "Quarterly review");
 
         using var response = await client.PostAsJsonAsync(ProjectTasksUri(projectId), new { Title = "   " }, Cancellation);
@@ -74,7 +74,7 @@ public sealed class TasksApiTests(AppHostFixture fixture)
     [Fact]
     public async Task Completing_twice_returns_conflict()
     {
-        using var client = fixture.CreateApiClient();
+        using var client = await fixture.CreateApiClientAsync("alice");
         var projectId = await CreateProjectAsync(client, "Team offsite");
         var task = await CreateTaskAsync(client, projectId, "Book the venue");
         using var first = await client.PostAsync(CompleteUri(task.Id), null, Cancellation);

@@ -21,6 +21,8 @@ public static class ProjectsModule
         builder.AddNpgsqlDbContext<ProjectsDbContext>("database", configureDbContextOptions: options =>
             options.UseNpgsql(npgsql => npgsql.MigrationsHistoryTable(HistoryRepository.DefaultTableName, ProjectsDbContext.Schema)));
 
+        builder.Services.AddAuthorizationBuilder()
+            .AddPolicy(ProjectsPolicies.Edit, policy => policy.RequireRole(ProjectsPolicies.EditorRole));
         builder.Services.AddValidation();
         builder.Services.TryAddSingleton(TimeProvider.System);
         builder.Services.AddScoped<CreateProjectHandler>();

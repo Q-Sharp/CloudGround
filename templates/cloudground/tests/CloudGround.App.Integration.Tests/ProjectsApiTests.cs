@@ -15,7 +15,7 @@ public sealed class ProjectsApiTests(AppHostFixture fixture)
     [Fact]
     public async Task Created_project_can_be_read()
     {
-        using var client = fixture.CreateApiClient();
+        using var client = await fixture.CreateApiClientAsync("alice");
         var created = await CreateProjectAsync(client, "Website relaunch");
 
         var read = await client.GetFromJsonAsync<ProjectDto>(ProjectUri(created.Id), Cancellation);
@@ -26,7 +26,7 @@ public sealed class ProjectsApiTests(AppHostFixture fixture)
     [Fact]
     public async Task Created_project_appears_in_the_list()
     {
-        using var client = fixture.CreateApiClient();
+        using var client = await fixture.CreateApiClientAsync("alice");
         var created = await CreateProjectAsync(client, "Annual report");
 
         var projects = await client.GetFromJsonAsync<ProjectDto[]>(ProjectsUri, Cancellation);
@@ -35,9 +35,30 @@ public sealed class ProjectsApiTests(AppHostFixture fixture)
     }
 
     [Fact]
-    public async Task Blank_name_is_rejected()
+    public async Task Reads_stay_anonymous()
     {
         using var client = fixture.CreateApiClient();
+
+        using var response = await client.GetAsync(ProjectsUri, Cancellation);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Writes_need_the_editor_role()
+    {
+        using var client = await fixture.CreateApiClientAsync("bob");
+
+        using var response = await client.PostAsJsonAsync(ProjectsUri, new { Name = "Written by bob" }, Cancellation);
+
+        AssertProblem(response, HttpStatusCode.Forbidden);
+        await AssertNoProjectNamedAsync(client, "Written by bob");
+    }
+
+    [Fact]
+    public async Task Blank_name_is_rejected()
+    {
+        using var client = await fixture.CreateApiClientAsync("alice");
 
         using var response = await client.PostAsJsonAsync(ProjectsUri, new { Name = "   " }, Cancellation);
 
@@ -48,7 +69,7 @@ public sealed class ProjectsApiTests(AppHostFixture fixture)
     [Fact]
     public async Task Too_long_name_is_rejected()
     {
-        using var client = fixture.CreateApiClient();
+        using var client = await fixture.CreateApiClientAsync("alice");
 
         var name = new string('x', 101);
 
@@ -61,7 +82,7 @@ public sealed class ProjectsApiTests(AppHostFixture fixture)
     [Fact]
     public async Task Malformed_json_returns_problem_details()
     {
-        using var client = fixture.CreateApiClient();
+        using var client = await fixture.CreateApiClientAsync("alice");
         using var body = new StringContent("{", Encoding.UTF8, "application/json");
 
         using var response = await client.PostAsync(ProjectsUri, body, Cancellation);
@@ -72,7 +93,7 @@ public sealed class ProjectsApiTests(AppHostFixture fixture)
     [Fact]
     public async Task Unknown_project_returns_problem_details()
     {
-        using var client = fixture.CreateApiClient();
+        using var client = await fixture.CreateApiClientAsync("alice");
 
         using var response = await client.GetAsync(ProjectUri(Guid.CreateVersion7()), Cancellation);
 
@@ -82,7 +103,7 @@ public sealed class ProjectsApiTests(AppHostFixture fixture)
     [Fact]
     public async Task Archived_project_is_returned_as_archived_after_a_cached_read()
     {
-        using var client = fixture.CreateApiClient();
+        using var client = await fixture.CreateApiClientAsync("alice");
         var created = await CreateProjectAsync(client, "Office move");
         await client.GetFromJsonAsync<ProjectDto>(ProjectUri(created.Id), Cancellation);
 
@@ -96,7 +117,7 @@ public sealed class ProjectsApiTests(AppHostFixture fixture)
     [Fact]
     public async Task Archiving_twice_returns_conflict()
     {
-        using var client = fixture.CreateApiClient();
+        using var client = await fixture.CreateApiClientAsync("alice");
         var created = await CreateProjectAsync(client, "Hiring round");
         using var first = await client.PostAsync(ArchiveUri(created.Id), null, Cancellation);
 
@@ -108,7 +129,7 @@ public sealed class ProjectsApiTests(AppHostFixture fixture)
     [Fact]
     public async Task Concurrent_archives_conflict()
     {
-        using var client = fixture.CreateApiClient();
+        using var client = await fixture.CreateApiClientAsync("alice");
         var created = await CreateProjectAsync(client, "Data center exit");
 
         var responses = await Task.WhenAll(Enumerable.Range(0, 10).Select(_ => client.PostAsync(ArchiveUri(created.Id), null, Cancellation)));
@@ -122,7 +143,7 @@ public sealed class ProjectsApiTests(AppHostFixture fixture)
     [Fact]
     public async Task Api_documents_validation_errors_for_creating_a_project()
     {
-        using var client = fixture.CreateApiClient();
+        using var client = await fixture.CreateApiClientAsync("alice");
 
         using var document = JsonDocument.Parse(await client.GetStringAsync(new Uri("/openapi/v1.json", UriKind.Relative), Cancellation));
         var responses = document.RootElement.GetProperty("paths").GetProperty("/api/projects").GetProperty("post").GetProperty("responses");

@@ -58,7 +58,7 @@ internal static class ArchiveProjectEndpoint
 {
     public static RouteGroupBuilder MapArchiveProject(this RouteGroupBuilder group)
     {
-        group.MapPost("/{id:guid}/archive", ArchiveAsync);
+        group.MapPost("/{id:guid}/archive", ArchiveAsync).RequireAuthorization(ProjectsPolicies.Edit);
         return group;
     }
 

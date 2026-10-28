@@ -15,7 +15,9 @@ var api = builder.AddProject<Projects.CloudGround_App_Api>("api")
     .WithReference(cache)
     .WaitFor(cache)
     .WithReference(messaging)
-    .WaitFor(messaging);
+    .WaitFor(messaging)
+    .WithReference(keycloak)
+    .WaitFor(keycloak);
 
 #if (sample)
 var projectsMigrations = api
