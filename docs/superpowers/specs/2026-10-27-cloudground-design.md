@@ -145,6 +145,7 @@ The project fails, even if it technically works, if any of these is true:
 | Container base images | images built on the newest LTS of their distribution, e.g. Ubuntu LTS for .NET images | **Builder** |
 | PostgreSQL, Keycloak, RabbitMQ, Garnet, Aspire, NuGet and npm packages | no LTS line in the open-source edition: newest stable release | **Builder** |
 | `Aspire.Hosting.EntityFrameworkCore` | preview, because Aspire's migration integration has no stable release yet | **Author** exception (2026-10-28) |
+| `Aspire.Hosting.Keycloak`, `Aspire.Keycloak.Authentication` | preview, because Aspire's Keycloak integrations have no stable release yet | **Author** exception (2026-10-28) |
 
 - Dependabot (GitHub's built-in updater) keeps NuGet, npm, container image and GitHub Actions
   versions current, grouped into few pull requests. It is configured not to propose major updates
@@ -179,7 +180,7 @@ flowchart LR
   service discovery. Routes that need data are server-rendered at request time, not prerendered at
   build time, because no API runs during the image build. (**Default**)
 - BFF session state and Data Protection keys are persisted outside the process so the BFF can run
-  more than one instance. (**Builder:** Garnet or PostgreSQL.)
+  more than one instance. (**Builder:** Garnet, 2026-10-28.)
 - The Aspire AppHost wires all of the above, including a Keycloak realm import with demo users and
   roles, so `dotnet run` on the AppHost is the whole quickstart.
 
