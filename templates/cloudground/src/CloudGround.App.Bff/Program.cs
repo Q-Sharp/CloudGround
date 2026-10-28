@@ -10,7 +10,7 @@ builder.AddRedisDistributedCache("cache");
 builder.Services.AddProblemDetails();
 builder.AddBffAuthentication();
 builder.AddXsrfProtection();
-builder.AddApiProxy();
+builder.AddBffProxy();
 
 var app = builder.Build();
 

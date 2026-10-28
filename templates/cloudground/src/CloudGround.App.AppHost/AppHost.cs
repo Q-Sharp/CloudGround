@@ -23,6 +23,13 @@ var api = builder.AddProject<Projects.CloudGround_App_Api>("api")
     .WithReference(keycloak)
     .WaitFor(keycloak);
 
+var web = builder.AddJavaScriptApp("web", "../CloudGround.App.Web", "start")
+    .WithNpm()
+    .WithHttpEndpoint(env: "PORT")
+    .WithReference(api)
+    .WaitFor(api);
+web.WithArgs("--", "--port", web.GetEndpoint("http").Property(EndpointProperty.TargetPort));
+
 builder.AddProject<Projects.CloudGround_App_Bff>("bff")
     .WithHttpHealthCheck("/health", endpointName: "http")
     .WithReference(cache)
@@ -31,6 +38,7 @@ builder.AddProject<Projects.CloudGround_App_Bff>("bff")
     .WaitFor(keycloak)
     .WithReference(api)
     .WaitFor(api)
+    .WithReference(web)
     .WithEnvironment("Bff__ClientSecret", bffClientSecret);
 
 #if (sample)
