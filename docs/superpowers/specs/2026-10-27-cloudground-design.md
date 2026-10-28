@@ -140,8 +140,8 @@ The project fails, even if it technically works, if any of these is true:
 | Component | Rule | At the time of writing |
 |---|---|---|
 | .NET SDK and runtime | newest LTS | .NET 10 |
-| Angular | newest major that is in LTS. Angular keeps each major in active support for six months and then in LTS, so the newest LTS major is usually one behind the newest release | **Builder** verifies at build time |
-| Node.js (SSR, tooling, devcontainer) | newest Active LTS | **Builder** verifies at build time |
+| Angular | newest major that is in LTS. Angular keeps each major in active support for six months and then in LTS, so the newest LTS major is usually one behind the newest release | Angular 21 (**Builder**, 2026-10-28) |
+| Node.js (SSR, tooling, devcontainer) | newest Active LTS | Node.js 24 (**Builder**, 2026-10-28) |
 | Container base images | images built on the newest LTS of their distribution, e.g. Ubuntu LTS for .NET images | **Builder** |
 | PostgreSQL, Keycloak, RabbitMQ, Garnet, Aspire, NuGet and npm packages | no LTS line in the open-source edition: newest stable release | **Builder** |
 | `Aspire.Hosting.EntityFrameworkCore` | preview, because Aspire's migration integration has no stable release yet | **Author** exception (2026-10-28) |
