@@ -72,7 +72,8 @@ project is being archived ends up closed instead of open.
 2. Publish it the way the sample's `ArchiveProjectHandler` does: inside
    `Database.CreateExecutionStrategy().ExecuteAsync(...)`, begin a transaction, call
    `PublishAsync` on the outbox and then `SaveChangesAndFlushMessagesAsync`. EF Core retries the
-   whole unit after a transient database failure.
+   whole unit after a transient database failure; a retried unit can send the event twice, which
+   at-least-once delivery allows.
 3. In the reacting module, reference the contracts project and add a public static
    `<Event>Handler` with a `HandleAsync` method to the module's `Messaging` namespace. Wolverine
    requires public handlers, so the handler only forwards to an internal service through a public
