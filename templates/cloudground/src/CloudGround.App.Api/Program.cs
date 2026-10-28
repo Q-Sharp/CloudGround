@@ -1,5 +1,6 @@
 #if (sample)
 using CloudGround.App.Modules.Projects;
+using CloudGround.App.Modules.Tasks;
 #endif
 using Scalar.AspNetCore;
 
@@ -12,6 +13,7 @@ builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 #if (sample)
 builder.AddProjectsModule();
+builder.AddTasksModule();
 #endif
 
 var app = builder.Build();
@@ -33,6 +35,7 @@ if (app.Environment.IsDevelopment())
 app.MapDefaultEndpoints();
 #if (sample)
 app.MapProjectsModule();
+app.MapTasksModule();
 #endif
 
 app.Run();

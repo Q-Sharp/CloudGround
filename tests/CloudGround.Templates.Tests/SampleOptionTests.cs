@@ -3,7 +3,7 @@ namespace CloudGround.Templates.Tests;
 [Collection(SharedTemplatePackage.Name)]
 public sealed class SampleOptionTests(TemplatePackage package)
 {
-    private static readonly string[] SampleReferences = ["ProjectsModule", "Modules.Projects", "projects-migrations"];
+    private static readonly string[] SampleReferences = ["ProjectsModule", "Modules.Projects", "projects-migrations", "TasksModule", "Modules.Tasks", "tasks-migrations"];
 
     private static readonly string[] TemplateDirectiveStarts = ["#if", "#elif", "#else", "#endif", "<!--#"];
 

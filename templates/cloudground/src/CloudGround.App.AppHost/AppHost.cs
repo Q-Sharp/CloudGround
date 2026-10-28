@@ -17,7 +17,15 @@ var projectsMigrations = api
     .WaitFor(database)
     .RunDatabaseUpdateOnStart();
 
-api.WaitForCompletion(projectsMigrations);
+var tasksMigrations = api
+    .AddEFMigrations("tasks-migrations", "CloudGround.App.Modules.Tasks.Persistence.TasksDbContext")
+    .WithMigrationsProject("../Modules/CloudGround.App.Modules.Tasks/CloudGround.App.Modules.Tasks.csproj")
+    .WithReference(database)
+    .WaitFor(database)
+    .RunDatabaseUpdateOnStart();
+
+api.WaitForCompletion(projectsMigrations)
+    .WaitForCompletion(tasksMigrations);
 #endif
 
 builder.Build().Run();

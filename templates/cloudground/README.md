@@ -49,7 +49,7 @@ Aspire dashboard, or run the pinned `dotnet-ef` from the solution root:
 ```bash
 dotnet tool restore
 ConnectionStrings__database="Host=localhost" dotnet ef migrations add <Name> --project src/Modules/CloudGround.App.Modules.<Module> \
-  --startup-project src/CloudGround.App.Api --output-dir Persistence/Migrations
+  --startup-project src/CloudGround.App.Api --context <Module>DbContext --output-dir Persistence/Migrations
 ```
 
 The design-time host only needs the connection string to exist; it does not connect.

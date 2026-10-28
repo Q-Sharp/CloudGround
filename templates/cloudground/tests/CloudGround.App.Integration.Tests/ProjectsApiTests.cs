@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using Npgsql;
+using static CloudGround.App.Integration.Tests.ModuleAssertions;
 
 namespace CloudGround.App.Integration.Tests;
 
@@ -66,8 +66,7 @@ public sealed class ProjectsApiTests(AppHostFixture fixture)
 
         using var response = await client.PostAsync(ProjectsUri, body, Cancellation);
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        AssertProblem(response, HttpStatusCode.BadRequest);
     }
 
     [Fact]
@@ -77,8 +76,7 @@ public sealed class ProjectsApiTests(AppHostFixture fixture)
 
         using var response = await client.GetAsync(ProjectUri(Guid.CreateVersion7()), Cancellation);
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        AssertProblem(response, HttpStatusCode.NotFound);
     }
 
     [Fact]
@@ -104,8 +102,7 @@ public sealed class ProjectsApiTests(AppHostFixture fixture)
 
         using var second = await client.PostAsync(ArchiveUri(created.Id), null, Cancellation);
 
-        Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
-        Assert.Equal("application/problem+json", second.Content.Headers.ContentType?.MediaType);
+        AssertProblem(second, HttpStatusCode.Conflict);
     }
 
     [Fact]
@@ -136,17 +133,7 @@ public sealed class ProjectsApiTests(AppHostFixture fixture)
     [Fact]
     public async Task Projects_tables_live_in_the_projects_schema()
     {
-        var connectionString = await fixture.App.GetConnectionStringAsync("database", Cancellation);
-        await using var connection = new NpgsqlConnection(connectionString);
-        await connection.OpenAsync(Cancellation);
-        await using var command = new NpgsqlCommand("select table_name from information_schema.tables where table_schema = 'projects'", connection);
-
-        var tables = new List<string>();
-        await using var reader = await command.ExecuteReaderAsync(Cancellation);
-        while (await reader.ReadAsync(Cancellation))
-        {
-            tables.Add(reader.GetString(0));
-        }
+        var tables = await TablesInSchemaAsync(fixture.App, "projects");
 
         Assert.Contains("Projects", tables);
         Assert.Contains("__EFMigrationsHistory", tables);
@@ -161,16 +148,6 @@ public sealed class ProjectsApiTests(AppHostFixture fixture)
         Assert.NotNull(project);
         Assert.EndsWith($"/api/projects/{project.Id}", response.Headers.Location?.OriginalString, StringComparison.Ordinal);
         return project;
-    }
-
-    private static async Task AssertValidationProblemAsync(HttpResponseMessage response, string field)
-    {
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
-
-        using var problem = JsonDocument.Parse(await response.Content.ReadAsStringAsync(Cancellation));
-        var errors = problem.RootElement.GetProperty("errors").EnumerateObject().Select(error => error.Name);
-        Assert.Contains(errors, error => error.Equals(field, StringComparison.OrdinalIgnoreCase));
     }
 
     private static async Task AssertNoProjectNamedAsync(HttpClient client, string name)

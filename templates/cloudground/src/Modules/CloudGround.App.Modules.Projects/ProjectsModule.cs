@@ -1,3 +1,4 @@
+using CloudGround.App.Modules.Projects.Contracts;
 using CloudGround.App.Modules.Projects.Features;
 using CloudGround.App.Modules.Projects.Persistence;
 using Microsoft.AspNetCore.Builder;
@@ -26,6 +27,7 @@ public static class ProjectsModule
         builder.Services.AddScoped<GetProjectHandler>();
         builder.Services.AddScoped<ListProjectsHandler>();
         builder.Services.AddScoped<ArchiveProjectHandler>();
+        builder.Services.AddScoped<IProjectCatalog, ProjectCatalog>();
 
         return builder;
     }

@@ -12,6 +12,7 @@
     <ProjectReference Include="../CloudGround.App.ServiceDefaults/CloudGround.App.ServiceDefaults.csproj" />
     <!--#if (sample) -->
     <ProjectReference Include="../Modules/CloudGround.App.Modules.Projects/CloudGround.App.Modules.Projects.csproj" />
+    <ProjectReference Include="../Modules/CloudGround.App.Modules.Tasks/CloudGround.App.Modules.Tasks.csproj" />
     <!--#endif -->
   </ItemGroup>
 
