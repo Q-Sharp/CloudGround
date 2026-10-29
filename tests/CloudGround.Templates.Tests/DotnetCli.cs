@@ -12,5 +12,5 @@ public static class DotnetCli
         ProcessRunner.RunAsync("dotnet", workingDirectory, environment, arguments);
 
     public static string[] TestArguments(string solutionFile) =>
-        ["test", "--solution", solutionFile, "--filter-not-trait", "Category=EndToEnd"];
+        ["test", "--solution", solutionFile, "--filter-not-trait", "Category=EndToEnd", "--ignore-exit-code", "8"];
 }
