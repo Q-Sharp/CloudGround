@@ -28,4 +28,15 @@ public sealed class WebTests(AppHostFixture fixture)
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         Assert.Equal("text/html", response.Content.Headers.ContentType?.MediaType);
     }
+
+    [Fact]
+    public async Task Web_app_answers_health_probes()
+    {
+        using var client = fixture.App.CreateHttpClient("web", "http");
+
+        using var response = await client.GetAsync(new Uri("/health", UriKind.Relative), Cancellation);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("Healthy", await response.Content.ReadAsStringAsync(Cancellation));
+    }
 }
