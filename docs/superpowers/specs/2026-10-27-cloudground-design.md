@@ -95,7 +95,7 @@ The project fails, even if it technically works, if any of these is true:
 |---|---|---|
 | Language / runtime | C#, .NET 10 | Author / Approved |
 | Orchestration | Aspire (AppHost + ServiceDefaults) | Approved |
-| Frontend | Angular, newest stable major (7.4), standalone components, signals, zoneless, built-in control flow | Author (Angular, LTS) / Default (rest) |
+| Frontend | Angular, newest stable major (7.4), standalone components, signals, zoneless, built-in control flow | Author (Angular, newest stable major) / Default (rest) |
 | Rendering | Angular SSR with per-route render modes: public pages server-rendered or prerendered, authenticated area client-rendered | Approved; follows from the author's requirement that generated apps suit public websites |
 | UI components | Angular Material | Default |
 | API style | Minimal APIs, one endpoint group per feature | Author |
@@ -142,7 +142,7 @@ The project fails, even if it technically works, if any of these is true:
 | .NET SDK and runtime | newest LTS | .NET 10 |
 | Angular | newest stable major. Angular supports every major for about 18 months, so its "LTS" phase is the end of a major's life, not a longer support line; the newest major has the longest support | Angular 22 (**Author**, 2026-10-28: newest version instead of newest LTS) |
 | Node.js (SSR, tooling, devcontainer) | newest even-numbered release line, which becomes the next Active LTS | Node.js 26 (**Author**, 2026-10-28; Active LTS since 26.13.0 on 2026-10-28) |
-| Container base images | images built on the newest LTS of their distribution, e.g. Ubuntu LTS for .NET images | **Builder** |
+| Container base images | images built on the newest LTS of their distribution, e.g. Ubuntu LTS for .NET images | .NET services on `aspnet:10.0-resolute-chiseled-extra` (Ubuntu 26.04; ICU and time zones included), migration bundles on `runtime:10.0-resolute` because their entrypoint needs a shell, the web app on `node:26-trixie-slim` (**Builder**, 2026-10-29) |
 | PostgreSQL, Keycloak, RabbitMQ, Garnet, Aspire, NuGet and npm packages | no LTS line in the open-source edition: newest stable release | **Builder** |
 | `Aspire.Hosting.EntityFrameworkCore` | preview, because Aspire's migration integration has no stable release yet | **Author** exception (2026-10-28) |
 | `Aspire.Hosting.Keycloak`, `Aspire.Keycloak.Authentication` | preview, because Aspire's Keycloak integrations have no stable release yet | **Author** exception (2026-10-28) |
@@ -201,7 +201,9 @@ flowchart LR
   container images use pre-generated code (phase 6). Wolverine needs public handlers, so a module
   exposes them in its `Messaging` namespace and forwards to its internals through an interface.
   Module `DbContext`s keep EF Core's retry on transient failures; publishing through the outbox
-  runs as one retriable unit of the execution strategy. (**Builder**, 2026-10-28)
+  runs as one retriable unit of the execution strategy. (**Builder**, 2026-10-28) `dotnet publish`
+  of the API writes the handler code with Wolverine's `codegen write` and compiles it in; outside
+  Development Wolverine loads only that code. (**Builder**, 2026-10-29)
 - Each module gets its own database schema. (**Default**)
 - Migrations run through Aspire's EF Core migration resource (`AddEFMigrations`) before the API
   starts; in operation they are published as a migration bundle. (**Author**, 2026-10-28)
@@ -270,6 +272,13 @@ module structure says it should not.
   termination and secrets come from configuration that the adopter supplies, and the README documents
   them. Keycloak with the demo realm stays a development concern of the AppHost. CI checks that the
   generated Compose file is valid. It does not run a login flow against it.
+- **Builder** (2026-10-29): in publish mode the AppHost replaces the Keycloak container with an
+  external service `keycloak` whose URL is the parameter `keycloak-url`; migrations ship as bundle
+  containers the API waits for; every image Aspire builds is tagged with the AppHost's MinVer
+  version; services that run continuously restart unless stopped; the PostgreSQL and Garnet volumes
+  have fixed names in the Compose file, and Garnet persists to its volume; Aspire's dashboard stays
+  in the Compose file as the default OTLP backend; the Aspire CLI is a local dotnet tool of the
+  solution, so `dotnet aspire` needs no global install. Health endpoints answer in every environment.
 
 ### 8.7 CI pipeline (Author: GitHub Actions)
 
@@ -322,6 +331,10 @@ module structure says it should not.
   host: one command runs everything.
 - **Builder:** verify it with Docker as the host runtime, and check whether Podman as the host
   runtime works; document the result in the README.
+- **Builder** (2026-10-29): `mcr.microsoft.com/devcontainers/base` on Ubuntu 26.04 with the dotnet,
+  node, docker-in-docker and powershell features, because the .NET devcontainer image has no
+  Ubuntu 26.04 variant for .NET 10. The template repository's CI builds it with Docker and runs the
+  generated solution's tests inside it.
 
 ### 8.12 Folder layout of a generated solution (Author: widespread GitHub conventions)
 
