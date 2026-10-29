@@ -24,6 +24,26 @@ public static class SkillScaffold
         InsertBefore(appHost, "builder.TagImagesWithVersion();", $"api.WithModuleMigrations(\"{module}\", database);", string.Empty);
     }
 
+    public static Task ApplyExampleFeatureAsync(GeneratedSolution solution, string module)
+    {
+        var modulePrefix = $"{solution.Name}.Modules.{module}";
+        var moduleDirectory = Path.Combine(solution.Root, "src", "Modules", modulePrefix);
+        CopyReplacingTokens(SkillDirectory(solution, "add-feature", "example/module"), moduleDirectory, module);
+        CopyReplacingTokens(SkillDirectory(solution, "add-feature", "example/module-tests"), Path.Combine(solution.Root, "tests", $"{modulePrefix}.Tests"), module);
+        CopyReplacingTokens(SkillDirectory(solution, "add-feature", "example/integration-tests"), Path.Combine(solution.Root, "tests", $"{solution.Name}.Integration.Tests"), module);
+
+        var context = Path.Combine(moduleDirectory, "Persistence", $"{module}DbContext.cs");
+        InsertAfterLast(context, line => line == "using Microsoft.EntityFrameworkCore;", $"using {modulePrefix}.Domain;");
+        InsertAfterLast(context, line => line.Contains("public const string Schema", StringComparison.Ordinal), string.Empty, "    public DbSet<Item> Items => Set<Item>();");
+
+        var moduleClass = Path.Combine(moduleDirectory, $"{module}Module.cs");
+        InsertAfterLast(moduleClass, line => line == $"using {modulePrefix}.Persistence;", $"using {modulePrefix}.Features;");
+        InsertAfterLast(moduleClass, line => line.Contains("TryAddSingleton(TimeProvider.System);", StringComparison.Ordinal), "        builder.Services.AddScoped<CreateItemHandler>();", "        builder.Services.AddScoped<GetItemHandler>();");
+        ReplaceLine(moduleClass, $"            .WithTags(\"{module}\");", $"            .WithTags(\"{module}\")", "            .MapCreateItem()", "            .MapGetItem();");
+
+        return Task.CompletedTask;
+    }
+
     public static async Task AddContractsAsync(GeneratedSolution solution, string module)
     {
         var contracts = $"src/Modules/{solution.Name}.Modules.{module}.Contracts/{solution.Name}.Modules.{module}.Contracts.csproj";
@@ -68,12 +88,22 @@ public static class SkillScaffold
     private static bool IsModuleCall(string line, string start) =>
         line.StartsWith(start, StringComparison.Ordinal) && line.EndsWith("Module();", StringComparison.Ordinal);
 
-    private static void InsertAfterLast(string file, Func<string, bool> anchor, string line)
+    private static void InsertAfterLast(string file, Func<string, bool> anchor, params string[] inserted)
     {
         var lines = File.ReadAllLines(file).ToList();
         var index = lines.FindLastIndex(candidate => anchor(candidate));
-        Assert.True(index >= 0, $"{file} has no anchor for `{line}`.");
-        lines.Insert(index + 1, line);
+        Assert.True(index >= 0, $"{file} has no anchor for `{inserted.Last()}`.");
+        lines.InsertRange(index + 1, inserted);
+        File.WriteAllLines(file, lines);
+    }
+
+    private static void ReplaceLine(string file, string line, params string[] replacement)
+    {
+        var lines = File.ReadAllLines(file).ToList();
+        var index = lines.IndexOf(line);
+        Assert.True(index >= 0, $"{file} has no line `{line}`.");
+        lines.RemoveAt(index);
+        lines.InsertRange(index, replacement);
         File.WriteAllLines(file, lines);
     }
 

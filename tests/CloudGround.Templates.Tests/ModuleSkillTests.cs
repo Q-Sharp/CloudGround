@@ -19,4 +19,31 @@ public sealed class ModuleSkillTests(TemplatePackage package)
         await SkillScaffold.AssertSucceedsAsync(solution, "test", "--no-build", "--project", "tests/Skills.Shop.Modules.OrderHistory.Tests");
         await SkillScaffold.AssertSucceedsAsync(solution, "test", "--no-build", "--project", "tests/Skills.Shop.Integration.Tests", "--filter-class", "*AppHostModelTests");
     }
+
+    [Fact]
+    public async Task Scaffolded_feature_passes_the_solution_tests()
+    {
+        var solution = await package.GenerateAsync("Feature.Shop", "--sample", "false");
+
+        await SkillScaffold.ApplyModuleAsync(solution, "OrderHistory");
+        await SkillScaffold.ApplyExampleFeatureAsync(solution, "OrderHistory");
+        await SkillScaffold.AssertSucceedsAsync(solution, "build");
+        await SkillScaffold.AssertSucceedsAsync(solution, "tool", "restore");
+        var migration = await DotnetCli.RunWithEnvironmentAsync(
+            solution.Root,
+            new Dictionary<string, string> { ["ConnectionStrings__database"] = "Host=localhost" },
+            "ef", "migrations", "add", "AddItems",
+            "--project", "src/Modules/Feature.Shop.Modules.OrderHistory",
+            "--startup-project", "src/Feature.Shop.Api",
+            "--context", "OrderHistoryDbContext",
+            "--output-dir", "Persistence/Migrations");
+        Assert.True(migration.ExitCode == 0, migration.Output);
+
+        await SkillScaffold.AssertSucceedsAsync(solution, "build");
+        await SkillScaffold.AssertSucceedsAsync(solution, "format", "--verify-no-changes", "--no-restore");
+        var test = await SkillScaffold.AssertSucceedsAsync(solution, [.. DotnetCli.TestArguments("Feature.Shop.slnx"), "--output", "Detailed"]);
+
+        Assert.Contains("passed Feature.Shop.Integration.Tests.ItemsApiTests.Created_item_can_be_read_anonymously", test.Output, StringComparison.Ordinal);
+        Assert.Contains("passed Feature.Shop.Modules.OrderHistory.Tests.ItemTests.Created_item_keeps_its_name_and_creation_time", test.Output, StringComparison.Ordinal);
+    }
 }
