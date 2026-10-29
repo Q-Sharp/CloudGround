@@ -35,22 +35,42 @@ public sealed partial class DependabotConfigurationTests
     }
 
     [Theory]
-    [InlineData(".github/dependabot.yml")]
-    [InlineData("templates/cloudground/.github/dependabot.yml")]
-    public void Dependabot_ignores_major_updates_of_lts_bound_packages(string configuration)
+    [InlineData(".github/dependabot.yml", "", "npm", "package-lock.json")]
+    [InlineData("templates/cloudground/.github/dependabot.yml", "templates/cloudground", "npm", "package-lock.json")]
+    [InlineData(".github/dependabot.yml", "", "docker", "Dockerfile")]
+    [InlineData("templates/cloudground/.github/dependabot.yml", "templates/cloudground", "docker", "Dockerfile")]
+    [InlineData(".github/dependabot.yml", "", "devcontainers", ".devcontainer/devcontainer.json")]
+    [InlineData("templates/cloudground/.github/dependabot.yml", "templates/cloudground", "devcontainers", ".devcontainer/devcontainer.json")]
+    public void Ecosystem_directories_contain_what_dependabot_reads(string configuration, string root, string ecosystem, string manifest)
+    {
+        var repository = RepositoryRoot.Find();
+        var lines = File.ReadAllLines(Path.Combine(repository, configuration));
+
+        var directories = EcosystemDirectories(lines, ecosystem);
+
+        Assert.NotEmpty(directories);
+        Assert.All(directories, directory =>
+            Assert.True(File.Exists(Path.Combine(repository, root, directory.TrimStart('/'), manifest)), $"{configuration}: {directory}"));
+    }
+
+    [Theory]
+    [InlineData(".github/dependabot.yml", "nuget", new[] { "Microsoft.Extensions.*", "Microsoft.AspNetCore.*", "Microsoft.EntityFrameworkCore.*", "dotnet-ef" })]
+    [InlineData("templates/cloudground/.github/dependabot.yml", "nuget", new[] { "Microsoft.Extensions.*", "Microsoft.AspNetCore.*", "Microsoft.EntityFrameworkCore.*", "dotnet-ef" })]
+    [InlineData(".github/dependabot.yml", "npm", new[] { "@types/node" })]
+    [InlineData("templates/cloudground/.github/dependabot.yml", "npm", new[] { "@types/node" })]
+    [InlineData(".github/dependabot.yml", "docker", new[] { "node" })]
+    [InlineData("templates/cloudground/.github/dependabot.yml", "docker", new[] { "node" })]
+    public void Dependabot_ignores_major_updates_of_lts_bound_packages(string configuration, string ecosystem, string[] ltsBound)
     {
         var lines = File.ReadAllLines(Path.Combine(RepositoryRoot.Find(), configuration));
 
-        var ignored = EcosystemSection(lines, "nuget")
+        var ignored = EcosystemSection(lines, ecosystem)
             .Select(line => IgnoredDependency().Match(line))
             .Where(match => match.Success)
             .Select(match => match.Groups["dependency"].Value);
 
-        Assert.Equal(LtsBoundPackages.Order(), ignored.Order());
+        Assert.Equal(ltsBound.Order(), ignored.Order());
     }
-
-    private static readonly string[] LtsBoundPackages =
-        ["Microsoft.Extensions.*", "Microsoft.AspNetCore.*", "Microsoft.EntityFrameworkCore.*", "dotnet-ef"];
 
     private static List<string> GithubActionsDirectories(string[] lines) => EcosystemDirectories(lines, "github-actions");
 
@@ -83,6 +103,6 @@ public sealed partial class DependabotConfigurationTests
     [GeneratedRegex(@"^\s+- (?<directory>/\S*)\s*$")]
     private static partial Regex DirectoryEntry();
 
-    [GeneratedRegex(@"^\s+- dependency-name: (?<dependency>\S+)\s*$")]
+    [GeneratedRegex(@"^\s+- dependency-name: ""?(?<dependency>[^""\s]+)""?\s*$")]
     private static partial Regex IgnoredDependency();
 }

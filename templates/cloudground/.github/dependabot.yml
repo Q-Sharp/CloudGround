@@ -18,6 +18,39 @@ updates:
       - dependency-name: dotnet-ef
         update-types: [version-update:semver-major]
 
+  - package-ecosystem: npm
+    directories:
+      - /src/CloudGround.App.Web
+    schedule:
+      interval: weekly
+    groups:
+      npm:
+        patterns: ["*"]
+    ignore:
+      - dependency-name: "@types/node"
+        update-types: [version-update:semver-major]
+
+  - package-ecosystem: docker
+    directories:
+      - /src/CloudGround.App.Web
+    schedule:
+      interval: weekly
+    groups:
+      docker:
+        patterns: ["*"]
+    ignore:
+      - dependency-name: node
+        update-types: [version-update:semver-major]
+
+  - package-ecosystem: devcontainers
+    directories:
+      - /
+    schedule:
+      interval: weekly
+    groups:
+      devcontainers:
+        patterns: ["*"]
+
   - package-ecosystem: github-actions
     directories:
       - /
