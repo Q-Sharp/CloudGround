@@ -27,6 +27,122 @@ dashboard links the RabbitMQ management UI of the `messaging` resource. The API 
 `/health` (all their checks) and `/alive` (the process only) in every environment, the web app
 answers `/health`.
 
+## Architecture
+
+### System context
+
+```mermaid
+flowchart TB
+    user["User<br/>[person]<br/>reads public pages, signs in and edits"]
+    solution["CloudGround.App<br/>[software system]"]
+    idp["Identity provider<br/>[external system]<br/>Keycloak locally, any OpenID Connect provider in operation"]
+    telemetry["Telemetry backend<br/>[external system]<br/>Aspire dashboard or any OTLP backend"]
+
+    user -->|uses, in the browser| solution
+    user -->|signs in| idp
+    solution -->|OpenID Connect| idp
+    solution -->|logs, traces, metrics over OTLP| telemetry
+```
+
+People use the solution in the browser. They sign in at the identity provider, which the solution
+trusts through OpenID Connect. Every service sends its telemetry to an OTLP backend.
+
+### Containers
+
+```mermaid
+flowchart LR
+    browser["Browser"]
+    idp["Identity provider<br/>[Keycloak]"]
+
+    subgraph solution["CloudGround.App"]
+        bff["BFF<br/>[ASP.NET Core, YARP]<br/>login, session, proxy"]
+        web["Web<br/>[Angular SSR on Node]<br/>pages"]
+        api["API<br/>[ASP.NET Core]<br/>modular monolith"]
+        migrations["Migrations<br/>[EF Core]<br/>one per module"]
+        database[("PostgreSQL<br/>one schema per module")]
+        cache[("Garnet<br/>cache, sessions")]
+        broker[["RabbitMQ<br/>integration events"]]
+    end
+
+    browser -->|cookie, same origin| bff
+    bff -->|pages| web
+    bff -->|/api with access token| api
+    web -->|public endpoints| api
+    bff -->|OpenID Connect| idp
+    bff -->|sessions, Data Protection keys| cache
+    api -->|EF Core| database
+    api -->|HybridCache| cache
+    api <-->|Wolverine outbox and inbox| broker
+    migrations -->|before the API starts| database
+```
+
+The browser talks only to the BFF, which keeps the session and attaches the access token when it
+forwards `/api/*`; tokens never reach the browser. The web app renders public pages on the server
+and reads the API's anonymous endpoints directly. The AppHost in `src/CloudGround.App.AppHost`
+starts all of these locally and publishes them as a Docker Compose deployment.
+
+### Module map
+
+<!--#if (sample) -->
+```mermaid
+flowchart LR
+    api["API host<br/>CloudGround.App.Api"]
+    projects["Projects<br/>[module]"]
+    contracts["Projects.Contracts<br/>IProjectCatalog, ProjectArchived"]
+    tasks["Tasks<br/>[module]"]
+
+    api --> projects
+    api --> tasks
+    projects --> contracts
+    tasks -->|IProjectCatalog| contracts
+    projects -.->|ProjectArchived through RabbitMQ| tasks
+```
+
+The API host registers both modules. *Tasks* asks *Projects* whether a project is active through
+`IProjectCatalog` and closes a project's open tasks when it receives `ProjectArchived`. Neither
+module references the other; both know only the contracts project.
+<!--#else -->
+This solution has no modules yet. Create the first with
+[the add-module skill](.claude/skills/add-module/SKILL.md).
+<!--#endif -->
+
+### Modules
+
+The API host in `src/CloudGround.App.Api` is a modular monolith. It owns the cross-cutting
+concerns: errors as `ProblemDetails`, OpenAPI, and `HybridCache` backed by Garnet. Each module in
+`src/Modules/` is a class library that owns its endpoints, handlers, persistence and its own
+PostgreSQL schema. A feature slice keeps its request, handler and endpoint in one file, and the
+endpoint calls the handler directly. Cached reads skip `HybridCache`'s in-process copy and use
+Garnet only, so a change that removes a cache entry is visible on every API instance at once.
+Requests are validated by the built-in Minimal API validation, and Mapperly maps entities to
+responses; a response member without a source fails the build.
+
+Modules meet only through contracts. A module that offers something to others has a
+`*.Contracts` project with interfaces and integration events, and other modules reference only
+that project. Synchronous calls go through contract interfaces, reactions through integration
+events.
+<!--#if (sample) -->
+The *Projects* and *Tasks* sample modules show both with `IProjectCatalog` and `ProjectArchived`.
+<!--#endif -->
+
+The architecture tests in `tests/CloudGround.App.Architecture.Tests` enforce these rules for every
+module they find:
+
+- every module project in `src/Modules/` is referenced by the API host
+- a module references another module only through its contracts project
+- modules do not depend on each other's types
+- contracts do not depend on ASP.NET Core, EF Core, Wolverine or any module
+- a module exposes only its module class, its request types and the message handlers in its
+  `Messaging` namespace
+- domain types do not depend on ASP.NET Core or EF Core
+- every module's `DbContext` uses a schema named after the module and retries transient failures
+- no endpoint is an MVC controller
+
+### Decisions
+
+[`docs/adr/`](docs/adr/README.md) records the significant decisions behind this solution, each with
+the alternatives that were considered and why they lost.
+
 ## Sign-in
 
 The browser talks only to the BFF in `src/CloudGround.App.Bff`; tokens never reach it. Open the
@@ -71,17 +187,21 @@ components, signals, zoneless change detection and Angular Material. The AppHost
 `npm run dev`, and the BFF forwards every path that is not `/api/*` or `/bff/*` to it, so the
 browser sees one origin.
 
-Each route chooses its render mode in `src/app/app.routes.server.ts`, the sample's routes in
-`src/app/projects/projects.routes.ts`:
+<!--#if (sample) -->
+Each route chooses its render mode in `src/CloudGround.App.Web/src/app/app.routes.server.ts`, the
+sample's routes in `src/CloudGround.App.Web/src/app/projects/projects.routes.ts`:
+<!--#else -->
+Each route chooses its render mode in `src/CloudGround.App.Web/src/app/app.routes.server.ts`:
+<!--#endif -->
 
 | Route | Render mode | Content |
 |---|---|---|
 | `/` | server, per request | home page |
+<!--#if (sample) -->
 | `/explore` | server, per request | all projects, readable without JavaScript |
 | `/projects` | browser | the signed-in area; editors create projects there |
+<!--#endif -->
 | anything else | server, per request | not-found page with status 404 |
-
-`/explore` and `/projects` belong to the *Projects* sample, which `--sample false` leaves out.
 
 Server-rendered pages are anonymous: the Node server calls the API's public endpoints directly,
 found through Aspire service discovery. In the browser the same relative `/api/...` calls go
@@ -90,7 +210,7 @@ Responses fetched during server rendering travel with the page, so the browser d
 them again. The toolbar shows the signed-in user with a logout button, or a login link that
 returns to the current page.
 
-`src/instrumentation.mjs` starts the OpenTelemetry Node SDK, so the dashboard shows the Node
+`src/CloudGround.App.Web/src/instrumentation.mjs` starts the OpenTelemetry Node SDK, so the dashboard shows the Node
 server's incoming requests and its calls to the API in the same traces as the BFF and the API.
 
 To work on the app on its own, run `npm ci` once in `src/CloudGround.App.Web`. `npm run dev` serves
@@ -103,36 +223,6 @@ with 400, and the server renders pages with data from the API at `services__api_
 [Compose deployment](#deploy-with-docker-compose) sets both; a container started by hand needs
 them too.
 
-## Architecture
-
-The API host in `src/CloudGround.App.Api` is a modular monolith. It owns the cross-cutting
-concerns: errors as `ProblemDetails`, OpenAPI, and `HybridCache` backed by Garnet. Each module in
-`src/Modules/` is a class library that owns its endpoints, handlers, persistence and its own
-PostgreSQL schema. A feature slice keeps its request, handler and endpoint in one file, and the
-endpoint calls the handler directly. Cached reads skip `HybridCache`'s in-process copy and use
-Garnet only, so a change that removes a cache entry is visible on every API instance at once. Requests are validated by the built-in Minimal API
-validation, and Mapperly maps entities to responses; a response member without a source fails the
-build.
-
-Modules meet only through contracts. A module that offers something to others has a
-`*.Contracts` project with interfaces and integration events, and other modules reference only
-that project. Synchronous calls go through contract interfaces, reactions through integration
-events. The *Projects* and *Tasks* sample modules, which `--sample false` leaves out, show both with
-`IProjectCatalog` and `ProjectArchived`.
-
-The architecture tests in `tests/CloudGround.App.Architecture.Tests` enforce these rules for every
-module they find:
-
-- every module project in `src/Modules/` is referenced by the API host
-- a module references another module only through its contracts project
-- modules do not depend on each other's types
-- contracts do not depend on ASP.NET Core, EF Core, Wolverine or any module
-- a module exposes only its module class, its request types and the message handlers in its
-  `Messaging` namespace
-- domain types do not depend on ASP.NET Core or EF Core
-- every module's `DbContext` uses a schema named after the module and retries transient failures
-- no endpoint is an MVC controller
-
 ## Messaging
 
 The API runs [Wolverine](https://wolverinefx.net) with RabbitMQ as transport. Its durable inbox and
@@ -144,22 +234,39 @@ handler runs in the same process. A failing handler is retried with growing paus
 message moves to the error queue.
 
 Delivery is at least once, so every handler must leave the same state when it receives an event
-twice. Cross-module checks are not transactions: in the sample, creating a task asks the Projects
-module whether the project is active and checks again after saving, so a task created while its
-project is being archived ends up closed instead of open.
+twice. Cross-module checks are not transactions.
+<!--#if (sample) -->
+In the sample, creating a task asks the Projects module whether the project is active and checks
+again after saving, so a task created while its project is being archived ends up closed instead
+of open.
+<!--#endif -->
+
+## Add a module
+
+[`.claude/skills/add-module/SKILL.md`](.claude/skills/add-module/SKILL.md) lists every step:
+copying the module and its test project from the skill's folder, adding both to the solution, and
+registering the module in the API and its migrations in the AppHost. With Claude Code, `/add-module`
+runs it; other agents and people follow the same file.
+
+## Add a feature
+
+[`.claude/skills/add-feature/SKILL.md`](.claude/skills/add-feature/SKILL.md) adds an endpoint, a
+use case or a page to a module end to end: request, handler and endpoint in one file, validation,
+persistence and migration, Mapperly mapping, tests at every level and an optional page.
+`.claude/skills/add-feature/example/` holds a complete slice to copy. With Claude Code,
+`/add-feature` runs it.
 
 ## Add an integration event
 
 1. Add a record to the publishing module's `*.Contracts` project.
-2. Publish it the way the sample's `ArchiveProjectHandler` does: inside
-   `Database.CreateExecutionStrategy().ExecuteAsync(...)`, begin a transaction, call
+2. Publish it inside `Database.CreateExecutionStrategy().ExecuteAsync(...)`: begin a transaction, call
    `PublishAsync` on the outbox and then `SaveChangesAndFlushMessagesAsync`. EF Core retries the
    whole unit after a transient database failure; a retried unit can send the event twice, which
    at-least-once delivery allows.
 3. In the reacting module, reference the contracts project and add a public static
    `<Event>Handler` with a `HandleAsync` method to the module's `Messaging` namespace. Wolverine
    requires public handlers, so the handler only forwards to an internal service through a public
-   interface, as the sample's `ProjectArchivedHandler` does with `ICloseProjectTasks`.
+   interface.
 4. In the module's `Add<Module>Module`, register the assembly and the interface with Wolverine:
    `ConfigureWolverine(options => { options.Discovery.IncludeAssembly(...);
    options.CodeGeneration.AlwaysUseServiceLocationFor<TInterface>(); })`.
@@ -167,9 +274,10 @@ project is being archived ends up closed instead of open.
 ## Add a migration
 
 Change the model, then use the *Add Migration...* command of the module's migration resource in the
-Aspire dashboard, or run the pinned `dotnet-ef` from the solution root:
+Aspire dashboard, or build and run the pinned `dotnet-ef` from the solution root:
 
 ```bash
+dotnet build
 dotnet tool restore
 ConnectionStrings__database="Host=localhost" dotnet ef migrations add <Name> --project src/Modules/CloudGround.App.Modules.<Module> \
   --startup-project src/CloudGround.App.Api --context <Module>DbContext --output-dir Persistence/Migrations
@@ -194,6 +302,22 @@ pwsh tests/CloudGround.App.EndToEnd.Tests/bin/Debug/net10.0/playwright.ps1 insta
 `--filter-not-trait Category=EndToEnd` leaves them out. CI builds, lints and tests the web app,
 runs every test level, end-to-end included, builds the container images and checks the Compose
 file on every push.
+
+## Working with AI agents
+
+The solution carries its rules for AI agents with it:
+
+- [`AGENTS.md`](AGENTS.md) holds the rules for every change: architecture, libraries, code,
+  Angular, versions and commits. Many coding agents read it directly.
+- [`CLAUDE.md`](CLAUDE.md) imports `AGENTS.md` and adds what is specific to Claude Code.
+- `.claude/skills/` holds the add-module and add-feature skills; they are Markdown and work by hand
+  too.
+- [`.mcp.json`](.mcp.json) starts the Angular CLI's MCP server, which gives agents the Angular best
+  practices for the installed version and searches the Angular documentation.
+
+CI enforces the guardrails that keep generated code in line: warnings as errors and the .NET
+analyzers, the formatting check, Mapperly's diagnostics, the architecture tests, ESLint, Conventional
+Commit titles and every test level.
 
 ## Deploy with Docker Compose
 
