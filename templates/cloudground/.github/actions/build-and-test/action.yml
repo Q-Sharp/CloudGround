@@ -1,5 +1,5 @@
 name: Build and test
-description: Restore, check formatting, build and test the solution.
+description: Restore, check formatting, build and test the solution and its web app.
 
 inputs:
   working-directory:
@@ -13,6 +13,27 @@ runs:
     - uses: actions/setup-dotnet@v6
       with:
         global-json-file: ${{ inputs.working-directory }}/global.json
+
+    - uses: actions/setup-node@v7
+      with:
+        node-version-file: ${{ inputs.working-directory }}/src/CloudGround.App.Web/.nvmrc
+        cache: npm
+        cache-dependency-path: ${{ inputs.working-directory }}/src/CloudGround.App.Web/package-lock.json
+
+    - name: Install web app packages
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}/src/CloudGround.App.Web
+      run: npm ci
+
+    - name: Lint and build the web app
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}/src/CloudGround.App.Web
+      run: npm run build
+
+    - name: Test the web app
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}/src/CloudGround.App.Web
+      run: npm test
 
     - name: Restore
       shell: bash
@@ -28,6 +49,11 @@ runs:
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: dotnet build --no-restore --configuration Release
+
+    - name: Install Chromium and its system libraries
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: pwsh tests/CloudGround.App.EndToEnd.Tests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
 
     - name: Test
       shell: bash
