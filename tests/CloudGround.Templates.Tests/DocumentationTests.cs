@@ -4,6 +4,11 @@ namespace CloudGround.Templates.Tests;
 public sealed class DocumentationTests(TemplatePackage package)
 {
     private const int GeneratedDecisionRecords = 20;
+    private const int RepositoryDecisionRecords = 7;
+
+    private static readonly string[] RepositoryFoldersWithOwnChecks = ["templates/", "docs/superpowers/", "artifacts/", "generated/", ".superpowers/", ".omc/"];
+
+    private static readonly string[] EvidenceOfAiAssistedDevelopment = ["](docs/superpowers/specs/", "](docs/superpowers/plans/", "](docs/adr/", "](AGENTS.md)"];
 
     [Theory]
     [InlineData("true")]
@@ -58,5 +63,31 @@ public sealed class DocumentationTests(TemplatePackage package)
         {
             Assert.Contains(".claude/skills/add-module/SKILL.md", moduleMap, StringComparison.Ordinal);
         }
+    }
+
+    [Fact]
+    public void Documented_paths_exist_in_the_repository()
+    {
+        var repository = RepositoryRoot.Find();
+
+        Assert.Empty(MarkdownDocuments.BrokenReferences(repository, MarkdownDocuments.Files(repository, RepositoryFoldersWithOwnChecks)));
+    }
+
+    [Fact]
+    public void Repository_decision_records_name_their_alternatives()
+    {
+        var adr = Path.Combine(RepositoryRoot.Find(), "docs", "adr");
+
+        Assert.True(Directory.Exists(adr), "docs/adr does not exist.");
+        Assert.Empty(MarkdownDocuments.AdrViolations(adr));
+        Assert.True(MarkdownDocuments.DecisionRecords(adr).Count >= RepositoryDecisionRecords);
+    }
+
+    [Fact]
+    public void Repository_readme_links_the_evidence_of_ai_assisted_development()
+    {
+        var section = MarkdownDocuments.Section(File.ReadAllText(Path.Combine(RepositoryRoot.Find(), "README.md")), "## How this was built with AI");
+
+        Assert.All(EvidenceOfAiAssistedDevelopment, link => Assert.Contains(link, section, StringComparison.Ordinal));
     }
 }

@@ -1,7 +1,7 @@
 # CloudGround — Design
 
 **Date:** 2026-10-27
-**Status:** Draft, awaiting author review
+**Status:** Implemented in phases 1–7
 **Repository:** `Q-Sharp/CloudGround` (local at `~/Sources/CloudGround`; public on GitHub from the start, see section 9)
 
 Markers used below: **Author** means the author decided it. **Approved** means it was proposed during
@@ -312,6 +312,18 @@ module structure says it should not.
 - MCP configuration for the Angular CLI's MCP server, so agents get current Angular guidance.
 - Guardrails the AI must pass, all enforced in CI: warnings as errors, analyzers, formatting check,
   Mapperly diagnostics, architecture tests, ESLint, Conventional Commits check, all test levels.
+- **Builder** (2026-10-29): the skills carry their own files. The add-module skill copies a module
+  and its test project from its `src/` and `tests/` folders; a contracts project is created when
+  another module first needs it, because NuGet rejects installed paths of 200 characters or more.
+  The add-feature skill copies an example slice for an `Item` entity. The template's tests apply
+  both skills to a solution generated with `--sample false`, add a migration and run its whole test
+  suite. The AppHost wires a module's migrations with one call, `WithModuleMigrations`, and a test
+  fails when a module has none. `.mcp.json` uses the configuration angular.dev documents
+  (`npx -y @angular/cli mcp`). The C4 diagrams are Mermaid flowcharts, because Mermaid's C4 diagram
+  type is experimental and lays out poorly on GitHub. ADRs have the sections Context, Decision,
+  Alternatives and Consequences. The `.editorconfig` of a generated solution does not enforce the
+  order of `using` directives, because the solution's own namespaces sort before or after
+  `Microsoft` depending on its name.
 
 ### 8.10 Versioning (Author: automatic SemVer with release-please and MinVer)
 

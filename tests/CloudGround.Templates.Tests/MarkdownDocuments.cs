@@ -4,7 +4,7 @@ namespace CloudGround.Templates.Tests;
 
 public static partial class MarkdownDocuments
 {
-    private static readonly string[] CheckedRoots = ["src/", "tests/", "docs/", ".github/", ".claude/", ".devcontainer/", ".config/"];
+    private static readonly string[] CheckedRoots = ["src/", "tests/", "docs/", "templates/", ".github/", ".claude/", ".devcontainer/", ".config/"];
 
     private static readonly string[] UncheckedFragments = ["<", "*", "/bin/", "/obj/"];
 
@@ -19,6 +19,7 @@ public static partial class MarkdownDocuments
             .Select(file => Path.GetRelativePath(root, file).Replace('\\', '/'))
             .Where(file => file != "CHANGELOG.md")
             .Where(file => !file.Contains("node_modules/", StringComparison.Ordinal))
+            .Where(file => !file.Contains("/bin/", StringComparison.Ordinal) && !file.Contains("/obj/", StringComparison.Ordinal))
             .Where(file => !excludedPrefixes.Any(prefix => file.StartsWith(prefix, StringComparison.Ordinal)))
             .Select(file => Path.Combine(root, file));
 

@@ -24,6 +24,10 @@ public sealed class AiKitTests(TemplatePackage package)
     }
 
     [Fact]
+    public void Repository_skills_are_named_after_their_folder() =>
+        SkillFrontMatter.AssertSkillsAreNamedAfterTheirFolder(RepositoryRoot.Find());
+
+    [Fact]
     public async Task Angular_mcp_server_starts_from_the_configured_command()
     {
         var solution = await package.GenerateAsync("Contoso.Shop");

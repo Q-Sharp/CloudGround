@@ -2,27 +2,80 @@
 
 [![CI](https://github.com/Q-Sharp/CloudGround/actions/workflows/ci.yml/badge.svg)](https://github.com/Q-Sharp/CloudGround/actions/workflows/ci.yml)
 
-> **Status: work in progress.** Phases 1 (foundation), 2 (modules and data), 3 (messaging), 4 (BFF
-> and login), 5 (Angular SSR) and 6 (operations) of 7 are built.
-> The plans live in [`docs/superpowers/plans/`](docs/superpowers/plans/), the design in
-> [`docs/superpowers/specs/`](docs/superpowers/specs/).
-
 CloudGround is a `dotnet new` template for container-based .NET solutions. One command creates a
-production-shaped solution with a visible architecture; one more command runs all of it locally
-through [Aspire](https://aspire.dev).
+production-shaped solution with a visible architecture: a modular monolith with Minimal APIs, an
+Angular frontend with server-side rendering, sign-in through a backend for frontend, messaging with
+a transactional outbox, tests at every level, container images and a Docker Compose deployment.
+One more command runs all of it locally through [Aspire](https://aspire.dev).
 
-What a generated solution contains today:
+> **Status:** all seven phases of the first version are built. The package is not on NuGet yet;
+> install it from source as shown below.
 
-- an Aspire AppHost with PostgreSQL, Garnet, RabbitMQ and Keycloak containers, and shared service defaults
-  (OpenTelemetry, health checks, resilience, service discovery)
+## Quickstart
+
+Prerequisites: [.NET 10 SDK](https://dotnet.microsoft.com/download), [Node.js](https://nodejs.org)
+26 with npm, and Docker or Podman.
+
+```bash
+git clone https://github.com/Q-Sharp/CloudGround.git
+dotnet pack CloudGround/CloudGround.Templates.csproj --output CloudGround/artifacts
+dotnet new install CloudGround/artifacts/CloudGround.Templates.*.nupkg
+
+dotnet new cloudground --name Contoso.Shop
+cd Contoso.Shop
+dotnet run --project src/Contoso.Shop.AppHost
+```
+
+The Aspire dashboard opens in the browser and shows every resource, its logs and its traces. The
+`bff` resource serves the application; sign in as `alice` with the password `alice`.
+
+```mermaid
+flowchart LR
+    Browser -->|cookie, same origin| BFF[BFF<br/>ASP.NET Core + YARP]
+    BFF -->|pages| SSR[Angular SSR<br/>Node]
+    BFF -->|/api with access token| API[API<br/>modular monolith]
+    SSR -->|public endpoints, anonymous| API
+    BFF -->|OIDC| KC[Keycloak]
+    API --> PG[(PostgreSQL)]
+    API --> RD[(Garnet)]
+    BFF --> RD
+    API <-->|integration events| MQ[[RabbitMQ]]
+```
+
+## How this was built with AI
+
+This repository is built with an AI coding agent, Claude Code, and steered by written artifacts
+that are part of it:
+
+- **Design**: [`docs/superpowers/specs/`](docs/superpowers/specs/) holds the intent, the goals,
+  what must not happen, and every decision, marked as the author's, approved, a default or left to
+  the builder.
+- **Plans**: [`docs/superpowers/plans/`](docs/superpowers/plans/) holds one plan per phase, with its
+  tasks, the tests that prove them and the exact values from the design.
+- **Rules**: [`AGENTS.md`](AGENTS.md) holds what every change must follow; [`CLAUDE.md`](CLAUDE.md)
+  imports it.
+- **Decisions**: [`docs/adr/`](docs/adr/README.md) records the repository's own decisions, with the
+  alternatives and why they lost.
+- **Process**: every test is written first and seen to fail; every phase ends with a review of the
+  whole branch by a separate model and lands as a pull request with CI; commits carry the agent's
+  co-author trailer in the [history](https://github.com/Q-Sharp/CloudGround/commits/main).
+
+Every generated solution carries the same kind of kit for its own development: rules for agents,
+skills that create a module or add a feature, the Angular CLI's MCP server and its own decision
+records.
+
+## What a generated solution contains
+
+- an Aspire AppHost with PostgreSQL, Garnet, RabbitMQ and Keycloak containers, and shared service
+  defaults (OpenTelemetry, health checks, resilience, service discovery)
 - an Angular frontend with server-side rendering per route: public pages rendered on the server
   from the API's anonymous endpoints, a browser-rendered area for signed-in users, Angular
   Material, angular-eslint, unit tests, OpenTelemetry in Node and a Dockerfile
-- a BFF that serves the frontend, signs users in against Keycloak, keeps sessions in Garnet, protects writes with
-  Angular-compatible XSRF tokens and forwards `/api/*` with the user's access token, so tokens never
-  reach the browser
-- a modular Minimal API host: `ProblemDetails`, built-in validation, OpenAPI with Scalar, role checks on writes,
-  `HybridCache` on Garnet
+- a BFF that serves the frontend, signs users in against Keycloak, keeps sessions in Garnet,
+  protects writes with Angular-compatible XSRF tokens and forwards `/api/*` with the user's access
+  token, so tokens never reach the browser
+- a modular Minimal API host: `ProblemDetails`, built-in validation, OpenAPI with Scalar, role
+  checks on writes, `HybridCache` on Garnet
 - *Projects* and *Tasks* sample modules, each with its own schema, EF Core migrations that Aspire
   applies before the API starts, Mapperly mapping and caching on a read path
 - modules that meet only through contracts: a contract interface for synchronous calls and an
@@ -40,43 +93,23 @@ What a generated solution contains today:
   Code and GitHub Codespaces
 - automatic semantic versioning from Git tags (MinVer) and release pull requests (release-please)
 - GitHub Actions for build, lint, all test levels, formatting, container images, the Compose check
-  and Conventional Commit pull request titles
-- Dependabot configuration for NuGet, npm, container images, devcontainer features and GitHub
-  Actions
+  and Conventional Commit pull request titles, and Dependabot for NuGet, npm, container images,
+  devcontainer features and GitHub Actions
+- an AI collaboration kit: `AGENTS.md` with the solution's rules, `CLAUDE.md`, skills that create a
+  module and add a feature slice end to end, and the Angular CLI's MCP server
+- a README with C4 context and container diagrams and a module map, and 21 architecture decision
+  records
 
-The last phase adds an AI collaboration kit and the architecture documentation.
-
-## Prerequisites
-
-- [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- [Node.js](https://nodejs.org) 26 with npm (the web app and its build)
-- Docker or Podman (the AppHost starts PostgreSQL, Garnet, RabbitMQ and Keycloak as containers)
-
-## Install from source
-
-```bash
-dotnet pack CloudGround.Templates.csproj --output artifacts
-dotnet new install artifacts/CloudGround.Templates.*.nupkg
-```
-
-## Create and run a solution
-
-```bash
-dotnet new cloudground --name Contoso.Shop
-cd Contoso.Shop
-dotnet run --project src/Contoso.Shop.AppHost
-```
-
-The Aspire dashboard opens in the browser and shows every resource, its logs and its traces. The
-`bff` resource serves the application.
+## Options
 
 `--sample false` creates the solution without the *Projects* and *Tasks* sample modules and their
-pages; the module infrastructure, messaging, the BFF, the login and the web app's shell stay.
+pages; the module infrastructure, messaging, the BFF, the login and the web app's shell stay, and
+the add-module skill creates the first module.
 
 The name becomes the namespace, so characters that are not valid there turn into underscores:
-`--name my-shop` creates `my_shop.slnx` and `src/my_shop.Api`.
+`--name my-shop` creates `my_shop.slnx` and the project `my_shop.Api`.
 
-## Test
+## Test a generated solution
 
 ```bash
 dotnet test --solution Contoso.Shop.slnx
@@ -84,14 +117,8 @@ dotnet test --solution Contoso.Shop.slnx
 
 ## Working on the template
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## How this is built
-
-This repository is built with AI assistance. The AI works from a written design, implementation
-plans and explicit rules ([`AGENTS.md`](AGENTS.md)), and every change passes the same tests and
-checks as hand-written code. The design, the plans and the commit history are part of the
-repository.
+See [CONTRIBUTING.md](CONTRIBUTING.md) and the
+[change-template skill](.claude/skills/change-template/SKILL.md).
 
 ## License
 

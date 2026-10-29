@@ -19,7 +19,12 @@ integration tests that start the whole application, Playwright end-to-end tests,
 container images, a Docker Compose deployment with EF Core migration bundles, a devcontainer,
 automatic semantic versioning from Git tags, GitHub Actions and Dependabot.
 
-`--sample false` leaves out the sample modules and their pages and keeps the module infrastructure,
-messaging, the BFF, the login and the web app's shell.
+Every solution also ships an AI collaboration kit, `AGENTS.md` with its rules, `CLAUDE.md`, skills
+that create a module and add a feature slice, and the Angular CLI's MCP server, together with C4
+diagrams, a module map and architecture decision records.
 
-Source, roadmap and documentation: <https://github.com/Q-Sharp/CloudGround>
+`--sample false` leaves out the sample modules and their pages and keeps the module infrastructure,
+messaging, the BFF, the login and the web app's shell; the add-module skill creates the first
+module.
+
+Source and documentation: <https://github.com/Q-Sharp/CloudGround>

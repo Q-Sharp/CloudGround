@@ -27,6 +27,18 @@ release-please keeps a release pull request open. Merging it tags the version an
 publish job, which pushes the package to NuGet with the repository secret `NUGET_API_KEY`
 (a nuget.org API key scoped to `CloudGround.Templates`). Without that secret the publish job fails.
 
+## Changing the template
+
+[`.claude/skills/change-template/SKILL.md`](.claude/skills/change-template/SKILL.md) lists where a
+change belongs, the placeholders, how to make content conditional on the sample, what must stay out
+of the package and the tests to run. It is written for AI agents and people alike.
+
+## Decisions
+
+Significant decisions get an architecture decision record: in [`docs/adr/`](docs/adr/README.md) for
+the repository, in [`templates/cloudground/docs/adr/`](templates/cloudground/docs/adr/README.md) for
+the generated solutions. Each names the alternatives and why they lost.
+
 ## Code style
 
 - Code and configuration contain no explanatory comments. Names, small functions and tests carry
