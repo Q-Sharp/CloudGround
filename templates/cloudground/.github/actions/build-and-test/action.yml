@@ -1,5 +1,5 @@
 name: Build and test
-description: Restore, check formatting, build and test the solution and its web app.
+description: Restore, check formatting, build and test the solution and its web app, build the container images and check the Compose deployment.
 
 inputs:
   working-directory:
@@ -59,3 +59,20 @@ runs:
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: dotnet test --no-build --configuration Release
+
+    - name: Restore .NET tools
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: dotnet tool restore
+
+    - name: Build and tag the container images
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: dotnet aspire do push --non-interactive --nologo --output-path artifacts/compose -- --Parameters:keycloak-url=https://keycloak.example
+
+    - name: Check the Compose deployment
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        dotnet aspire do prepare-compose --non-interactive --nologo --output-path artifacts/compose -- --Parameters:keycloak-url=https://keycloak.example
+        docker compose --env-file artifacts/compose/.env.Production --file artifacts/compose/docker-compose.yaml config --quiet
