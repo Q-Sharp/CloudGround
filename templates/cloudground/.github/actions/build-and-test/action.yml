@@ -68,11 +68,11 @@ runs:
     - name: Build and tag the container images
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      run: dotnet aspire do push --non-interactive --nologo --output-path artifacts/compose -- --Parameters:keycloak-url=https://keycloak.example
+      run: dotnet aspire do push --non-interactive --nologo --apphost src/CloudGround.App.AppHost/CloudGround.App.AppHost.csproj --output-path artifacts/compose -- --Parameters:keycloak-url=https://keycloak.example
 
     - name: Check the Compose deployment
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
-        dotnet aspire do prepare-compose --non-interactive --nologo --output-path artifacts/compose -- --Parameters:keycloak-url=https://keycloak.example
+        dotnet aspire do prepare-compose --non-interactive --nologo --apphost src/CloudGround.App.AppHost/CloudGround.App.AppHost.csproj --output-path artifacts/compose -- --Parameters:keycloak-url=https://keycloak.example
         docker compose --env-file artifacts/compose/.env.Production --file artifacts/compose/docker-compose.yaml config --quiet

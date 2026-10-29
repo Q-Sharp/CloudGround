@@ -202,9 +202,11 @@ local tool of this solution, so it needs no global install:
 
 ```bash
 dotnet tool restore
-dotnet aspire do push --non-interactive --output-path artifacts/compose -- \
+dotnet aspire do push --non-interactive --apphost src/CloudGround.App.AppHost/CloudGround.App.AppHost.csproj \
+  --output-path artifacts/compose -- \
   --Parameters:keycloak-url=https://id.example.com --Parameters:bff-client-secret=<client secret>
-dotnet aspire do prepare-compose --non-interactive --output-path artifacts/compose -- \
+dotnet aspire do prepare-compose --non-interactive --apphost src/CloudGround.App.AppHost/CloudGround.App.AppHost.csproj \
+  --output-path artifacts/compose -- \
   --Parameters:keycloak-url=https://id.example.com --Parameters:bff-client-secret=<client secret>
 docker compose --env-file artifacts/compose/.env.Production --file artifacts/compose/docker-compose.yaml up -d
 ```
