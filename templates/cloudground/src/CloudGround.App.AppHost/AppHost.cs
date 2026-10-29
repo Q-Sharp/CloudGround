@@ -1,16 +1,14 @@
+using CloudGround.App.AppHost;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
-var database = builder.AddPostgres("postgres").WithDataVolume().AddDatabase("database");
-var cache = builder.AddGarnet("cache");
+builder.AddDockerComposeEnvironment("compose")
+    .ConfigureComposeFile(ComposeDeployment.RestartLongRunningServices);
+
+var database = builder.AddPostgres("postgres").WithDataVolume(DeploymentVolume("postgres-data")).AddDatabase("database");
+var cache = builder.AddGarnet("cache").WithDataVolume(DeploymentVolume("cache-data"));
 var messaging = builder.AddRabbitMQ("messaging").WithManagementPlugin();
 var bffClientSecret = builder.AddParameter("bff-client-secret", new GenerateParameterDefault { MinLength = 32, Special = false }, secret: true, persist: true);
-#pragma warning disable ASPIRECERTIFICATES001
-var keycloak = builder.AddKeycloak("keycloak", port: 8380)
-    .WithDataVolume()
-    .WithoutHttpsCertificate()
-    .WithRealmImport("./Realms")
-    .WithEnvironment("BFF_CLIENT_SECRET", bffClientSecret);
-#pragma warning restore ASPIRECERTIFICATES001
 
 var api = builder.AddProject<Projects.CloudGround_App_Api>("api")
     .WithHttpHealthCheck("/health", endpointName: "http")
@@ -19,29 +17,46 @@ var api = builder.AddProject<Projects.CloudGround_App_Api>("api")
     .WithReference(cache)
     .WaitFor(cache)
     .WithReference(messaging)
-    .WaitFor(messaging)
-    .WithReference(keycloak)
-    .WaitFor(keycloak);
+    .WaitFor(messaging);
 
-var web = builder.AddJavaScriptApp("web", "../CloudGround.App.Web", "start")
+var web = builder.AddJavaScriptApp("web", "../CloudGround.App.Web")
     .WithNpm()
     .WithHttpEndpoint(env: "PORT")
     .WithHttpHealthCheck("/health")
-    .WithEnvironment("NODE_OPTIONS", "--import ./src/instrumentation.mjs")
     .WithReference(api)
     .WaitFor(api);
-web.WithArgs("--", "--port", web.GetEndpoint("http").Property(EndpointProperty.TargetPort));
 
-builder.AddProject<Projects.CloudGround_App_Bff>("bff")
+var bff = builder.AddProject<Projects.CloudGround_App_Bff>("bff")
+    .WithExternalHttpEndpoints()
     .WithHttpHealthCheck("/health", endpointName: "http")
     .WithReference(cache)
     .WaitFor(cache)
-    .WithReference(keycloak)
-    .WaitFor(keycloak)
     .WithReference(api)
     .WaitFor(api)
     .WithReference(web)
     .WithEnvironment("Bff__ClientSecret", bffClientSecret);
+
+if (builder.ExecutionContext.IsRunMode)
+{
+#pragma warning disable ASPIRECERTIFICATES001
+    var keycloak = builder.AddKeycloak("keycloak", port: 8380)
+        .WithDataVolume()
+        .WithoutHttpsCertificate()
+        .WithRealmImport("./Realms")
+        .WithEnvironment("BFF_CLIENT_SECRET", bffClientSecret);
+#pragma warning restore ASPIRECERTIFICATES001
+    api.WithReference(keycloak).WaitFor(keycloak);
+    bff.WithReference(keycloak).WaitFor(keycloak);
+    web.WithEnvironment("NODE_OPTIONS", "--import ./src/instrumentation.mjs")
+        .WithArgs("--", "--port", web.GetEndpoint("http").Property(EndpointProperty.TargetPort));
+}
+else
+{
+    var keycloak = builder.AddExternalService("keycloak", builder.AddParameter("keycloak-url"));
+    api.WithReference(keycloak);
+    bff.WithReference(keycloak);
+    web.WithEnvironment("NG_ALLOWED_HOSTS", web.GetEndpoint("http").Property(EndpointProperty.Host));
+}
 
 #if (sample)
 var projectsMigrations = api
@@ -49,17 +64,21 @@ var projectsMigrations = api
     .WithMigrationsProject("../Modules/CloudGround.App.Modules.Projects/CloudGround.App.Modules.Projects.csproj")
     .WithReference(database)
     .WaitFor(database)
-    .RunDatabaseUpdateOnStart();
+    .RunDatabaseUpdateOnStart()
+    .PublishAsMigrationBundle(publishContainer: true);
 
 var tasksMigrations = api
     .AddEFMigrations("tasks-migrations", "CloudGround.App.Modules.Tasks.Persistence.TasksDbContext")
     .WithMigrationsProject("../Modules/CloudGround.App.Modules.Tasks/CloudGround.App.Modules.Tasks.csproj")
     .WithReference(database)
     .WaitFor(database)
-    .RunDatabaseUpdateOnStart();
+    .RunDatabaseUpdateOnStart()
+    .PublishAsMigrationBundle(publishContainer: true);
 
 api.WaitForCompletion(projectsMigrations)
     .WaitForCompletion(tasksMigrations);
 #endif
 
 builder.Build().Run();
+
+string? DeploymentVolume(string name) => builder.ExecutionContext.IsPublishMode ? name : null;
