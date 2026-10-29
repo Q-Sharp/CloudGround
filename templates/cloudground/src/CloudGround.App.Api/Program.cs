@@ -3,6 +3,7 @@ using CloudGround.App.Api;
 using CloudGround.App.Modules.Projects;
 using CloudGround.App.Modules.Tasks;
 #endif
+using JasperFx;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -43,4 +44,4 @@ app.MapProjectsModule();
 app.MapTasksModule();
 #endif
 
-app.Run();
+return await app.RunJasperFxCommands(args);

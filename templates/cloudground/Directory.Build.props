@@ -6,6 +6,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <ContainerFamily>resolute-chiseled-extra</ContainerFamily>
     <MinVerTagPrefix>v</MinVerTagPrefix>
     <WarningsNotAsErrors>$(WarningsNotAsErrors);MINVER1001</WarningsNotAsErrors>
   </PropertyGroup>

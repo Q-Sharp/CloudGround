@@ -142,7 +142,7 @@ The project fails, even if it technically works, if any of these is true:
 | .NET SDK and runtime | newest LTS | .NET 10 |
 | Angular | newest stable major. Angular supports every major for about 18 months, so its "LTS" phase is the end of a major's life, not a longer support line; the newest major has the longest support | Angular 22 (**Author**, 2026-10-28: newest version instead of newest LTS) |
 | Node.js (SSR, tooling, devcontainer) | newest even-numbered release line, which becomes the next Active LTS | Node.js 26 (**Author**, 2026-10-28; Active LTS since 26.13.0 on 2026-10-28) |
-| Container base images | images built on the newest LTS of their distribution, e.g. Ubuntu LTS for .NET images | .NET services on `aspnet:10.0-resolute-chiseled-extra` (Ubuntu 26.04; ICU and time zones included), migration bundles on `runtime:10.0-resolute` because their entrypoint needs a shell, the web app on `node:26-trixie-slim` (**Builder**, 2026-10-29) |
+| Container base images | images built on the newest LTS of their distribution, e.g. Ubuntu LTS for .NET images | .NET services on `aspnet:10.0-resolute-chiseled-extra` (Ubuntu 26.04; ICU and time zones included), migration bundles on `aspnet:10.0-resolute`, because a bundle starts through the API and its entrypoint needs a shell, the web app on `node:26-trixie-slim` (**Builder**, 2026-10-29) |
 | PostgreSQL, Keycloak, RabbitMQ, Garnet, Aspire, NuGet and npm packages | no LTS line in the open-source edition: newest stable release | **Builder** |
 | `Aspire.Hosting.EntityFrameworkCore` | preview, because Aspire's migration integration has no stable release yet | **Author** exception (2026-10-28) |
 | `Aspire.Hosting.Keycloak`, `Aspire.Keycloak.Authentication` | preview, because Aspire's Keycloak integrations have no stable release yet | **Author** exception (2026-10-28) |
@@ -272,9 +272,12 @@ module structure says it should not.
   termination and secrets come from configuration that the adopter supplies, and the README documents
   them. Keycloak with the demo realm stays a development concern of the AppHost. CI checks that the
   generated Compose file is valid. It does not run a login flow against it.
-- **Builder** (2026-10-29): in publish mode the AppHost replaces the Keycloak container with an
-  external service `keycloak` whose URL is the parameter `keycloak-url`; migrations ship as bundle
-  containers the API waits for; every image Aspire builds is tagged with the AppHost's MinVer
+- **Builder** (2026-10-29): in publish mode the AppHost leaves the Keycloak container out and passes
+  the parameter `keycloak-url` to the API and the BFF as `Keycloak:Url`, which sets the OIDC
+  authority (Aspire's Keycloak integration otherwise uses a service-discovery address that HTTPS
+  metadata validation rejects); migrations ship as bundle containers that run one after another
+  and that the API waits for; PostgreSQL and RabbitMQ report their health, and services wait until
+  they are healthy; every image Aspire builds is tagged with the AppHost's MinVer
   version; services that run continuously restart unless stopped; the PostgreSQL and Garnet volumes
   have fixed names in the Compose file, and Garnet persists to its volume; Aspire's dashboard stays
   in the Compose file as the default OTLP backend; the Aspire CLI is a local dotnet tool of the

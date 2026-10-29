@@ -1,3 +1,5 @@
+using JasperFx;
+using JasperFx.CodeGeneration;
 using Wolverine;
 using Wolverine.EntityFrameworkCore;
 using Wolverine.ErrorHandling;
@@ -16,6 +18,7 @@ internal static class Messaging
 
     public static WebApplicationBuilder AddMessaging(this WebApplicationBuilder builder)
     {
+        builder.Services.CritterStackDefaults(defaults => defaults.Production.GeneratedCodeMode = TypeLoadMode.Static);
         builder.UseWolverine(options =>
         {
             options.UseRabbitMqUsingNamedConnection(BrokerConnectionName)

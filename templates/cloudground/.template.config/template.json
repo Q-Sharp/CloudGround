@@ -27,7 +27,9 @@
             "**/*.user",
             "**/node_modules/**",
             "**/dist/**",
-            "**/.angular/**"
+            "**/.angular/**",
+            "**/Internal/Generated/**",
+            "**/aspire-output/**"
           ]
         },
         {

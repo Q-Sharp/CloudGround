@@ -3,14 +3,20 @@ using CloudGround.App.AppHost;
 var builder = DistributedApplication.CreateBuilder(args);
 
 builder.AddDockerComposeEnvironment("compose")
-    .ConfigureComposeFile(ComposeDeployment.RestartLongRunningServices);
+    .ConfigureComposeFile(ComposeDeployment.Configure);
 
-var database = builder.AddPostgres("postgres").WithDataVolume(DeploymentVolume("postgres-data")).AddDatabase("database");
+var database = builder.AddPostgres("postgres")
+    .WithDataVolume(DeploymentVolume("postgres-data"))
+    .PublishAsDockerComposeService((_, service) => service.Healthcheck = ComposeDeployment.Probe("pg_isready", "--host", "127.0.0.1", "--username", "postgres"))
+    .AddDatabase("database");
 var cache = builder.AddGarnet("cache").WithDataVolume(DeploymentVolume("cache-data"));
-var messaging = builder.AddRabbitMQ("messaging").WithManagementPlugin();
+var messaging = builder.AddRabbitMQ("messaging")
+    .WithManagementPlugin()
+    .PublishAsDockerComposeService((_, service) => service.Healthcheck = ComposeDeployment.Probe("rabbitmq-diagnostics", "--quiet", "ping"));
 var bffClientSecret = builder.AddParameter("bff-client-secret", new GenerateParameterDefault { MinLength = 32, Special = false }, secret: true, persist: true);
 
 var api = builder.AddProject<Projects.CloudGround_App_Api>("api")
+    .BuildImageAfterMigrationBundles()
     .WithHttpHealthCheck("/health", endpointName: "http")
     .WithReference(database)
     .WaitFor(database)
@@ -52,9 +58,9 @@ if (builder.ExecutionContext.IsRunMode)
 }
 else
 {
-    var keycloak = builder.AddExternalService("keycloak", builder.AddParameter("keycloak-url"));
-    api.WithReference(keycloak);
-    bff.WithReference(keycloak);
+    var keycloakUrl = builder.AddParameter("keycloak-url");
+    api.WithEnvironment("Keycloak__Url", keycloakUrl);
+    bff.WithEnvironment("Keycloak__Url", keycloakUrl);
     web.WithEnvironment("NG_ALLOWED_HOSTS", web.GetEndpoint("http").Property(EndpointProperty.Host));
 }
 
@@ -65,19 +71,22 @@ var projectsMigrations = api
     .WithReference(database)
     .WaitFor(database)
     .RunDatabaseUpdateOnStart()
-    .PublishAsMigrationBundle(publishContainer: true);
+    .PublishAsMigrationBundle(publishContainer: true, baseImage: "mcr.microsoft.com/dotnet/aspnet:10.0-resolute");
 
 var tasksMigrations = api
     .AddEFMigrations("tasks-migrations", "CloudGround.App.Modules.Tasks.Persistence.TasksDbContext")
     .WithMigrationsProject("../Modules/CloudGround.App.Modules.Tasks/CloudGround.App.Modules.Tasks.csproj")
     .WithReference(database)
     .WaitFor(database)
+    .WaitForCompletion(projectsMigrations)
     .RunDatabaseUpdateOnStart()
-    .PublishAsMigrationBundle(publishContainer: true);
+    .PublishAsMigrationBundle(publishContainer: true, baseImage: "mcr.microsoft.com/dotnet/aspnet:10.0-resolute");
 
 api.WaitForCompletion(projectsMigrations)
     .WaitForCompletion(tasksMigrations);
 #endif
+
+builder.TagImagesWithVersion();
 
 builder.Build().Run();
 
