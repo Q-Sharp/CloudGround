@@ -41,6 +41,11 @@ public sealed class LayoutTests(TemplatePackage package)
     [InlineData(".github/dependabot.yml")]
     [InlineData(".github/pull_request_template.md")]
     [InlineData("README.md")]
+    [InlineData("AGENTS.md")]
+    [InlineData("CLAUDE.md")]
+    [InlineData(".mcp.json")]
+    [InlineData(".claude/skills/add-module/SKILL.md")]
+    [InlineData(".claude/skills/add-feature/SKILL.md")]
     public async Task Generated_solution_has_root_file(string relativePath)
     {
         var solution = await package.GenerateAsync("Contoso.Shop");
