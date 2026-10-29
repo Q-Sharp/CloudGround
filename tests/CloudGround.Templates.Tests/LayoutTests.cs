@@ -31,6 +31,7 @@ public sealed class LayoutTests(TemplatePackage package)
     [InlineData("tests/Contoso.Shop.Modules.Projects.Tests/Contoso.Shop.Modules.Projects.Tests.csproj")]
     [InlineData("tests/Contoso.Shop.Modules.Tasks.Tests/Contoso.Shop.Modules.Tasks.Tests.csproj")]
     [InlineData(".config/dotnet-tools.json")]
+    [InlineData(".devcontainer/devcontainer.json")]
     [InlineData(".github/actions/build-and-test/action.yml")]
     [InlineData(".github/workflows/ci.yml")]
     [InlineData(".github/workflows/pr-title.yml")]

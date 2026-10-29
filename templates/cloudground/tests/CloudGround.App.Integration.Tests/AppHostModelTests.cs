@@ -36,6 +36,16 @@ public sealed class AppHostModelTests
     }
 
     [Fact]
+    public async Task Web_counts_as_healthy_only_when_its_health_endpoint_answers()
+    {
+        await using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.CloudGround_App_AppHost>(TestContext.Current.CancellationToken);
+
+        var web = appHost.Resources.Single(resource => resource.Name == "web");
+
+        Assert.NotEmpty(web.Annotations.OfType<HealthCheckAnnotation>());
+    }
+
+    [Fact]
     public async Task Tests_run_two_bff_instances()
     {
         await using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.CloudGround_App_AppHost>(TestContext.Current.CancellationToken);

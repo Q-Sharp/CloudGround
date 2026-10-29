@@ -1,0 +1,28 @@
+{
+  "name": "CloudGround.App",
+  "image": "mcr.microsoft.com/devcontainers/base:3-resolute",
+  "features": {
+    "ghcr.io/devcontainers/features/dotnet:2": {
+      "version": "10.0"
+    },
+    "ghcr.io/devcontainers/features/node:2": {
+      "version": "26"
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:4": {},
+    "ghcr.io/devcontainers/features/powershell:2": {}
+  },
+  "containerEnv": {
+    "SSL_CERT_DIR": "/usr/lib/ssl/certs:/home/vscode/.aspnet/dev-certs/trust"
+  },
+  "postCreateCommand": "dotnet tool restore && dotnet restore && npm ci --prefix src/CloudGround.App.Web",
+  "postStartCommand": "dotnet aspire certs trust --non-interactive",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csdevkit",
+        "angular.ng-template",
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  }
+}

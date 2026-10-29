@@ -27,6 +27,16 @@ public sealed class ToolchainTests(TemplatePackage package)
         Assert.True(test.ExitCode == 0, test.Output);
     }
 
+    [Fact]
+    public async Task Generated_solution_restores_its_tools_on_a_fresh_machine()
+    {
+        var solution = await package.GenerateAsync("Tools.App");
+
+        var restore = await RunOnFreshMachineAsync(solution, "tool", "restore");
+
+        Assert.True(restore.ExitCode == 0, restore.Output);
+    }
+
     private static async Task<CliResult> RunOnFreshMachineAsync(GeneratedSolution solution, params string[] arguments)
     {
         var machine = Directory.CreateTempSubdirectory("cloudground-machine-").FullName;

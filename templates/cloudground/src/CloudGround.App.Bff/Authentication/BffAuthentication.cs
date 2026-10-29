@@ -15,6 +15,7 @@ internal static class BffAuthentication
 
     private const string IdentityProviderName = "keycloak";
     private const string Realm = "cloudground-app";
+    private const string IdentityProviderUrlSetting = "Keycloak:Url";
     private const string ClientId = "cloudground-app-bff";
     private const string ClientSecretSetting = "Bff:ClientSecret";
     private const string SessionCookieName = "bff";
@@ -62,6 +63,11 @@ internal static class BffAuthentication
                 options.SaveTokens = true;
                 options.MapInboundClaims = false;
                 options.RequireHttpsMetadata = !development;
+                if (builder.Configuration[IdentityProviderUrlSetting] is { } identityProviderUrl)
+                {
+                    options.Authority = $"{identityProviderUrl.TrimEnd('/')}/realms/{Realm}";
+                }
+
                 options.TokenValidationParameters.NameClaimType = NameClaim;
                 options.TokenValidationParameters.RoleClaimType = RoleClaim;
                 options.CorrelationCookie.SameSite = SameSiteMode.Lax;

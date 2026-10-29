@@ -13,6 +13,10 @@
     <PackageReference Include="WolverineFx.RuntimeCompilation" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(WolverineCodeGenerated)' != 'true'">
+    <Compile Remove="Internal/Generated/**" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="../CloudGround.App.ServiceDefaults/CloudGround.App.ServiceDefaults.csproj" />
     <!--#if (sample) -->
@@ -20,5 +24,11 @@
     <ProjectReference Include="../Modules/CloudGround.App.Modules.Tasks/CloudGround.App.Modules.Tasks.csproj" />
     <!--#endif -->
   </ItemGroup>
+
+  <Target Name="GenerateWolverineCode" AfterTargets="Build" Condition="'$(_IsPublishing)' == 'true' and '$(WolverineCodeGenerated)' != 'true'">
+    <RemoveDir Directories="$(MSBuildProjectDirectory)/Internal/Generated" />
+    <Exec Command="&quot;$(DOTNET_HOST_PATH)&quot; &quot;$(TargetPath)&quot; codegen write" WorkingDirectory="$(MSBuildProjectDirectory)" />
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Build" Properties="WolverineCodeGenerated=true" />
+  </Target>
 
 </Project>

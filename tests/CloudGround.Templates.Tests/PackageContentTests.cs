@@ -25,6 +25,16 @@ public sealed class PackageContentTests(TemplatePackage package)
     }
 
     [Fact]
+    public void Package_contains_no_generated_output()
+    {
+        var entries = ReadEntries(package.PackagePath);
+
+        Assert.DoesNotContain(entries, entry =>
+            entry.Contains("/Internal/Generated/", StringComparison.Ordinal)
+            || entry.Contains("/aspire-output/", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void Package_contains_readme()
     {
         var entries = ReadEntries(package.PackagePath);

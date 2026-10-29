@@ -48,3 +48,30 @@ jobs:
         uses: ./generated/contoso-empty/.github/actions/build-and-test
         with:
           working-directory: generated/contoso-empty
+
+  devcontainer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Pack the template
+        run: dotnet pack CloudGround.Templates.csproj --configuration Release --output artifacts
+
+      - name: Install the template
+        run: dotnet new install artifacts/CloudGround.Templates.*.nupkg
+
+      - name: Generate a solution with the sample
+        run: dotnet new cloudground --name Contoso.Shop --output generated/contoso-shop
+
+      - name: Test the solution inside its devcontainer
+        uses: devcontainers/ci@v0.3
+        with:
+          subFolder: generated/contoso-shop
+          push: never
+          runCmd: dotnet test --solution Contoso.Shop.slnx --filter-not-trait Category=EndToEnd

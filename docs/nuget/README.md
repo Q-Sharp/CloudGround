@@ -15,8 +15,9 @@ frontend with per-route server-side rendering, a BFF that serves it, signs users
 tokens away from the browser, a modular Minimal API host with ProblemDetails, validation, OpenAPI,
 HybridCache and role checks on writes, messaging with Wolverine and a transactional outbox,
 *Projects* and *Tasks* sample modules that meet only through contracts, architecture tests,
-integration tests that start the whole application, Playwright end-to-end tests, automatic
-semantic versioning from Git tags, GitHub Actions and Dependabot.
+integration tests that start the whole application, Playwright end-to-end tests, versioned
+container images, a Docker Compose deployment with EF Core migration bundles, a devcontainer,
+automatic semantic versioning from Git tags, GitHub Actions and Dependabot.
 
 `--sample false` leaves out the sample modules and their pages and keeps the module infrastructure,
 messaging, the BFF, the login and the web app's shell.

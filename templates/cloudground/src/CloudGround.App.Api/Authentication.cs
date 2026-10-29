@@ -4,6 +4,7 @@ internal static class Authentication
 {
     private const string IdentityProviderName = "keycloak";
     private const string Realm = "cloudground-app";
+    private const string IdentityProviderUrlSetting = "Keycloak:Url";
     private const string Audience = "cloudground-app-api";
     private const string RoleClaim = "roles";
     private const string NameClaim = "preferred_username";
@@ -15,6 +16,11 @@ internal static class Authentication
             {
                 options.Audience = Audience;
                 options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
+                if (builder.Configuration[IdentityProviderUrlSetting] is { } identityProviderUrl)
+                {
+                    options.Authority = $"{identityProviderUrl.TrimEnd('/')}/realms/{Realm}";
+                }
+
                 options.MapInboundClaims = false;
                 options.TokenValidationParameters.RoleClaimType = RoleClaim;
                 options.TokenValidationParameters.NameClaimType = NameClaim;

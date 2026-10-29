@@ -12,6 +12,10 @@ const browserDistFolder = join(import.meta.dirname, '../browser');
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 
+app.get('/health', (_request, response) => {
+  response.type('text/plain').send('Healthy');
+});
+
 app.use(
   express.static(browserDistFolder, {
     maxAge: '1y',
