@@ -10,4 +10,7 @@ public static class DotnetCli
         IReadOnlyDictionary<string, string> environment,
         params string[] arguments) =>
         ProcessRunner.RunAsync("dotnet", workingDirectory, environment, arguments);
+
+    public static string[] TestArguments(string solutionFile) =>
+        ["test", "--solution", solutionFile, "--filter-not-trait", "Category=EndToEnd"];
 }

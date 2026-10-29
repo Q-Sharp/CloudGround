@@ -39,6 +39,7 @@
             "tests/CloudGround.App.Integration.Tests/Tasks*.cs",
             "tests/CloudGround.App.Integration.Tests/ProjectArchived*.cs",
             "tests/CloudGround.App.Integration.Tests/ModuleAssertions.cs",
+        "tests/CloudGround.App.EndToEnd.Tests/Projects*.cs",
             "src/CloudGround.App.Web/src/app/projects/**"
           ]
         }

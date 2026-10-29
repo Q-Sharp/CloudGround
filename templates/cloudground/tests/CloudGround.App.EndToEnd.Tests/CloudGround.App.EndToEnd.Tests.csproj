@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.Testing" />
+    <PackageReference Include="Microsoft.Playwright.Xunit.v3" />
+    <PackageReference Include="xunit.v3" />
+    <Using Include="Aspire.Hosting" />
+    <Using Include="Aspire.Hosting.Testing" />
+    <Using Include="Microsoft.Playwright" />
+    <Using Include="Microsoft.Playwright.Xunit.v3" />
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="../CloudGround.App.Integration.Tests/FreshData.cs" Link="FreshData.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/CloudGround.App.AppHost/CloudGround.App.AppHost.csproj" />
+  </ItemGroup>
+
+</Project>

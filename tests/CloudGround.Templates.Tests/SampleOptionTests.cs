@@ -14,6 +14,7 @@ public sealed class SampleOptionTests(TemplatePackage package)
         var files = solution.RelativeFiles();
 
         Assert.DoesNotContain(files, file => file.Contains("Modules", StringComparison.Ordinal));
+        Assert.DoesNotContain(files, file => Path.GetFileName(file).StartsWith("Projects", StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain("Modules", File.ReadAllText(Path.Combine(solution.Root, "Contoso.Empty.slnx")), StringComparison.Ordinal);
         Assert.All(files, file => Assert.False(ReferencesTheSample(ReadFile(solution, file)), file));
     }
@@ -26,7 +27,7 @@ public sealed class SampleOptionTests(TemplatePackage package)
         var build = await DotnetCli.RunAsync(solution.Root, "build");
         Assert.True(build.ExitCode == 0, build.Output);
 
-        var test = await DotnetCli.RunAsync(solution.Root, "test", "--solution", "Contoso.Empty.slnx");
+        var test = await DotnetCli.RunAsync(solution.Root, DotnetCli.TestArguments("Contoso.Empty.slnx"));
         Assert.True(test.ExitCode == 0, test.Output);
     }
 

@@ -37,7 +37,7 @@ public sealed class NamingTests(TemplatePackage package)
         var build = await DotnetCli.RunAsync(solution.Root, "build");
         Assert.True(build.ExitCode == 0, build.Output);
 
-        var test = await DotnetCli.RunAsync(solution.Root, "test", "--solution", "Contoso.Shop.slnx");
+        var test = await DotnetCli.RunAsync(solution.Root, DotnetCli.TestArguments("Contoso.Shop.slnx"));
         Assert.True(test.ExitCode == 0, test.Output);
     }
 

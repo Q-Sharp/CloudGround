@@ -22,7 +22,7 @@ public sealed class ToolchainTests(TemplatePackage package)
     {
         var solution = await package.GenerateAsync("Untrusted.App");
 
-        var test = await RunOnFreshMachineAsync(solution, "test", "--solution", "Untrusted.App.slnx");
+        var test = await RunOnFreshMachineAsync(solution, DotnetCli.TestArguments("Untrusted.App.slnx"));
 
         Assert.True(test.ExitCode == 0, test.Output);
     }
