@@ -3,7 +3,7 @@
 [![CI](https://github.com/Q-Sharp/CloudGround/actions/workflows/ci.yml/badge.svg)](https://github.com/Q-Sharp/CloudGround/actions/workflows/ci.yml)
 
 > **Status: work in progress.** Phases 1 (foundation), 2 (modules and data), 3 (messaging), 4 (BFF
-> and login) and 5 (Angular SSR) of 7 are built.
+> and login), 5 (Angular SSR) and 6 (operations) of 7 are built.
 > The plans live in [`docs/superpowers/plans/`](docs/superpowers/plans/), the design in
 > [`docs/superpowers/specs/`](docs/superpowers/specs/).
 
@@ -31,12 +31,20 @@ What a generated solution contains today:
 - architecture tests that enforce the module and contract boundaries for whatever modules exist
 - unit tests, integration tests that start the whole application through
   `Aspire.Hosting.Testing`, and Playwright end-to-end tests that drive it in Chromium
+- container images for every service, tagged with the solution's version: .NET services through
+  SDK container publishing on Ubuntu 26.04 chiseled images, the web app from its own Dockerfile
+- a Docker Compose deployment from Aspire's publish pipeline, with EF Core migration bundles,
+  health checks and restart policies, and the identity provider, TLS and secrets left to
+  configuration
+- a devcontainer with the .NET SDK, Node and Docker in Docker, so the quickstart also runs in VS
+  Code and GitHub Codespaces
 - automatic semantic versioning from Git tags (MinVer) and release pull requests (release-please)
-- GitHub Actions for build, lint, all test levels, formatting and Conventional Commit pull request
-  titles
-- Dependabot configuration
+- GitHub Actions for build, lint, all test levels, formatting, container images, the Compose check
+  and Conventional Commit pull request titles
+- Dependabot configuration for NuGet, npm, container images, devcontainer features and GitHub
+  Actions
 
-The roadmap adds container deployment and an AI collaboration kit, one phase at a time.
+The last phase adds an AI collaboration kit and the architecture documentation.
 
 ## Prerequisites
 

@@ -8,6 +8,8 @@ Created with the [CloudGround](https://github.com/Q-Sharp/CloudGround) template.
 - [Node.js](https://nodejs.org) 26 with npm, the version in `src/CloudGround.App.Web/.nvmrc`
 - Docker or Podman; the AppHost starts PostgreSQL, Garnet, RabbitMQ and Keycloak as containers
 
+The [devcontainer](#devcontainer) brings all of this except the container runtime on the host.
+
 ## Run
 
 ```bash
@@ -15,12 +17,15 @@ dotnet run --project src/CloudGround.App.AppHost
 ```
 
 The Aspire dashboard opens in the browser and shows every resource, its logs and its traces.
-PostgreSQL and Keycloak keep their data in container volumes, so it survives restarts; remove the
-volume whose name ends in `postgres-data` or `keycloak-data` to start over. The integration tests
-always start without volumes, on an empty database and a freshly imported realm.
+PostgreSQL, Garnet and Keycloak keep their data in container volumes, so data, sessions and the
+realm survive restarts; remove the volume whose name ends in `postgres-data`, `cache-data` or
+`keycloak-data` to start over. The integration tests always start without volumes, on an empty
+database and a freshly imported realm.
 Before the API starts, the AppHost applies the EF Core migrations of every module. In Development
 the API serves its OpenAPI document at `/openapi/v1.json` and the Scalar UI at `/scalar`. The
-dashboard links the RabbitMQ management UI of the `messaging` resource.
+dashboard links the RabbitMQ management UI of the `messaging` resource. The API and the BFF answer
+`/health` (all their checks) and `/alive` (the process only) in every environment, the web app
+answers `/health`.
 
 ## Sign-in
 
@@ -63,7 +68,7 @@ Keycloak serves plain HTTP, so the solution runs without a trusted developer cer
 
 The Angular app in `src/CloudGround.App.Web` uses the current Angular defaults: standalone
 components, signals, zoneless change detection and Angular Material. The AppHost runs it with
-`npm start`, and the BFF forwards every path that is not `/api/*` or `/bff/*` to it, so the
+`npm run dev`, and the BFF forwards every path that is not `/api/*` or `/bff/*` to it, so the
 browser sees one origin.
 
 Each route chooses its render mode in `src/app/app.routes.server.ts`, the sample's routes in
@@ -88,18 +93,15 @@ returns to the current page.
 `src/instrumentation.mjs` starts the OpenTelemetry Node SDK, so the dashboard shows the Node
 server's incoming requests and its calls to the API in the same traces as the BFF and the API.
 
-To work on the app on its own, run `npm ci` once in `src/CloudGround.App.Web`. `npm start` serves
+To work on the app on its own, run `npm ci` once in `src/CloudGround.App.Web`. `npm run dev` serves
 it on <http://localhost:4200>; pages that call the API need the AppHost. `npm run build` lints and
 builds it, and the build fails on lint errors. `npm test` runs the unit tests.
 
 The Dockerfile builds an image that serves the app with Node as a non-root user on port 8080.
 Angular answers only requests for the host names in `NG_ALLOWED_HOSTS` and rejects all others
-with 400, so a deployment sets it to the host name under which the BFF reaches the web app:
-
-```bash
-podman build -t cloudground-app-web src/CloudGround.App.Web
-podman run --rm -p 8080:8080 -e NG_ALLOWED_HOSTS=localhost cloudground-app-web
-```
+with 400, and the server renders pages with data from the API at `services__api__http__0`. The
+[Compose deployment](#deploy-with-docker-compose) sets both; a container started by hand needs
+them too.
 
 ## Architecture
 
@@ -189,8 +191,71 @@ Chromium's system libraries, install them once after a build:
 pwsh tests/CloudGround.App.EndToEnd.Tests/bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
 ```
 
-`--filter-not-trait Category=EndToEnd` leaves them out. CI builds, lints and tests the web app and
-runs every test level, end-to-end included, on every push.
+`--filter-not-trait Category=EndToEnd` leaves them out. CI builds, lints and tests the web app,
+runs every test level, end-to-end included, builds the container images and checks the Compose
+file on every push.
+
+## Deploy with Docker Compose
+
+Aspire's publish pipeline turns the AppHost into a Docker Compose deployment. The Aspire CLI is a
+local tool of this solution, so it needs no global install:
+
+```bash
+dotnet tool restore
+dotnet aspire do push --non-interactive --output-path artifacts/compose -- --Parameters:keycloak-url=https://id.example.com
+dotnet aspire do prepare-compose --non-interactive --output-path artifacts/compose -- --Parameters:keycloak-url=https://id.example.com
+docker compose --env-file artifacts/compose/.env.Production --file artifacts/compose/docker-compose.yaml up -d
+```
+
+`push` builds an image for the API, the BFF, the web app and every module's migrations and tags
+each with the solution's version from MinVer, for example `api:1.4.0`. Without a container
+registry in the AppHost it only tags them locally; to deploy to another machine, push them to your
+registry and change the image names in the env file. `prepare-compose` writes
+`docker-compose.yaml` and `.env.Production` with image names, ports and parameter values. Aspire
+generates the passwords of PostgreSQL, Garnet and RabbitMQ and remembers them under
+`~/.aspire/deployments`, so keep `.env.Production` secret and out of Git; `artifacts/` is ignored.
+
+The deployment contains:
+
+- PostgreSQL, Garnet and RabbitMQ; PostgreSQL and Garnet keep their data in the volumes
+  `postgres-data` and `cache-data`
+- one container per module that applies its EF Core migration bundle; they run one after another,
+  and the API starts after the last one succeeded
+- the API, the web app and the BFF; only the BFF publishes a port, plain HTTP on 8080
+- health checks for PostgreSQL and RabbitMQ, which the services that need them wait for, and a
+  restart policy for every service that keeps running
+- Aspire's dashboard, which receives the logs, traces and metrics of every service; point
+  `OTEL_EXPORTER_OTLP_ENDPOINT` of the services elsewhere to use another OTLP backend
+
+Keycloak is not part of it: the realm in `Realms/realm.json` with its demo users and test client is
+for development only. The deployment needs:
+
+| Parameter | Env file | Value |
+|---|---|---|
+| `keycloak-url` | `KEYCLOAK_URL` | HTTPS address of your Keycloak without a path; the API and the BFF use `<address>/realms/cloudground-app` as OpenID Connect authority |
+| `bff-client-secret` | `BFF_CLIENT_SECRET` | secret of the `cloudground-app-bff` client |
+
+The realm `cloudground-app` needs the realm role `editor`, a confidential client
+`cloudground-app-bff` with the standard flow, PKCE (`S256`), the redirect URI
+`https://<host>/signin-oidc` and the post-logout redirect URI `https://<host>/signout-callback-oidc`,
+and the mappers that put the audience `cloudground-app-api` and the realm roles into its access
+tokens, as `Realms/realm.json` does.
+
+Terminate TLS in a reverse proxy in front of the BFF and keep the BFF reachable only through it.
+The proxy forwards the original `Host` header and sets `X-Forwarded-Proto: https`; the BFF trusts
+forwarded headers in the deployment (`ASPNETCORE_FORWARDEDHEADERS_ENABLED`), builds its redirect
+URIs from them and sends its cookies only over HTTPS.
+
+## Devcontainer
+
+`.devcontainer/devcontainer.json` describes a container with the .NET 10 SDK, Node 26,
+PowerShell, the solution's dotnet tools and its own Docker daemon, so the AppHost starts its
+containers inside it and `dotnet run --project src/CloudGround.App.AppHost` works there as on the
+host. Open the folder in VS Code with the Dev Containers extension, or in GitHub Codespaces.
+
+The host needs Docker or Podman. With Docker, the CloudGround template's CI builds the container
+and runs this solution's tests in it. With rootless Podman 5.8, the Dev Containers CLI builds and
+starts it, and the tests pass inside it; in VS Code, set `dev.containers.dockerPath` to `podman`.
 
 ## Versioning and releases
 
