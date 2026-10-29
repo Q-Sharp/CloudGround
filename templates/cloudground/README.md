@@ -189,9 +189,8 @@ Chromium's system libraries, install them once after a build:
 pwsh tests/CloudGround.App.EndToEnd.Tests/bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
 ```
 
-`--filter-not-trait Category=EndToEnd --ignore-exit-code 8` leaves them out; exit code 8 means
-that a test project ran no tests. CI builds, lints and tests the web app and runs every test
-level, end-to-end included, on every push.
+`--filter-not-trait Category=EndToEnd` leaves them out. CI builds, lints and tests the web app and
+runs every test level, end-to-end included, on every push.
 
 ## Versioning and releases
 
