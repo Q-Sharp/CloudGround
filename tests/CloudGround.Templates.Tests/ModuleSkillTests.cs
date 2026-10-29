@@ -41,9 +41,11 @@ public sealed class ModuleSkillTests(TemplatePackage package)
 
         await SkillScaffold.AssertSucceedsAsync(solution, "build");
         await SkillScaffold.AssertSucceedsAsync(solution, "format", "--verify-no-changes", "--no-restore");
-        var test = await SkillScaffold.AssertSucceedsAsync(solution, [.. DotnetCli.TestArguments("Feature.Shop.slnx"), "--output", "Detailed"]);
+        var results = Path.Combine(solution.Root, "artifacts", "test-results");
+        await SkillScaffold.AssertSucceedsAsync(solution, [.. DotnetCli.TestArguments("Feature.Shop.slnx"), "--report-xunit-junit", "--results-directory", results, "--results-directory-layout", "per-module"]);
 
-        Assert.Contains("passed Feature.Shop.Integration.Tests.ItemsApiTests.Created_item_can_be_read_anonymously", test.Output, StringComparison.Ordinal);
-        Assert.Contains("passed Feature.Shop.Modules.OrderHistory.Tests.ItemTests.Created_item_keeps_its_name_and_creation_time", test.Output, StringComparison.Ordinal);
+        var passed = JUnitReports.PassedTests(results);
+        Assert.Contains("Feature.Shop.Integration.Tests.ItemsApiTests.Created_item_can_be_read_anonymously", passed);
+        Assert.Contains("Feature.Shop.Modules.OrderHistory.Tests.ItemTests.Created_item_keeps_its_name_and_creation_time", passed);
     }
 }
