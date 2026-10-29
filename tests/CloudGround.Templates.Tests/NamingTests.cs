@@ -5,7 +5,7 @@ namespace CloudGround.Templates.Tests;
 [Collection(SharedTemplatePackage.Name)]
 public sealed class NamingTests(TemplatePackage package)
 {
-    private static readonly string[] SourceNameForms = ["cloudground.app", "cloudground_app", "cloudground-app"];
+    private static readonly string[] SourceNameForms = ["cloudground.app", "cloudground_app", "cloudground-app", "cloudgroundapp"];
 
     [Fact]
     public async Task Generated_solution_contains_no_source_name_form()
