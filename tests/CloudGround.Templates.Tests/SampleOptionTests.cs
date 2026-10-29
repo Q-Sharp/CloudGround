@@ -5,6 +5,8 @@ public sealed class SampleOptionTests(TemplatePackage package)
 {
     private static readonly string[] SampleReferences = ["ProjectsModule", "Modules.Projects", "projects-migrations", "TasksModule", "Modules.Tasks", "tasks-migrations"];
 
+    private const string SkillsFolder = ".claude/skills/";
+
     private static readonly string[] TemplateDirectiveStarts = ["#if", "#elif", "#else", "#endif", "<!--#"];
 
     [Fact]
@@ -13,7 +15,7 @@ public sealed class SampleOptionTests(TemplatePackage package)
         var solution = await package.GenerateAsync("Contoso.Empty", "--sample", "false");
         var files = solution.RelativeFiles();
 
-        Assert.DoesNotContain(files, file => file.Contains("Modules", StringComparison.Ordinal));
+        Assert.DoesNotContain(files.Where(file => !file.StartsWith(SkillsFolder, StringComparison.Ordinal)), file => file.Contains("Modules", StringComparison.Ordinal));
         Assert.DoesNotContain(files, file => Path.GetFileName(file).StartsWith("Projects", StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain("Modules", File.ReadAllText(Path.Combine(solution.Root, "Contoso.Empty.slnx")), StringComparison.Ordinal);
         Assert.All(files, file => Assert.False(ReferencesTheSample(ReadFile(solution, file)), file));

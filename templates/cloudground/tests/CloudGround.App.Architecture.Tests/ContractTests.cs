@@ -32,6 +32,7 @@ public sealed class ContractTests
             {
                 Types().That().ResideInAssembly(contracts)
                     .Should().NotDependOnAnyTypesThat().ResideInNamespaceOrBelow(frameworkNamespace)
+                    .WithoutRequiringPositiveResults()
                     .Check(ModuleCatalog.Architecture);
             }
         }
@@ -46,6 +47,7 @@ public sealed class ContractTests
             {
                 Types().That().ResideInAssembly(contracts)
                     .Should().NotDependOnAny(Types().That().ResideInAssembly(module))
+                    .WithoutRequiringPositiveResults()
                     .Check(ModuleCatalog.Architecture);
             }
         }

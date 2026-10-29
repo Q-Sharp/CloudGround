@@ -65,25 +65,8 @@ else
 }
 
 #if (sample)
-var projectsMigrations = api
-    .AddEFMigrations("projects-migrations", "CloudGround.App.Modules.Projects.Persistence.ProjectsDbContext")
-    .WithMigrationsProject("../Modules/CloudGround.App.Modules.Projects/CloudGround.App.Modules.Projects.csproj")
-    .WithReference(database)
-    .WaitFor(database)
-    .RunDatabaseUpdateOnStart()
-    .PublishAsMigrationBundle(publishContainer: true, baseImage: "mcr.microsoft.com/dotnet/aspnet:10.0-resolute");
-
-var tasksMigrations = api
-    .AddEFMigrations("tasks-migrations", "CloudGround.App.Modules.Tasks.Persistence.TasksDbContext")
-    .WithMigrationsProject("../Modules/CloudGround.App.Modules.Tasks/CloudGround.App.Modules.Tasks.csproj")
-    .WithReference(database)
-    .WaitFor(database)
-    .WaitForCompletion(projectsMigrations)
-    .RunDatabaseUpdateOnStart()
-    .PublishAsMigrationBundle(publishContainer: true, baseImage: "mcr.microsoft.com/dotnet/aspnet:10.0-resolute");
-
-api.WaitForCompletion(projectsMigrations)
-    .WaitForCompletion(tasksMigrations);
+api.WithModuleMigrations("Projects", database)
+    .WithModuleMigrations("Tasks", database);
 #endif
 
 builder.TagImagesWithVersion();

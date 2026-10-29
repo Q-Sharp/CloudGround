@@ -10,6 +10,10 @@ These rules apply to every change in this repository, by humans and AI agents al
 - `tests/CloudGround.Templates.Tests/` packs and installs the template into an isolated hive,
   generates solutions and builds and tests them.
 - `docs/superpowers/specs/` holds the design, `docs/superpowers/plans/` the implementation plans.
+- `docs/adr/` records the repository's decisions; `templates/cloudground/docs/adr/` those of the
+  generated solutions.
+- `.claude/skills/change-template/SKILL.md` describes how to change the template: placeholders,
+  sample conditions, package exclusions and the tests to run.
 
 ## Commands
 
@@ -38,3 +42,5 @@ Tests use xUnit v3 on Microsoft.Testing.Platform. Filter with `--filter-class` o
   contain no links to agent sessions.
 - No personal information in the repository.
 - Write the failing test first, watch it fail, then make it pass.
+- A significant decision gets an ADR, in `docs/adr/` for the repository and in
+  `templates/cloudground/docs/adr/` for the generated solutions.
