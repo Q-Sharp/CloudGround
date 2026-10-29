@@ -23,7 +23,6 @@
     "@angular/router": "^22.2.0",
     "@angular/ssr": "^22.2.5",
     "@opentelemetry/exporter-trace-otlp-grpc": "^0.300.0",
-    "@opentelemetry/instrumentation-express": "^0.72.0",
     "@opentelemetry/instrumentation-http": "^0.300.0",
     "@opentelemetry/instrumentation-undici": "^0.34.0",
     "@opentelemetry/sdk-node": "^0.300.0",
