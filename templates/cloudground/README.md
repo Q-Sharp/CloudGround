@@ -5,6 +5,7 @@ Created with the [CloudGround](https://github.com/Q-Sharp/CloudGround) template.
 ## Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- [Node.js](https://nodejs.org) 26 with npm, the version in `src/CloudGround.App.Web/.nvmrc`
 - Docker or Podman; the AppHost starts PostgreSQL, Garnet, RabbitMQ and Keycloak as containers
 
 ## Run
@@ -24,7 +25,7 @@ dashboard links the RabbitMQ management UI of the `messaging` resource.
 ## Sign-in
 
 The browser talks only to the BFF in `src/CloudGround.App.Bff`; tokens never reach it. Open the
-BFF's `/bff/login` from the dashboard and sign in as one of the demo users:
+`bff` resource from the dashboard, choose *Log in* and sign in as one of the demo users:
 
 | User | Password | Roles |
 |---|---|---|
@@ -57,6 +58,48 @@ when Keycloak starts on an empty volume; after editing the file, remove the `key
 volume. The realm is for local development only: it accepts any redirect URI and contains the
 `cloudground-app-tests` client, which lets the integration tests get tokens with a password. Locally
 Keycloak serves plain HTTP, so the solution runs without a trusted developer certificate.
+
+## Frontend
+
+The Angular app in `src/CloudGround.App.Web` uses the current Angular defaults: standalone
+components, signals, zoneless change detection and Angular Material. The AppHost runs it with
+`npm start`, and the BFF forwards every path that is not `/api/*` or `/bff/*` to it, so the
+browser sees one origin.
+
+Each route chooses its render mode in `src/app/app.routes.server.ts`, the sample's routes in
+`src/app/projects/projects.routes.ts`:
+
+| Route | Render mode | Content |
+|---|---|---|
+| `/` | server, per request | home page |
+| `/explore` | server, per request | all projects, readable without JavaScript |
+| `/projects` | browser | the signed-in area; editors create projects there |
+| anything else | server, per request | not-found page with status 404 |
+
+`/explore` and `/projects` belong to the *Projects* sample, which `--sample false` leaves out.
+
+Server-rendered pages are anonymous: the Node server calls the API's public endpoints directly,
+found through Aspire service discovery. In the browser the same relative `/api/...` calls go
+through the BFF with the session cookie, and Angular's `HttpClient` sends the XSRF token itself.
+Responses fetched during server rendering travel with the page, so the browser does not request
+them again. The toolbar shows the signed-in user with a logout button, or a login link that
+returns to the current page.
+
+`src/instrumentation.mjs` starts the OpenTelemetry Node SDK, so the dashboard shows the Node
+server's incoming requests and its calls to the API in the same traces as the BFF and the API.
+
+To work on the app on its own, run `npm ci` once in `src/CloudGround.App.Web`. `npm start` serves
+it on <http://localhost:4200>; pages that call the API need the AppHost. `npm run build` lints and
+builds it, and the build fails on lint errors. `npm test` runs the unit tests.
+
+The Dockerfile builds an image that serves the app with Node as a non-root user on port 8080.
+Angular answers only requests for the host names in `NG_ALLOWED_HOSTS` and rejects all others
+with 400, so a deployment sets it to the host name under which the BFF reaches the web app:
+
+```bash
+podman build -t cloudground-app-web src/CloudGround.App.Web
+podman run --rm -p 8080:8080 -e NG_ALLOWED_HOSTS=localhost cloudground-app-web
+```
 
 ## Architecture
 
@@ -137,6 +180,17 @@ The design-time host only needs the connection string to exist; it does not conn
 ```bash
 dotnet test --solution CloudGround.App.slnx
 ```
+
+The end-to-end tests in `tests/CloudGround.App.EndToEnd.Tests` start the whole application and
+drive Chromium through Playwright. Their first run downloads Chromium. On a machine without
+Chromium's system libraries, install them once after a build:
+
+```bash
+pwsh tests/CloudGround.App.EndToEnd.Tests/bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
+```
+
+`--filter-not-trait Category=EndToEnd` leaves them out. CI builds, lints and tests the web app and
+runs every test level, end-to-end included, on every push.
 
 ## Versioning and releases
 

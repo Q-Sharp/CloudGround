@@ -1,0 +1,18 @@
+<h1>My projects</h1>
+@if (session.hasRole('editor')) {
+  <form data-test="create" (submit)="create(); $event.preventDefault()">
+    <mat-form-field>
+      <mat-label>Name</mat-label>
+      <input matInput [formControl]="name" />
+    </mat-form-field>
+    <button mat-flat-button type="submit" [disabled]="name.invalid">Create</button>
+  </form>
+}
+@if (message(); as text) {
+  <p role="alert">{{ text }}</p>
+}
+<mat-list>
+  @for (project of projects(); track project.id) {
+    <mat-list-item>{{ project.name }}</mat-list-item>
+  }
+</mat-list>

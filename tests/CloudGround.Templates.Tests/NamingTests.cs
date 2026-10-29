@@ -5,7 +5,7 @@ namespace CloudGround.Templates.Tests;
 [Collection(SharedTemplatePackage.Name)]
 public sealed class NamingTests(TemplatePackage package)
 {
-    private static readonly string[] SourceNameForms = ["cloudground.app", "cloudground_app", "cloudground-app"];
+    private static readonly string[] SourceNameForms = ["cloudground.app", "cloudground_app", "cloudground-app", "cloudgroundapp"];
 
     [Fact]
     public async Task Generated_solution_contains_no_source_name_form()
@@ -37,7 +37,7 @@ public sealed class NamingTests(TemplatePackage package)
         var build = await DotnetCli.RunAsync(solution.Root, "build");
         Assert.True(build.ExitCode == 0, build.Output);
 
-        var test = await DotnetCli.RunAsync(solution.Root, "test", "--solution", "Contoso.Shop.slnx");
+        var test = await DotnetCli.RunAsync(solution.Root, DotnetCli.TestArguments("Contoso.Shop.slnx"));
         Assert.True(test.ExitCode == 0, test.Output);
     }
 

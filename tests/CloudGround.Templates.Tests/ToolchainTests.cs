@@ -5,6 +5,8 @@ public sealed class ToolchainTests(TemplatePackage package)
 {
     private static readonly string[] AspireLaunchers = ["aspire", "dnx"];
 
+    private static readonly string[] Prerequisites = ["dotnet", "node", "npm", "npx"];
+
     [Fact]
     public async Task Generated_solution_builds_without_aspire_cli_or_dnx_on_path()
     {
@@ -20,7 +22,7 @@ public sealed class ToolchainTests(TemplatePackage package)
     {
         var solution = await package.GenerateAsync("Untrusted.App");
 
-        var test = await RunOnFreshMachineAsync(solution, "test", "--solution", "Untrusted.App.slnx");
+        var test = await RunOnFreshMachineAsync(solution, DotnetCli.TestArguments("Untrusted.App.slnx"));
 
         Assert.True(test.ExitCode == 0, test.Output);
     }
@@ -30,11 +32,15 @@ public sealed class ToolchainTests(TemplatePackage package)
         var machine = Directory.CreateTempSubdirectory("cloudground-machine-").FullName;
         try
         {
-            var dotnetOnly = Directory.CreateDirectory(Path.Combine(machine, "bin")).FullName;
-            File.CreateSymbolicLink(Path.Combine(dotnetOnly, "dotnet"), FindOnPath("dotnet"));
+            var prerequisites = Directory.CreateDirectory(Path.Combine(machine, "bin")).FullName;
+            foreach (var executable in Prerequisites)
+            {
+                File.CreateSymbolicLink(Path.Combine(prerequisites, executable), FindOnPath(executable));
+            }
+
             var freshMachine = new Dictionary<string, string>
             {
-                ["PATH"] = string.Join(Path.PathSeparator, [dotnetOnly, .. PathEntries().Where(HasNoAspireLauncher)]),
+                ["PATH"] = string.Join(Path.PathSeparator, [prerequisites, .. PathEntries().Where(HasNoAspireLauncher)]),
                 ["HOME"] = Directory.CreateDirectory(Path.Combine(machine, "home")).FullName,
                 ["NUGET_PACKAGES"] = NuGetPackagesFolder(),
                 ["XDG_DATA_HOME"] = ContainerRuntimeFolder("XDG_DATA_HOME", ".local", "share"),

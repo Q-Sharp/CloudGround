@@ -36,7 +36,10 @@ public sealed class PackageContentTests(TemplatePackage package)
         entry.Contains("/bin/", StringComparison.Ordinal)
         || entry.Contains("/obj/", StringComparison.Ordinal)
         || entry.Contains("/.vs/", StringComparison.Ordinal)
-        || entry.EndsWith(".user", StringComparison.Ordinal);
+        || entry.EndsWith(".user", StringComparison.Ordinal)
+        || entry.Contains("/node_modules/", StringComparison.Ordinal)
+        || entry.Contains("/dist/", StringComparison.Ordinal)
+        || entry.Contains("/.angular/", StringComparison.Ordinal);
 
     private static List<string> ReadEntries(string packagePath)
     {

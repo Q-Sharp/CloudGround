@@ -15,6 +15,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/CloudGround.App.Architecture.Tests/CloudGround.App.Architecture.Tests.csproj" />
     <Project Path="tests/CloudGround.App.Bff.Tests/CloudGround.App.Bff.Tests.csproj" />
+    <Project Path="tests/CloudGround.App.EndToEnd.Tests/CloudGround.App.EndToEnd.Tests.csproj" />
     <Project Path="tests/CloudGround.App.Integration.Tests/CloudGround.App.Integration.Tests.csproj" />
     <!--#if (sample) -->
     <Project Path="tests/CloudGround.App.Modules.Projects.Tests/CloudGround.App.Modules.Projects.Tests.csproj" />
