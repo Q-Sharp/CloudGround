@@ -17,6 +17,19 @@ public sealed class ProjectsTests(StackFixture stack) : StackTest(stack)
     }
 
     [Fact]
+    public async Task Explore_page_is_not_fetched_again_after_hydration()
+    {
+        var page = await NewPageAsync();
+        var requestedPaths = new List<string>();
+        page.Request += (_, request) => requestedPaths.Add(new Uri(request.Url).AbsolutePath);
+
+        await page.GotoAsync("/explore", new() { WaitUntil = WaitUntilState.NetworkIdle });
+
+        Assert.Contains("/bff/user", requestedPaths);
+        Assert.DoesNotContain(requestedPaths, path => path.StartsWith("/api/", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task Alice_creates_a_project_in_the_browser()
     {
         var name = NewProjectName();

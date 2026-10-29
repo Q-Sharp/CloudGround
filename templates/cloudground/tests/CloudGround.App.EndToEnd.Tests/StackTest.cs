@@ -4,10 +4,15 @@ public abstract class StackTest(StackFixture stack) : BrowserTest
 {
     protected StackFixture Stack { get; } = stack;
 
-    protected async Task<IPage> OpenAsync(string path, bool javaScriptEnabled = true)
+    protected async Task<IPage> NewPageAsync(bool javaScriptEnabled = true)
     {
         var context = await NewContext(new() { BaseURL = Stack.BffAddress.ToString(), JavaScriptEnabled = javaScriptEnabled });
-        var page = await context.NewPageAsync();
+        return await context.NewPageAsync();
+    }
+
+    protected async Task<IPage> OpenAsync(string path, bool javaScriptEnabled = true)
+    {
+        var page = await NewPageAsync(javaScriptEnabled);
         await page.GotoAsync(path);
         return page;
     }
