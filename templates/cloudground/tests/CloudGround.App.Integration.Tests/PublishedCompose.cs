@@ -10,12 +10,15 @@ public sealed class PublishedCompose : IAsyncLifetime
 {
     private const string ServiceIndent = "  ";
     private const string ServicesKey = "services:";
+    private const string NameKey = "name: ";
 
     private Dictionary<string, string> services = [];
 
     public string OutputDirectory { get; } = Directory.CreateTempSubdirectory("compose-").FullName;
 
     public IReadOnlyCollection<string> ServiceNames => services.Keys;
+
+    public string ProjectName { get; private set; } = string.Empty;
 
     public async ValueTask InitializeAsync()
     {
@@ -26,7 +29,9 @@ public sealed class PublishedCompose : IAsyncLifetime
         await using var app = await appHost.BuildAsync(cancellation);
         await app.RunAsync(cancellation);
 
-        services = ReadServices(await File.ReadAllLinesAsync(Path.Combine(OutputDirectory, "docker-compose.yaml"), cancellation));
+        var lines = await File.ReadAllLinesAsync(Path.Combine(OutputDirectory, "docker-compose.yaml"), cancellation);
+        services = ReadServices(lines);
+        ProjectName = lines.FirstOrDefault(line => line.StartsWith(NameKey, StringComparison.Ordinal))?[NameKey.Length..].Trim('"') ?? string.Empty;
     }
 
     public string Service(string name) => services.GetValueOrDefault(name, string.Empty);

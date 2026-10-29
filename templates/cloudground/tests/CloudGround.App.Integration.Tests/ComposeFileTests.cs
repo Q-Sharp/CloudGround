@@ -30,6 +30,20 @@ public sealed class ComposeFileTests(PublishedCompose compose)
         Assert.Equal(["bff", "compose-dashboard"], publishing.Order());
     }
 
+    [Theory]
+    [InlineData("bff", "${BFF_PORT}")]
+    [InlineData("compose-dashboard", "18888")]
+    public void Published_ports_listen_on_the_loopback_interface_only(string service, string port)
+    {
+        Assert.Contains($"- \"127.0.0.1:{port}:{port}\"", compose.Service(service), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Compose_project_is_named_after_the_solution()
+    {
+        Assert.Equal("cloudground-app", compose.ProjectName);
+    }
+
     [Fact]
     public void Web_runs_its_image_entrypoint_and_accepts_the_bff()
     {

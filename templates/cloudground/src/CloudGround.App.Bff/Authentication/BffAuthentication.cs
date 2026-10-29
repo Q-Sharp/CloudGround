@@ -65,7 +65,7 @@ internal static class BffAuthentication
                 options.RequireHttpsMetadata = !development;
                 if (builder.Configuration[IdentityProviderUrlSetting] is { } identityProviderUrl)
                 {
-                    options.Authority = $"{identityProviderUrl}/realms/{Realm}";
+                    options.Authority = $"{identityProviderUrl.TrimEnd('/')}/realms/{Realm}";
                 }
 
                 options.TokenValidationParameters.NameClaimType = NameClaim;

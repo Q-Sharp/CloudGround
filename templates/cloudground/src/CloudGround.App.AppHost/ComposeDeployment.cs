@@ -5,6 +5,8 @@ namespace CloudGround.App.AppHost;
 
 internal static class ComposeDeployment
 {
+    private const string ProjectName = "cloudground-app";
+    private const string Loopback = "127.0.0.1";
     private const string RestartUnlessStopped = "unless-stopped";
     private const string Started = "service_started";
     private const string Healthy = "service_healthy";
@@ -15,6 +17,8 @@ internal static class ComposeDeployment
 
     public static void Configure(ComposeFile composeFile)
     {
+        composeFile.Name = ProjectName;
+        PublishPortsOnLoopback(composeFile);
         RestartLongRunningServices(composeFile);
         WaitForHealthyDependencies(composeFile);
     }
@@ -27,6 +31,14 @@ internal static class ComposeDeployment
         Retries = ProbeRetries,
         StartPeriod = ProbeStartPeriod,
     };
+
+    private static void PublishPortsOnLoopback(ComposeFile composeFile)
+    {
+        foreach (var service in composeFile.Services.Values)
+        {
+            service.Ports = [.. service.Ports.Select(port => port.Contains(':', StringComparison.Ordinal) ? port : $"{Loopback}:{port}:{port}")];
+        }
+    }
 
     private static void RestartLongRunningServices(ComposeFile composeFile)
     {

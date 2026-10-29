@@ -202,8 +202,10 @@ local tool of this solution, so it needs no global install:
 
 ```bash
 dotnet tool restore
-dotnet aspire do push --non-interactive --output-path artifacts/compose -- --Parameters:keycloak-url=https://id.example.com
-dotnet aspire do prepare-compose --non-interactive --output-path artifacts/compose -- --Parameters:keycloak-url=https://id.example.com
+dotnet aspire do push --non-interactive --output-path artifacts/compose -- \
+  --Parameters:keycloak-url=https://id.example.com --Parameters:bff-client-secret=<client secret>
+dotnet aspire do prepare-compose --non-interactive --output-path artifacts/compose -- \
+  --Parameters:keycloak-url=https://id.example.com --Parameters:bff-client-secret=<client secret>
 docker compose --env-file artifacts/compose/.env.Production --file artifacts/compose/docker-compose.yaml up -d
 ```
 
@@ -217,15 +219,19 @@ generates the passwords of PostgreSQL, Garnet and RabbitMQ and remembers them un
 
 The deployment contains:
 
-- PostgreSQL, Garnet and RabbitMQ; PostgreSQL and Garnet keep their data in the volumes
-  `postgres-data` and `cache-data`
-- one container per module that applies its EF Core migration bundle; they run one after another,
-  and the API starts after the last one succeeded
-- the API, the web app and the BFF; only the BFF publishes a port, plain HTTP on 8080
+- PostgreSQL, Garnet and RabbitMQ; PostgreSQL and Garnet keep their data in volumes. The Compose
+  project is named `cloudground-app`, so the volumes are `cloudground-app_postgres-data` and
+  `cloudground-app_cache-data` wherever the file was generated; starting it with another project
+  name (`docker compose -p`) starts on empty volumes
+- one container per module that applies its EF Core migration bundle; they run one after another
+  on every `up`, apply only what is missing, and the API starts after the last one succeeded
+- the API, the web app and the BFF; the BFF serves plain HTTP on port 8080 of the host's loopback
+  interface, and nothing else is reachable from outside the Compose network except the dashboard
 - health checks for PostgreSQL and RabbitMQ, which the services that need them wait for, and a
   restart policy for every service that keeps running
-- Aspire's dashboard, which receives the logs, traces and metrics of every service; point
-  `OTEL_EXPORTER_OTLP_ENDPOINT` of the services elsewhere to use another OTLP backend
+- Aspire's dashboard on `http://127.0.0.1:18888`, which receives the logs, traces and metrics of
+  every service; it asks for the login token that `docker compose logs compose-dashboard` prints.
+  Point `OTEL_EXPORTER_OTLP_ENDPOINT` of the services elsewhere to use another OTLP backend
 
 Keycloak is not part of it: the realm in `Realms/realm.json` with its demo users and test client is
 for development only. The deployment needs:
@@ -233,7 +239,7 @@ for development only. The deployment needs:
 | Parameter | Env file | Value |
 |---|---|---|
 | `keycloak-url` | `KEYCLOAK_URL` | HTTPS address of your Keycloak without a path; the API and the BFF use `<address>/realms/cloudground-app` as OpenID Connect authority |
-| `bff-client-secret` | `BFF_CLIENT_SECRET` | secret of the `cloudground-app-bff` client |
+| `bff-client-secret` | `BFF_CLIENT_SECRET` | secret of the `cloudground-app-bff` client in your Keycloak; without it Aspire generates a random one and every login fails |
 
 The realm `cloudground-app` needs the realm role `editor`, a confidential client
 `cloudground-app-bff` with the standard flow, PKCE (`S256`), the redirect URI
@@ -241,10 +247,12 @@ The realm `cloudground-app` needs the realm role `editor`, a confidential client
 and the mappers that put the audience `cloudground-app-api` and the realm roles into its access
 tokens, as `Realms/realm.json` does.
 
-Terminate TLS in a reverse proxy in front of the BFF and keep the BFF reachable only through it.
+Terminate TLS in a reverse proxy in front of the BFF, on the same host at `127.0.0.1:8080` or as
+another service in the Compose network at `bff:8080`, and keep the BFF reachable only through it.
 The proxy forwards the original `Host` header and sets `X-Forwarded-Proto: https`; the BFF trusts
 forwarded headers in the deployment (`ASPNETCORE_FORWARDEDHEADERS_ENABLED`), builds its redirect
-URIs from them and sends its cookies only over HTTPS.
+URIs from them and sends its cookies only over HTTPS. Keep `/health` and `/alive` out of the
+proxy's public routes: they run the BFF's checks against Garnet on every call.
 
 ## Devcontainer
 

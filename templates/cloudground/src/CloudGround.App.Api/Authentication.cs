@@ -18,7 +18,7 @@ internal static class Authentication
                 options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
                 if (builder.Configuration[IdentityProviderUrlSetting] is { } identityProviderUrl)
                 {
-                    options.Authority = $"{identityProviderUrl}/realms/{Realm}";
+                    options.Authority = $"{identityProviderUrl.TrimEnd('/')}/realms/{Realm}";
                 }
 
                 options.MapInboundClaims = false;
