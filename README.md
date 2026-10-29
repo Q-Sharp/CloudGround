@@ -2,8 +2,8 @@
 
 [![CI](https://github.com/Q-Sharp/CloudGround/actions/workflows/ci.yml/badge.svg)](https://github.com/Q-Sharp/CloudGround/actions/workflows/ci.yml)
 
-> **Status: work in progress.** Phases 1 (foundation), 2 (modules and data), 3 (messaging) and 4 (BFF
-> and login) of 7 are built.
+> **Status: work in progress.** Phases 1 (foundation), 2 (modules and data), 3 (messaging), 4 (BFF
+> and login) and 5 (Angular SSR) of 7 are built.
 > The plans live in [`docs/superpowers/plans/`](docs/superpowers/plans/), the design in
 > [`docs/superpowers/specs/`](docs/superpowers/specs/).
 
@@ -15,7 +15,10 @@ What a generated solution contains today:
 
 - an Aspire AppHost with PostgreSQL, Garnet, RabbitMQ and Keycloak containers, and shared service defaults
   (OpenTelemetry, health checks, resilience, service discovery)
-- a BFF that signs users in against Keycloak, keeps sessions in Garnet, protects writes with
+- an Angular frontend with server-side rendering per route: public pages rendered on the server
+  from the API's anonymous endpoints, a browser-rendered area for signed-in users, Angular
+  Material, angular-eslint, unit tests, OpenTelemetry in Node and a Dockerfile
+- a BFF that serves the frontend, signs users in against Keycloak, keeps sessions in Garnet, protects writes with
   Angular-compatible XSRF tokens and forwards `/api/*` with the user's access token, so tokens never
   reach the browser
 - a modular Minimal API host: `ProblemDetails`, built-in validation, OpenAPI with Scalar, role checks on writes,
@@ -26,18 +29,19 @@ What a generated solution contains today:
   integration event that travels from a transactional outbox through RabbitMQ to an idempotent
   handler (Wolverine)
 - architecture tests that enforce the module and contract boundaries for whatever modules exist
-- unit tests and integration tests that start the whole application through
-  `Aspire.Hosting.Testing`
+- unit tests, integration tests that start the whole application through
+  `Aspire.Hosting.Testing`, and Playwright end-to-end tests that drive it in Chromium
 - automatic semantic versioning from Git tags (MinVer) and release pull requests (release-please)
-- GitHub Actions for build, tests, formatting and Conventional Commit pull request titles
+- GitHub Actions for build, lint, all test levels, formatting and Conventional Commit pull request
+  titles
 - Dependabot configuration
 
-The roadmap adds an Angular frontend, container deployment and an AI collaboration kit, one phase
-at a time.
+The roadmap adds container deployment and an AI collaboration kit, one phase at a time.
 
 ## Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- [Node.js](https://nodejs.org) 26 with npm (the web app and its build)
 - Docker or Podman (the AppHost starts PostgreSQL, Garnet, RabbitMQ and Keycloak as containers)
 
 ## Install from source
@@ -55,10 +59,11 @@ cd Contoso.Shop
 dotnet run --project src/Contoso.Shop.AppHost
 ```
 
-The Aspire dashboard opens in the browser and shows every resource, its logs and its traces.
+The Aspire dashboard opens in the browser and shows every resource, its logs and its traces. The
+`bff` resource serves the application.
 
-`--sample false` creates the solution without the *Projects* and *Tasks* sample modules; the module
-infrastructure, messaging, the BFF and the login stay.
+`--sample false` creates the solution without the *Projects* and *Tasks* sample modules and their
+pages; the module infrastructure, messaging, the BFF, the login and the web app's shell stay.
 
 The name becomes the namespace, so characters that are not valid there turn into underscores:
 `--name my-shop` creates `my_shop.slnx` and `src/my_shop.Api`.

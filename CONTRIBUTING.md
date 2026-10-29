@@ -9,6 +9,8 @@ dotnet test --solution templates/cloudground/CloudGround.App.slnx
 
 The first command packs the template, installs it into an isolated template hive, generates
 solutions and builds and tests them. The second builds and tests the template content in place.
+Both need the .NET 10 SDK, Node.js 26 with npm and Docker or Podman. The second also runs the
+end-to-end tests, which download Chromium on their first run; the first leaves them out.
 
 ## Pull requests
 
