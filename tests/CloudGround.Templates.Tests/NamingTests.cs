@@ -52,6 +52,16 @@ public sealed class NamingTests(TemplatePackage package)
         Assert.True(build.ExitCode == 0, build.Output);
     }
 
+    [Fact]
+    public async Task Solution_named_after_microsoft_passes_the_format_check()
+    {
+        var solution = await package.GenerateAsync("Tailspin.Shop");
+
+        var format = await DotnetCli.RunAsync(solution.Root, "format", "--verify-no-changes");
+
+        Assert.True(format.ExitCode == 0, format.Output);
+    }
+
     private static bool ContainsSourceNameForm(string text) =>
         SourceNameForms.Any(form => text.Contains(form, StringComparison.OrdinalIgnoreCase));
 }
