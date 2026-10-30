@@ -14,10 +14,10 @@ var cache = builder.AddGarnet("cache").WithDataVolume(DeploymentVolume("cache-da
 var messaging = builder.AddRabbitMQ("messaging")
     .WithManagementPlugin()
     .PublishAsDockerComposeService((_, service) => service.Healthcheck = ComposeDeployment.Probe("rabbitmq-diagnostics", "--quiet", "ping"));
-var bffClientSecret = builder.AddParameter("bff-client-secret", new GenerateParameterDefault { MinLength = 32, Special = false }, secret: true, persist: true);
 var apiClientSecret = builder.AddParameter("api-client-secret", new GenerateParameterDefault { MinLength = 32, Special = false }, secret: true, persist: true);
 
 var api = builder.AddProject<Projects.CloudGround_App_Api>("api")
+    .WithExternalHttpEndpoints()
     .BuildImageAfterMigrationBundles()
     .WithHttpHealthCheck("/health", endpointName: "http")
     .WithReference(database)
@@ -35,15 +35,7 @@ var web = builder.AddJavaScriptApp("web", "../CloudGround.App.Web")
     .WithReference(api)
     .WaitFor(api);
 
-var bff = builder.AddProject<Projects.CloudGround_App_Bff>("bff")
-    .WithExternalHttpEndpoints()
-    .WithHttpHealthCheck("/health", endpointName: "http")
-    .WithReference(cache)
-    .WaitFor(cache)
-    .WithReference(api)
-    .WaitFor(api)
-    .WithReference(web)
-    .WithEnvironment("Bff__ClientSecret", bffClientSecret);
+api.WithReference(web);
 
 if (builder.ExecutionContext.IsRunMode)
 {
@@ -52,11 +44,9 @@ if (builder.ExecutionContext.IsRunMode)
         .WithDataVolume()
         .WithoutHttpsCertificate()
         .WithRealmImport("./Realms")
-        .WithEnvironment("BFF_CLIENT_SECRET", bffClientSecret)
         .WithEnvironment("API_CLIENT_SECRET", apiClientSecret);
 #pragma warning restore ASPIRECERTIFICATES001
     api.WithReference(keycloak).WaitFor(keycloak);
-    bff.WithReference(keycloak).WaitFor(keycloak);
     web.WithEnvironment("NODE_OPTIONS", "--import ./src/instrumentation.mjs")
         .WithArgs("--", "--port", web.GetEndpoint("http").Property(EndpointProperty.TargetPort));
 }
@@ -64,7 +54,6 @@ else
 {
     var keycloakUrl = builder.AddParameter("keycloak-url");
     api.WithEnvironment("Keycloak__Url", keycloakUrl);
-    bff.WithEnvironment("Keycloak__Url", keycloakUrl);
     web.WithEnvironment("NG_ALLOWED_HOSTS", web.GetEndpoint("http").Property(EndpointProperty.Host));
 }
 

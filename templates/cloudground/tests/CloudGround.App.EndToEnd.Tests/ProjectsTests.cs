@@ -25,7 +25,7 @@ public sealed class ProjectsTests(StackFixture stack) : StackTest(stack)
 
         await page.GotoAsync("/explore", new() { WaitUntil = WaitUntilState.NetworkIdle });
 
-        Assert.Contains("/bff/user", requestedPaths);
+        Assert.Contains("/account/user", requestedPaths);
         Assert.DoesNotContain(requestedPaths, path => path.StartsWith("/api/", StringComparison.Ordinal));
     }
 

@@ -2,7 +2,6 @@
   <Folder Name="/src/">
     <Project Path="src/CloudGround.App.Api/CloudGround.App.Api.csproj" />
     <Project Path="src/CloudGround.App.AppHost/CloudGround.App.AppHost.csproj" />
-    <Project Path="src/CloudGround.App.Bff/CloudGround.App.Bff.csproj" />
     <Project Path="src/CloudGround.App.ServiceDefaults/CloudGround.App.ServiceDefaults.csproj" />
   </Folder>
   <!--#if (sample) -->
@@ -15,7 +14,6 @@
   <Folder Name="/tests/">
     <Project Path="tests/CloudGround.App.Api.Tests/CloudGround.App.Api.Tests.csproj" />
     <Project Path="tests/CloudGround.App.Architecture.Tests/CloudGround.App.Architecture.Tests.csproj" />
-    <Project Path="tests/CloudGround.App.Bff.Tests/CloudGround.App.Bff.Tests.csproj" />
     <Project Path="tests/CloudGround.App.EndToEnd.Tests/CloudGround.App.EndToEnd.Tests.csproj" />
     <Project Path="tests/CloudGround.App.Integration.Tests/CloudGround.App.Integration.Tests.csproj" />
     <!--#if (sample) -->

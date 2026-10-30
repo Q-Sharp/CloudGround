@@ -7,9 +7,9 @@ public sealed class WebTests(AppHostFixture fixture)
     private static CancellationToken Cancellation => TestContext.Current.CancellationToken;
 
     [Fact]
-    public async Task Home_page_is_server_rendered_through_the_bff()
+    public async Task Home_page_is_server_rendered_through_the_api()
     {
-        using var client = fixture.App.CreateHttpClient("bff", "http");
+        using var client = fixture.CreateApiClient();
 
         using var response = await client.GetAsync(new Uri("/", UriKind.Relative), Cancellation);
 
@@ -21,7 +21,7 @@ public sealed class WebTests(AppHostFixture fixture)
     [Fact]
     public async Task Unknown_paths_return_the_web_apps_not_found_page()
     {
-        using var client = fixture.App.CreateHttpClient("bff", "http");
+        using var client = fixture.CreateApiClient();
 
         using var response = await client.GetAsync(new Uri("/no/such/page", UriKind.Relative), Cancellation);
 

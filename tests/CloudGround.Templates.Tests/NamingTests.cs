@@ -26,7 +26,7 @@ public sealed class NamingTests(TemplatePackage package)
         var clients = realm.RootElement.GetProperty("clients").EnumerateArray().Select(client => client.GetProperty("clientId").GetString());
 
         Assert.Equal("contoso-shop", realm.RootElement.GetProperty("realm").GetString());
-        Assert.Equal(["contoso-shop-bff", "contoso-shop-tests"], clients.Order());
+        Assert.Equal(["contoso-shop-api", "contoso-shop-tests"], clients.Order());
     }
 
     [Fact]

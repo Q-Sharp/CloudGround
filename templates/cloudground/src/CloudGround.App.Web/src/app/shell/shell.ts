@@ -26,7 +26,7 @@ export class Shell {
   );
 
   protected readonly session = inject(SessionService);
-  protected readonly loginUrl = computed(() => `/bff/login?returnUrl=${encodeURIComponent(this.url())}`);
+  protected readonly loginUrl = computed(() => `/account/login?returnUrl=${encodeURIComponent(this.url())}`);
 
   protected xsrfToken(): string {
     return this.xsrf.getToken() ?? '';

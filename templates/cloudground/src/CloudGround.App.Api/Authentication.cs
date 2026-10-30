@@ -38,7 +38,9 @@ internal static class Authentication
 
         builder.Services.AddDataProtection().SetApplicationName(ApplicationName);
         builder.Services.AddOptions<KeyManagementOptions>()
-            .Configure<IConnectionMultiplexer>((options, redis) => options.XmlRepository = new RedisXmlRepository(() => redis.GetDatabase(), DataProtectionKeys));
+            .Configure<IServiceProvider>((options, services) => options.XmlRepository = new RedisXmlRepository(
+                () => services.GetRequiredService<IConnectionMultiplexer>().GetDatabase(),
+                DataProtectionKeys));
 
         builder.Services.TryAddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<ITicketStore, DistributedTicketStore>();

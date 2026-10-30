@@ -20,19 +20,19 @@ public sealed class ComposeFileTests(PublishedCompose compose)
     {
         Assert.DoesNotContain("keycloak", compose.ServiceNames);
         Assert.Contains(KeycloakAddress, compose.Service("api"), StringComparison.Ordinal);
-        Assert.Contains(KeycloakAddress, compose.Service("bff"), StringComparison.Ordinal);
+        Assert.Contains("Keycloak__ClientSecret: \"${API_CLIENT_SECRET}\"", compose.Service("api"), StringComparison.Ordinal);
     }
 
     [Fact]
-    public void Only_the_bff_and_the_dashboard_publish_ports()
+    public void Only_the_api_and_the_dashboard_publish_ports()
     {
         var publishing = compose.ServiceNames.Where(name => compose.Service(name).Contains("ports:", StringComparison.Ordinal));
 
-        Assert.Equal(["bff", "compose-dashboard"], publishing.Order());
+        Assert.Equal(["api", "compose-dashboard"], publishing.Order());
     }
 
     [Theory]
-    [InlineData("bff", "${BFF_PORT}")]
+    [InlineData("api", "${API_PORT}")]
     [InlineData("compose-dashboard", "18888")]
     public void Published_ports_listen_on_the_loopback_interface_only(string service, string port)
     {
@@ -54,7 +54,7 @@ public sealed class ComposeFileTests(PublishedCompose compose)
     }
 
     [Fact]
-    public void Web_runs_its_image_entrypoint_and_accepts_the_bff()
+    public void Web_runs_its_image_entrypoint_and_accepts_the_api()
     {
         var web = compose.Service("web");
 
@@ -69,7 +69,6 @@ public sealed class ComposeFileTests(PublishedCompose compose)
     [InlineData("messaging")]
     [InlineData("api")]
     [InlineData("web")]
-    [InlineData("bff")]
     public void Long_running_services_restart_unless_stopped(string service)
     {
         Assert.Contains("restart: \"unless-stopped\"", compose.Service(service), StringComparison.Ordinal);

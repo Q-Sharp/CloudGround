@@ -16,6 +16,7 @@ builder.Services.AddOpenApi();
 builder.AddMessaging();
 builder.AddApiAuthentication();
 builder.AddXsrfProtection();
+builder.AddWebProxy();
 #if (sample)
 builder.AddProjectsModule();
 builder.AddTasksModule();
@@ -46,5 +47,6 @@ app.MapAccountEndpoints();
 app.MapProjectsModule();
 app.MapTasksModule();
 #endif
+app.MapWebProxy();
 
 return await app.RunJasperFxCommands(args);
