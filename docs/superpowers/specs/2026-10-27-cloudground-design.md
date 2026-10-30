@@ -181,6 +181,11 @@ flowchart LR
   is due and signs the user out when the refresh fails, but never forwards it.
 - The API forwards every request that none of its endpoints handles to the SSR server, without the
   browser's cookies and authorization header.
+- **Author**, 2026-10-30: when Garnet is unreachable, requests with a session cookie count as
+  anonymous and the same cookie works again afterwards; when Keycloak is unreachable for longer than
+  an access token lives, the API signs the user out at the next request and sign-in fails until
+  Keycloak is back; a wrong method on an existing API path stays 404; the whole site is down while
+  the API is down.
 - SSR renders public pages anonymously. It does not need the user's session. When a public page
   needs data, the SSR server calls the API's anonymous public endpoints directly, using Aspire
   service discovery. Routes that need data are server-rendered at request time, not prerendered at

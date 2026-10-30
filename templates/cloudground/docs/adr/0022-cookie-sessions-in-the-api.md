@@ -22,9 +22,10 @@ user out. The API forwards no tokens: it authenticates the cookie directly.
 
 A request with an `Authorization: Bearer` header is authenticated as a JWT bearer token, every other
 request by the cookie. Unsafe requests with the cookie need the XSRF token that Angular sends by
-itself: the API sets the `XSRF-TOKEN` cookie and expects its value in the `X-XSRF-TOKEN` header, or
-in the form field of the logout form. `GET /account/login`, `POST /account/logout` and
-`GET /account/user` take over from the backend for frontend's endpoints.
+itself: the API sets the `cloudground-app-xsrf` cookie and expects its value in the `X-XSRF-TOKEN`
+header, or in the form field of the logout form. Every cookie name starts with the solution's name.
+`GET /account/login`, `POST /account/logout` and `GET /account/user` take over from the backend for
+frontend's endpoints.
 
 Every request that no endpoint of the API handles goes through YARP to the Angular SSR server,
 without the `Cookie` and `Authorization` headers, so the browser still sees one origin. Paths under
@@ -56,7 +57,14 @@ without the `Cookie` and `Authorization` headers, so the browser still sees one 
   working; a user blocked in Keycloak loses access within the access token's lifetime of 5 minutes.
   In operation the operator's identity provider sets these times, not the template. Logging out of
   the application ends both sessions.
+- When Keycloak is unreachable for longer than an access token lives, the API signs the user out at
+  the next request, and signing in fails until Keycloak is back.
+- When Garnet is unreachable, requests with a session cookie count as anonymous: public pages and
+  anonymous API calls keep working, endpoints that need a user answer 401, and the same cookie works
+  again once Garnet is back with its data.
 - Parallel requests of one session may refresh with the same refresh token, so the realm keeps used
   refresh tokens valid.
+- A wrong method on an existing path of the API answers 404 `ProblemDetails`, not 405, because the
+  not-found endpoints under `/api` and `/account` accept every method.
 - Clients without a browser still call the API with bearer tokens and need no XSRF token.
 - The web app never sees the session cookie, and server rendering stays anonymous.

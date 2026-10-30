@@ -160,6 +160,9 @@ PKCE, and offers:
 - `POST /account/logout` ends the session at the API and at Keycloak
 - `GET /account/user` returns the user's name and roles, or 401
 
+Sign-in uses pushed authorization requests when the identity provider offers them, as Keycloak does,
+so the browser's redirect carries only a reference to the authorization request.
+
 A signed-in browser holds only an HttpOnly session cookie. The session ticket with the user's tokens
 and the Data Protection keys live in Garnet, so several API instances share the same sessions; the
 integration tests run two of them. The API refreshes the access token a minute before it expires and
@@ -171,12 +174,16 @@ lifetime of 5 minutes (`accessTokenLifespan`). In operation the operator's ident
 these times, not the template. Parallel requests of one session may refresh at the same time with
 the same refresh token, so the realm keeps used refresh tokens valid (`revokeRefreshToken: false`);
 turning rotation on needs a lock around the refresh first. While Keycloak is unreachable, a session
-keeps its access token until it expires. The API never forwards the tokens; they only keep the
-session alive.
+keeps working until its access token expires; after that, the next request signs the user out, and
+signing in fails until Keycloak is back. While Garnet is unreachable, requests with a session cookie
+count as anonymous: public pages and anonymous API calls keep working, endpoints that need a user
+answer 401, and the same cookie works again once Garnet is back with its data. The API never
+forwards the tokens; they only keep the session alive.
 
-For a signed-in user, the API sets an `XSRF-TOKEN` cookie and expects its value in the
-`X-XSRF-TOKEN` header on every state-changing request with the session cookie, which is what
-Angular's `HttpClient` does on its own; the logout form sends it as a form field.
+For a signed-in user, the API sets a readable `cloudground-app-xsrf` cookie and expects its value in
+the `X-XSRF-TOKEN` header on every state-changing request with the session cookie, which is what
+Angular's `HttpClient` does on its own; the logout form sends it as a form field. Every cookie of the
+solution starts with `cloudground-app-`, so two solutions on `localhost` keep their own sessions.
 
 Clients without a browser call the API with Keycloak access tokens for the `cloudground-app-api`
 audience in an `Authorization: Bearer` header; a request with that header is authenticated by its
@@ -309,9 +316,13 @@ Chromium's system libraries, install them once after a build:
 pwsh tests/CloudGround.App.EndToEnd.Tests/bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
 ```
 
-`--filter-not-trait Category=EndToEnd` leaves them out. CI builds, lints and tests the web app,
-runs every test level, end-to-end included, builds the container images and checks the Compose
-file on every push.
+The Compose tests in `tests/CloudGround.App.Integration.Tests` run the publish pipeline up to
+`prepare-compose`, so they build every container image, and each run adds tagged images to the local
+image store.
+
+`--filter-not-trait Category=EndToEnd` leaves the end-to-end tests out. CI builds, lints and tests
+the web app, runs every test level, end-to-end included, builds the container images and checks the
+Compose file on every push.
 
 ## Working with AI agents
 

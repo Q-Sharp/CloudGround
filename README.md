@@ -5,8 +5,9 @@
 CloudGround is a `dotnet new` template for container-based .NET solutions. One command creates a
 production-shaped solution with a visible architecture: a modular monolith with Minimal APIs, an
 Angular frontend with server-side rendering, sign-in with a cookie session that keeps tokens out of
-the browser, messaging with a transactional outbox, tests at every level, container images and a Docker Compose deployment.
-One more command runs all of it locally through [Aspire](https://aspire.dev).
+the browser, messaging with a transactional outbox, tests at every level, container images and a
+Docker Compose deployment. One more command runs all of it locally through
+[Aspire](https://aspire.dev).
 
 > **Status:** all seven phases of the first version are built. The package is not on NuGet yet;
 > install it from source as shown below.
