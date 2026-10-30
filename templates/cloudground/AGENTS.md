@@ -112,8 +112,8 @@ directly. Any other third-party library needs an ADR first.
 Every component is on its newest LTS release, or on its newest stable release where it has no LTS
 line. Dependabot proposes updates. A major update of a component that follows an LTS line is a
 deliberate pull request with an ADR. TypeScript stays in the range the current Angular release
-supports. A new Angular major is a pull request that runs `ng update`, which moves Angular and
-TypeScript together; Dependabot proposes no Angular majors.
+supports. A new Angular major arrives as a failing Dependabot pull request; replace it with a pull
+request that runs `ng update`, which moves Angular and TypeScript together.
 
 ## Commits and pull requests
 

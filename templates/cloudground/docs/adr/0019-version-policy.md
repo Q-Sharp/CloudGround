@@ -11,11 +11,10 @@ A solution ages quickly, and outdated dependencies are a security and support ri
 Every component is on its newest LTS release, or on its newest stable release where it has no LTS
 line; Angular is always on its newest stable major. Dependabot updates NuGet, npm, container images,
 devcontainer features and GitHub Actions in grouped weekly pull requests and proposes no major
-updates for components that follow an LTS line. For Angular it proposes minor and patch updates,
-in a group with TypeScript apart from the other npm packages; TypeScript stays in the range the
-current Angular release supports, so Dependabot proposes only its patch updates. A new Angular major
-is a pull request that runs `ng update`. Dependabot's pull requests are `chore(deps)` or
-`chore(deps-dev)` commits.
+updates for components that follow an LTS line. Angular, majors included, updates in a group with
+TypeScript apart from the other npm packages; TypeScript stays in the range the current Angular
+release supports, so Dependabot proposes only its patch updates. Dependabot's pull requests are
+`chore(deps)` or `chore(deps-dev)` commits.
 
 ## Alternatives
 
@@ -27,7 +26,7 @@ is a pull request that runs `ng update`. Dependabot's pull requests are `chore(d
 ## Consequences
 
 - Moving to a new LTS major is a deliberate pull request with an ADR.
-- `ng update` moves Angular and TypeScript together and migrates the code; Dependabot alone would
-  bump Angular without the TypeScript it needs and stop proposing fixes for the current major.
-- Nobody is reminded of a new Angular major; Angular releases one about every six months.
+- A new Angular major arrives as a Dependabot pull request that fails, because it keeps the old
+  TypeScript. A pull request that runs `ng update`, which moves Angular and TypeScript together and
+  migrates the code, replaces it. Until then Dependabot proposes no fixes for the old major.
 - Preview packages are exceptions and are recorded where they are used.

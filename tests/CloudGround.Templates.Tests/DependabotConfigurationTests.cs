@@ -60,8 +60,8 @@ public sealed partial class DependabotConfigurationTests
     [Theory]
     [InlineData(".github/dependabot.yml", "nuget", new[] { "Microsoft.Extensions.*", "Microsoft.AspNetCore.*", "Microsoft.EntityFrameworkCore.*", "dotnet-ef" })]
     [InlineData("templates/cloudground/.github/dependabot.yml", "nuget", new[] { "Microsoft.Extensions.*", "Microsoft.AspNetCore.*", "Microsoft.EntityFrameworkCore.*", "dotnet-ef" })]
-    [InlineData(".github/dependabot.yml", "npm", new[] { "@types/node", "@angular/*", "angular-eslint", "typescript" })]
-    [InlineData("templates/cloudground/.github/dependabot.yml", "npm", new[] { "@types/node", "@angular/*", "angular-eslint", "typescript" })]
+    [InlineData(".github/dependabot.yml", "npm", new[] { "@types/node", "typescript" })]
+    [InlineData("templates/cloudground/.github/dependabot.yml", "npm", new[] { "@types/node", "typescript" })]
     [InlineData(".github/dependabot.yml", "docker", new[] { "node" })]
     [InlineData("templates/cloudground/.github/dependabot.yml", "docker", new[] { "node" })]
     public void Dependabot_leaves_major_updates_to_deliberate_pull_requests(string configuration, string ecosystem, string[] deliberate)
