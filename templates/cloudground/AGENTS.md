@@ -113,7 +113,7 @@ Every component is on its newest LTS release, or on its newest stable release wh
 line. Dependabot proposes updates. A major update of a component that follows an LTS line is a
 deliberate pull request with an ADR. TypeScript stays in the range the current Angular release
 supports. A new Angular major is a pull request that runs `ng update`, which moves Angular and
-TypeScript together; it replaces Dependabot's failing pull request for that major.
+TypeScript together; Dependabot proposes no Angular majors.
 
 ## Commits and pull requests
 
