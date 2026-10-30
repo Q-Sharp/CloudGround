@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.DataProtection.StackExchangeRedis;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using StackExchange.Redis;
 
@@ -39,7 +40,10 @@ internal static class Authentication
         builder.Services.AddOptions<KeyManagementOptions>()
             .Configure<IConnectionMultiplexer>((options, redis) => options.XmlRepository = new RedisXmlRepository(() => redis.GetDatabase(), DataProtectionKeys));
 
+        builder.Services.TryAddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<ITicketStore, DistributedTicketStore>();
+        builder.Services.AddHttpClient<AccessTokenRefresher>();
+        builder.Services.AddScoped<RefreshingCookieEvents>();
         builder.Services.AddOptions<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme)
             .Configure<ITicketStore>((options, store) => options.SessionStore = store);
 
@@ -59,7 +63,8 @@ internal static class Authentication
                 options.Cookie.SameSite = SameSiteMode.Lax;
                 options.Cookie.SecurePolicy = cookieSecurity;
                 options.ExpireTimeSpan = SessionLifetime;
-                options.SlidingExpiration = false;
+                options.SlidingExpiration = true;
+                options.EventsType = typeof(RefreshingCookieEvents);
             })
             .AddKeycloakOpenIdConnect(IdentityProviderName, Realm, options =>
             {

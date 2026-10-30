@@ -53,15 +53,16 @@ public sealed class AuthenticationTests
     }
 
     [Fact]
-    public void Session_lasts_eight_hours_without_sliding_expiration()
+    public void Session_slides_and_refreshes_its_access_token()
     {
         using var services = Services();
 
         var cookie = services.GetRequiredService<IOptionsMonitor<CookieAuthenticationOptions>>().Get(CookieAuthenticationDefaults.AuthenticationScheme);
 
         Assert.Equal(TimeSpan.FromHours(8), cookie.ExpireTimeSpan);
-        Assert.False(cookie.SlidingExpiration);
+        Assert.True(cookie.SlidingExpiration);
         Assert.True(cookie.Cookie.HttpOnly);
+        Assert.Equal(typeof(RefreshingCookieEvents), cookie.EventsType);
         Assert.IsType<DistributedTicketStore>(cookie.SessionStore);
     }
 
@@ -80,6 +81,7 @@ public sealed class AuthenticationTests
         Assert.Equal(CookieAuthenticationDefaults.AuthenticationScheme, options.SignInScheme);
         Assert.Equal("code", options.ResponseType);
         Assert.True(options.UsePkce);
+        Assert.True(options.SaveTokens);
     }
 
     [Theory]
