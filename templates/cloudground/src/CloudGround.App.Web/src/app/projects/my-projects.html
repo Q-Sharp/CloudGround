@@ -7,6 +7,8 @@
     </mat-form-field>
     <button mat-flat-button type="submit" [disabled]="name.invalid">Create</button>
   </form>
+} @else if (!session.user()) {
+  <p data-test="login-hint">Log in to create projects.</p>
 }
 @if (message(); as text) {
   <p role="alert">{{ text }}</p>

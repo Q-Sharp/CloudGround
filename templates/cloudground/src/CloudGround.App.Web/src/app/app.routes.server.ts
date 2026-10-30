@@ -1,6 +1,6 @@
 import { RenderMode, ServerRoute } from '@angular/ssr';
 //#if (sample)
-import { projectServerRoutes } from './projects/projects.routes';
+import { projectServerRoutes } from './projects/projects.routes.server';
 //#endif
 
 export const serverRoutes: ServerRoute[] = [

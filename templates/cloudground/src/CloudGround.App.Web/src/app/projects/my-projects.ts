@@ -26,6 +26,9 @@ export class MyProjects {
   }
 
   protected create(): void {
+    if (this.name.invalid) {
+      return;
+    }
     this.api.create(this.name.value, null).subscribe({
       next: (project) => {
         this.projects.update((projects) => [...projects, project]);

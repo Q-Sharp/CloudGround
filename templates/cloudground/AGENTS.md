@@ -103,6 +103,8 @@ directly. Any other third-party library needs an ADR first.
 - Zoneless change detection; no zone.js.
 - Every route has a render mode in `src/CloudGround.App.Web/src/app/app.routes.server.ts`: server
   rendering for public pages, client rendering for pages behind the login.
+- `@angular/ssr`, `@angular/platform-server` and `express` are imported only in `src/server.ts` and
+  `*.server.ts` files, so they stay out of the browser bundle; ESLint rejects them elsewhere.
 - Requests go to relative `/api/...` and `/bff/...` URLs through `HttpClient`; the browser never
   holds a token.
 - Angular Material for UI components; `npm run build` fails on ESLint errors.

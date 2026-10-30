@@ -189,7 +189,7 @@ browser sees one origin.
 
 <!--#if (sample) -->
 Each route chooses its render mode in `src/CloudGround.App.Web/src/app/app.routes.server.ts`, the
-sample's routes in `src/CloudGround.App.Web/src/app/projects/projects.routes.ts`:
+sample's routes in `src/CloudGround.App.Web/src/app/projects/projects.routes.server.ts`:
 <!--#else -->
 Each route chooses its render mode in `src/CloudGround.App.Web/src/app/app.routes.server.ts`:
 <!--#endif -->
