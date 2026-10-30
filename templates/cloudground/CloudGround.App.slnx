@@ -13,6 +13,7 @@
   </Folder>
   <!--#endif -->
   <Folder Name="/tests/">
+    <Project Path="tests/CloudGround.App.Api.Tests/CloudGround.App.Api.Tests.csproj" />
     <Project Path="tests/CloudGround.App.Architecture.Tests/CloudGround.App.Architecture.Tests.csproj" />
     <Project Path="tests/CloudGround.App.Bff.Tests/CloudGround.App.Bff.Tests.csproj" />
     <Project Path="tests/CloudGround.App.EndToEnd.Tests/CloudGround.App.EndToEnd.Tests.csproj" />

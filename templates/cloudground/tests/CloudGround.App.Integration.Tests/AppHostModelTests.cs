@@ -60,6 +60,17 @@ public sealed class AppHostModelTests
     }
 
     [Fact]
+    public async Task Tests_run_two_api_instances()
+    {
+        await using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.CloudGround_App_AppHost>(TestContext.Current.CancellationToken);
+
+        appHost.WithTwoApiInstances();
+
+        var api = appHost.Resources.Single(resource => resource.Name == "api");
+        Assert.Equal(ApiInstances.Count, Assert.Single(api.Annotations.OfType<ReplicaAnnotation>()).Replicas);
+    }
+
+    [Fact]
     public async Task Web_app_loads_its_telemetry_instrumentation()
     {
         var cancellation = TestContext.Current.CancellationToken;

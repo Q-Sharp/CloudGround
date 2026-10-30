@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using System.Web;
 
 namespace CloudGround.App.Integration.Tests;
 
@@ -45,6 +46,21 @@ public sealed class KeycloakTests(AppHostFixture fixture)
 
         Assert.True(first.TryGetProperty("access_token", out _));
         Assert.True(second.TryGetProperty("access_token", out _));
+    }
+
+    [Fact]
+    public async Task Api_client_cannot_sign_in_without_pkce()
+    {
+        using var keycloak = new HttpClient(new SocketsHttpHandler { AllowAutoRedirect = false }) { BaseAddress = fixture.App.GetEndpoint("keycloak", "http") };
+        var redirectUri = Uri.EscapeDataString("http://localhost/signin-oidc");
+
+        using var response = await keycloak.GetAsync(
+            new Uri($"/realms/{Tokens.Realm}/protocol/openid-connect/auth?client_id=cloudground-app-api&response_type=code&scope=openid&redirect_uri={redirectUri}", UriKind.Relative),
+            Cancellation);
+
+        var error = HttpUtility.ParseQueryString(response.Headers.Location?.Query ?? string.Empty);
+        Assert.Equal("invalid_request", error["error"]);
+        Assert.Contains("code_challenge_method", error["error_description"], StringComparison.Ordinal);
     }
 
     private static List<string> Audiences(JsonElement payload) =>

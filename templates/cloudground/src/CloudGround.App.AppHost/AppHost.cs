@@ -15,6 +15,7 @@ var messaging = builder.AddRabbitMQ("messaging")
     .WithManagementPlugin()
     .PublishAsDockerComposeService((_, service) => service.Healthcheck = ComposeDeployment.Probe("rabbitmq-diagnostics", "--quiet", "ping"));
 var bffClientSecret = builder.AddParameter("bff-client-secret", new GenerateParameterDefault { MinLength = 32, Special = false }, secret: true, persist: true);
+var apiClientSecret = builder.AddParameter("api-client-secret", new GenerateParameterDefault { MinLength = 32, Special = false }, secret: true, persist: true);
 
 var api = builder.AddProject<Projects.CloudGround_App_Api>("api")
     .BuildImageAfterMigrationBundles()
@@ -24,7 +25,8 @@ var api = builder.AddProject<Projects.CloudGround_App_Api>("api")
     .WithReference(cache)
     .WaitFor(cache)
     .WithReference(messaging)
-    .WaitFor(messaging);
+    .WaitFor(messaging)
+    .WithEnvironment("Keycloak__ClientSecret", apiClientSecret);
 
 var web = builder.AddJavaScriptApp("web", "../CloudGround.App.Web")
     .WithNpm()
@@ -50,7 +52,8 @@ if (builder.ExecutionContext.IsRunMode)
         .WithDataVolume()
         .WithoutHttpsCertificate()
         .WithRealmImport("./Realms")
-        .WithEnvironment("BFF_CLIENT_SECRET", bffClientSecret);
+        .WithEnvironment("BFF_CLIENT_SECRET", bffClientSecret)
+        .WithEnvironment("API_CLIENT_SECRET", apiClientSecret);
 #pragma warning restore ASPIRECERTIFICATES001
     api.WithReference(keycloak).WaitFor(keycloak);
     bff.WithReference(keycloak).WaitFor(keycloak);
