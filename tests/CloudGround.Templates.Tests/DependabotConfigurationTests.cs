@@ -87,6 +87,22 @@ public sealed partial class DependabotConfigurationTests
     [Theory]
     [InlineData(".github/dependabot.yml")]
     [InlineData("templates/cloudground/.github/dependabot.yml")]
+    public void Angular_and_typescript_update_apart_from_the_other_npm_packages(string configuration)
+    {
+        var lines = File.ReadAllLines(Path.Combine(RepositoryRoot.Find(), configuration));
+
+        var groups = EcosystemSection(lines, "npm")
+            .Select(line => GroupPatterns().Match(line))
+            .Where(match => match.Success)
+            .Select(match => match.Groups["patterns"].Value)
+            .ToList();
+
+        Assert.Equal(["\"@angular/*\", \"angular-eslint\", \"typescript\"", "\"*\""], groups);
+    }
+
+    [Theory]
+    [InlineData(".github/dependabot.yml")]
+    [InlineData("templates/cloudground/.github/dependabot.yml")]
     public void Every_update_is_committed_as_a_chore(string configuration)
     {
         var lines = File.ReadAllLines(Path.Combine(RepositoryRoot.Find(), configuration));
@@ -146,6 +162,9 @@ public sealed partial class DependabotConfigurationTests
 
     [GeneratedRegex(@"^\s+prefix: chore\s*$")]
     private static partial Regex ChorePrefix();
+
+    [GeneratedRegex(@"^\s+patterns: \[(?<patterns>[^\]]*)\]\s*$")]
+    private static partial Regex GroupPatterns();
 
     [GeneratedRegex(@"^\s+- (?<directory>/\S*)\s*$")]
     private static partial Regex DirectoryEntry();

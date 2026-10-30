@@ -30,6 +30,8 @@ updates:
       prefix: chore
       include: scope
     groups:
+      angular:
+        patterns: ["@angular/*", "angular-eslint", "typescript"]
       npm:
         patterns: ["*"]
     ignore:
