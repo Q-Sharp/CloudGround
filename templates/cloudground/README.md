@@ -177,8 +177,10 @@ turning rotation on needs a lock around the refresh first. While Keycloak is unr
 keeps working until its access token expires; after that, the next request signs the user out, and
 signing in fails until Keycloak is back. While Garnet is unreachable, requests with a session cookie
 count as anonymous: public pages and anonymous API calls keep working, endpoints that need a user
-answer 401, and the same cookie works again once Garnet is back with its data. The API never
-forwards the tokens; they only keep the session alive.
+answer 401, and the same cookie works again once Garnet is back with its data. Signing in and
+renewing a session need Garnet and fail while it is down. Logging out still removes the cookie, but
+the stored session stays in Garnet until it expires, and the session at Keycloak may stay open. The
+API never forwards the tokens; they only keep the session alive.
 
 For a signed-in user, the API sets a readable `cloudground-app-xsrf` cookie and expects its value in
 the `X-XSRF-TOKEN` header on every state-changing request with the session cookie, which is what

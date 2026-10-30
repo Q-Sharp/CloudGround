@@ -61,7 +61,9 @@ without the `Cookie` and `Authorization` headers, so the browser still sees one 
   the next request, and signing in fails until Keycloak is back.
 - When Garnet is unreachable, requests with a session cookie count as anonymous: public pages and
   anonymous API calls keep working, endpoints that need a user answer 401, and the same cookie works
-  again once Garnet is back with its data.
+  again once Garnet is back with its data. Signing in and renewing a session fail while it is down.
+  Logging out still removes the cookie, so a user can always leave a shared browser; the stored
+  session then stays in Garnet until it expires, and the session at Keycloak may stay open.
 - Parallel requests of one session may refresh with the same refresh token, so the realm keeps used
   refresh tokens valid.
 - A wrong method on an existing path of the API answers 404 `ProblemDetails`, not 405, because the

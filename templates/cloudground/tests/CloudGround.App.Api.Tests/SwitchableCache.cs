@@ -5,11 +5,18 @@ using StackExchange.Redis;
 
 namespace CloudGround.App.Api.Tests;
 
+public enum CacheOutage
+{
+    None,
+    Unreachable,
+    TimedOut,
+}
+
 internal sealed class SwitchableCache : IDistributedCache
 {
     private readonly MemoryDistributedCache cache = new(Options.Create(new MemoryDistributedCacheOptions()));
 
-    public bool Available { get; set; } = true;
+    public CacheOutage Outage { get; set; }
 
     public byte[]? Get(string key) => Reachable().Get(key);
 
@@ -28,6 +35,10 @@ internal sealed class SwitchableCache : IDistributedCache
     public Task SetAsync(string key, byte[] value, DistributedCacheEntryOptions options, CancellationToken token = default) =>
         Reachable().SetAsync(key, value, options, token);
 
-    private MemoryDistributedCache Reachable() =>
-        Available ? cache : throw new RedisConnectionException(ConnectionFailureType.UnableToConnect, "The cache is unavailable.");
+    private MemoryDistributedCache Reachable() => Outage switch
+    {
+        CacheOutage.Unreachable => throw new RedisConnectionException(ConnectionFailureType.UnableToConnect, "The cache is unavailable."),
+        CacheOutage.TimedOut => throw new TimeoutException("The cache timed out."),
+        _ => cache,
+    };
 }

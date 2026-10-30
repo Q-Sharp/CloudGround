@@ -19,8 +19,10 @@ public sealed class SessionStoreOutageTests
 
     private static CancellationToken Cancellation => TestContext.Current.CancellationToken;
 
-    [Fact]
-    public async Task Session_reads_as_anonymous_while_the_cache_is_down_and_works_again_afterwards()
+    [Theory]
+    [InlineData(CacheOutage.Unreachable)]
+    [InlineData(CacheOutage.TimedOut)]
+    public async Task Session_reads_as_anonymous_while_the_cache_is_down_and_works_again_afterwards(CacheOutage outage)
     {
         var cache = new SwitchableCache();
         await using var app = await StartAsync(cache);
@@ -28,10 +30,10 @@ public sealed class SessionStoreOutageTests
         using var signIn = await client.PostAsync(new Uri("/sign-in", UriKind.Relative), content: null, Cancellation);
         var session = signIn.Headers.GetValues("Set-Cookie").Single(cookie => cookie.StartsWith($"{SessionCookie}=", StringComparison.Ordinal)).Split(';')[0];
 
-        cache.Available = false;
+        cache.Outage = outage;
         using var signedInPageDuringOutage = await GetAsync(client, "/signed-in", session);
         using var publicPageDuringOutage = await GetAsync(client, "/public", session);
-        cache.Available = true;
+        cache.Outage = CacheOutage.None;
         using var signedInPageAfterOutage = await GetAsync(client, "/signed-in", session);
 
         Assert.Equal(HttpStatusCode.Unauthorized, signedInPageDuringOutage.StatusCode);

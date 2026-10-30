@@ -75,8 +75,8 @@ public sealed class AuthenticationTests
         var openIdConnect = services.GetRequiredService<IOptionsMonitor<OpenIdConnectOptions>>().Get(OpenIdConnectDefaults.AuthenticationScheme);
 
         Assert.Equal("cloudground-app-session", cookie.Cookie.Name);
-        Assert.StartsWith("cloudground-app-", openIdConnect.CorrelationCookie.Name, StringComparison.Ordinal);
-        Assert.StartsWith("cloudground-app-", openIdConnect.NonceCookie.Name, StringComparison.Ordinal);
+        Assert.Equal("cloudground-app-correlation.", openIdConnect.CorrelationCookie.Name);
+        Assert.Equal("cloudground-app-nonce.", openIdConnect.NonceCookie.Name);
     }
 
     [Theory]

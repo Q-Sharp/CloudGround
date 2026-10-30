@@ -57,6 +57,7 @@ public sealed class AccountTests(AppHostFixture fixture)
     [InlineData("/\\evil.example")]
     [InlineData("/\t/evil.example")]
     [InlineData("/\n/evil.example")]
+    [InlineData("/caf\u00e9")]
     public async Task Login_ignores_foreign_return_urls(string returnUrl)
     {
         using var session = await BrowserLogin.LogInAsync(fixture, "alice", returnUrl);
