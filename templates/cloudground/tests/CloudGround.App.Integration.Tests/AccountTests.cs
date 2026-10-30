@@ -92,6 +92,17 @@ public sealed class AccountTests(AppHostFixture fixture)
     }
 
     [Fact]
+    public async Task Wrong_method_on_an_account_route_returns_404_problem_details()
+    {
+        using var client = fixture.CreateApiClient();
+
+        using var response = await client.PutAsync(UserUri, content: null, Cancellation);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+    }
+
+    [Fact]
     public async Task Unknown_account_route_returns_problem_details()
     {
         using var client = fixture.CreateApiClient();

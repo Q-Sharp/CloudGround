@@ -20,18 +20,21 @@ public sealed class PublishedCompose : IAsyncLifetime
 
     public string ProjectName { get; private set; } = string.Empty;
 
+    public string EnvironmentFile { get; private set; } = string.Empty;
+
     public async ValueTask InitializeAsync()
     {
         var cancellation = TestContext.Current.CancellationToken;
         await using var startLock = await AppHostStartLock.AcquireAsync(cancellation);
         await using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.CloudGround_App_AppHost>(
-            ["--operation", "publish", "--step", "publish", "--output-path", OutputDirectory],
+            ["--operation", "publish", "--step", "prepare-compose", "--environment", "Production", "--output-path", OutputDirectory, "--Parameters:keycloak-url=https://keycloak.example"],
             cancellation);
         await using var app = await appHost.BuildAsync(cancellation);
         await app.RunAsync(cancellation);
 
         var lines = await File.ReadAllLinesAsync(Path.Combine(OutputDirectory, "docker-compose.yaml"), cancellation);
         services = ReadServices(lines);
+        EnvironmentFile = await File.ReadAllTextAsync(Path.Combine(OutputDirectory, ".env.Production"), cancellation);
         ProjectName = lines.FirstOrDefault(line => line.StartsWith(NameKey, StringComparison.Ordinal))?[NameKey.Length..].Trim('"') ?? string.Empty;
     }
 

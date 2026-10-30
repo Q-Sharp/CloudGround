@@ -40,6 +40,19 @@ public sealed class ComposeFileTests(PublishedCompose compose)
     }
 
     [Fact]
+    public void Api_listens_on_the_default_container_port()
+    {
+        Assert.Contains("HTTP_PORTS: \"${API_PORT}\"", compose.Service("api"), StringComparison.Ordinal);
+        Assert.Contains("API_PORT=8080", compose.EnvironmentFile.Split('\n'));
+    }
+
+    [Fact]
+    public void Api_trusts_the_forwarded_headers_of_the_reverse_proxy_in_front()
+    {
+        Assert.Contains("ASPNETCORE_FORWARDEDHEADERS_ENABLED: \"true\"", compose.Service("api"), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Dashboard_runs_the_released_image_of_the_aspire_version()
     {
         var aspire = typeof(DockerComposeEnvironmentResource).Assembly.GetName().Version!;
