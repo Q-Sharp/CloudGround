@@ -44,7 +44,7 @@ public sealed class ComposeFileTests(PublishedCompose compose)
     {
         var aspire = typeof(DockerComposeEnvironmentResource).Assembly.GetName().Version!;
 
-        Assert.Contains($"image: \"mcr.microsoft.com/dotnet/aspire-dashboard:{aspire.Major}.{aspire.Minor}\"", compose.Service("compose-dashboard"), StringComparison.Ordinal);
+        Assert.Contains($"image: \"mcr.microsoft.com/dotnet/aspire-dashboard:{aspire.Major}\"", compose.Service("compose-dashboard"), StringComparison.Ordinal);
     }
 
     [Fact]

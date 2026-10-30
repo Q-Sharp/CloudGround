@@ -1,3 +1,4 @@
+using System.Globalization;
 using Aspire.Hosting.Docker;
 using Aspire.Hosting.Docker.Resources;
 using Aspire.Hosting.Docker.Resources.ServiceNodes;
@@ -28,7 +29,7 @@ internal static class ComposeDeployment
     public static void UseReleasedDashboard(IResourceBuilder<DockerComposeAspireDashboardResource> dashboard)
     {
         var aspire = typeof(DockerComposeEnvironmentResource).Assembly.GetName().Version!;
-        dashboard.WithImage(DashboardImage, $"{aspire.Major}.{aspire.Minor}");
+        dashboard.WithImage(DashboardImage, aspire.Major.ToString(CultureInfo.InvariantCulture));
     }
 
     public static Healthcheck Probe(params string[] command) => new()
