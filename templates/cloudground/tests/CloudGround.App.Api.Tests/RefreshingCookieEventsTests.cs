@@ -27,7 +27,7 @@ public sealed class RefreshingCookieEventsTests
     }
 
     private static RefreshingCookieEvents EventsFor(HttpMessageHandler endpoint) =>
-        new(AccessTokenRefresherTests.RefresherFor(endpoint), new FixedOptionsMonitor<OpenIdConnectOptions>(Options()));
+        new(AccessTokenRefresherTests.RefresherFor(endpoint), new FixedOptionsMonitor<OpenIdConnectOptions>(OpenIdOptions()));
 
     private static (CookieValidatePrincipalContext Context, SignOutRecorder Authentication) SessionExpiringSoon()
     {

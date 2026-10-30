@@ -9,7 +9,7 @@ public enum CacheOutage
 
 internal sealed class SwitchableCache : IDistributedCache
 {
-    private readonly MemoryDistributedCache cache = new(Microsoft.Extensions.Options.Options.Create(new MemoryDistributedCacheOptions()));
+    private readonly MemoryDistributedCache cache = new(Options.Create(new MemoryDistributedCacheOptions()));
 
     public CacheOutage Outage { get; set; }
 

@@ -10,7 +10,7 @@ public sealed class AccessTokenRefresherTests
         var endpoint = new StubTokenEndpoint(HttpStatusCode.OK, NewTokens);
         var properties = ExpiringAt(Now.AddSeconds(30));
 
-        var result = await RefresherFor(endpoint).RefreshIfCloseToExpiryAsync(properties, Options(), Cancellation);
+        var result = await RefresherFor(endpoint).RefreshIfCloseToExpiryAsync(properties, OpenIdOptions(), Cancellation);
 
         Assert.Equal(TokenRefresh.Refreshed, result);
         Assert.Equal("new-access", properties.GetTokenValue("access_token"));
@@ -26,7 +26,7 @@ public sealed class AccessTokenRefresherTests
         var endpoint = new StubTokenEndpoint(HttpStatusCode.OK, NewTokens);
         var properties = ExpiringAt(Now.AddMinutes(4));
 
-        var result = await RefresherFor(endpoint).RefreshIfCloseToExpiryAsync(properties, Options(), Cancellation);
+        var result = await RefresherFor(endpoint).RefreshIfCloseToExpiryAsync(properties, OpenIdOptions(), Cancellation);
 
         Assert.Equal(TokenRefresh.NotNeeded, result);
         Assert.Equal("old-access", properties.GetTokenValue("access_token"));
@@ -39,7 +39,7 @@ public sealed class AccessTokenRefresherTests
         var endpoint = new StubTokenEndpoint(HttpStatusCode.BadRequest, """{"error":"invalid_grant"}""");
         var properties = ExpiringAt(Now.AddSeconds(30));
 
-        var result = await RefresherFor(endpoint).RefreshIfCloseToExpiryAsync(properties, Options(), Cancellation);
+        var result = await RefresherFor(endpoint).RefreshIfCloseToExpiryAsync(properties, OpenIdOptions(), Cancellation);
 
         Assert.Equal(TokenRefresh.Failed, result);
         Assert.Equal("old-access", properties.GetTokenValue("access_token"));
@@ -50,7 +50,7 @@ public sealed class AccessTokenRefresherTests
     {
         var properties = ExpiringAt(Now.AddSeconds(30));
 
-        var result = await RefresherFor(new UnreachableTokenEndpoint()).RefreshIfCloseToExpiryAsync(properties, Options(), Cancellation);
+        var result = await RefresherFor(new UnreachableTokenEndpoint()).RefreshIfCloseToExpiryAsync(properties, OpenIdOptions(), Cancellation);
 
         Assert.Equal(TokenRefresh.NotNeeded, result);
         Assert.Equal("old-access", properties.GetTokenValue("access_token"));
@@ -61,7 +61,7 @@ public sealed class AccessTokenRefresherTests
     {
         var properties = ExpiringAt(Now.AddSeconds(30));
 
-        var result = await RefresherFor(new StubTokenEndpoint(HttpStatusCode.ServiceUnavailable, "{}")).RefreshIfCloseToExpiryAsync(properties, Options(), Cancellation);
+        var result = await RefresherFor(new StubTokenEndpoint(HttpStatusCode.ServiceUnavailable, "{}")).RefreshIfCloseToExpiryAsync(properties, OpenIdOptions(), Cancellation);
 
         Assert.Equal(TokenRefresh.NotNeeded, result);
         Assert.Equal("old-access", properties.GetTokenValue("access_token"));
@@ -72,7 +72,7 @@ public sealed class AccessTokenRefresherTests
     {
         var properties = ExpiringAt(Now.AddSeconds(-10));
 
-        var result = await RefresherFor(new UnreachableTokenEndpoint()).RefreshIfCloseToExpiryAsync(properties, Options(), Cancellation);
+        var result = await RefresherFor(new UnreachableTokenEndpoint()).RefreshIfCloseToExpiryAsync(properties, OpenIdOptions(), Cancellation);
 
         Assert.Equal(TokenRefresh.Failed, result);
     }

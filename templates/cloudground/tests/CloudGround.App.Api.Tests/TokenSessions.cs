@@ -18,7 +18,7 @@ internal static class TokenSessions
         return properties;
     }
 
-    public static OpenIdConnectOptions Options() => new()
+    public static OpenIdConnectOptions OpenIdOptions() => new()
     {
         ClientId = "cloudground-app-api",
         ClientSecret = "secret",
