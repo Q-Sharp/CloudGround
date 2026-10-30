@@ -9,13 +9,15 @@ public sealed class AppHostStartLockTests
     public async Task A_second_start_waits_until_the_first_releases_the_lock()
     {
         var cancellation = TestContext.Current.CancellationToken;
-        var first = await AppHostStartLock.AcquireAsync(cancellation);
+        var lockFile = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.lock");
+        var first = await AppHostStartLock.AcquireAsync(lockFile, cancellation);
 
-        var second = AppHostStartLock.AcquireAsync(cancellation);
+        var second = AppHostStartLock.AcquireAsync(lockFile, cancellation);
         await Task.Delay(StillWaiting, cancellation);
         Assert.False(second.IsCompleted);
 
         await first.DisposeAsync();
-        await using var acquired = await second.WaitAsync(Released, cancellation);
+        await (await second.WaitAsync(Released, cancellation)).DisposeAsync();
+        File.Delete(lockFile);
     }
 }
