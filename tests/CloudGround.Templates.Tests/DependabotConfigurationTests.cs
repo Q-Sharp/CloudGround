@@ -4,6 +4,10 @@ namespace CloudGround.Templates.Tests;
 
 public sealed partial class DependabotConfigurationTests
 {
+    private const string MajorUpdates = "version-update:semver-major";
+    private const string MinorUpdates = "version-update:semver-minor";
+    private const string PatchUpdates = "version-update:semver-patch";
+
     [Theory]
     [InlineData(".github/dependabot.yml", "")]
     [InlineData("templates/cloudground/.github/dependabot.yml", "templates/cloudground")]
@@ -56,20 +60,88 @@ public sealed partial class DependabotConfigurationTests
     [Theory]
     [InlineData(".github/dependabot.yml", "nuget", new[] { "Microsoft.Extensions.*", "Microsoft.AspNetCore.*", "Microsoft.EntityFrameworkCore.*", "dotnet-ef" })]
     [InlineData("templates/cloudground/.github/dependabot.yml", "nuget", new[] { "Microsoft.Extensions.*", "Microsoft.AspNetCore.*", "Microsoft.EntityFrameworkCore.*", "dotnet-ef" })]
-    [InlineData(".github/dependabot.yml", "npm", new[] { "@types/node" })]
-    [InlineData("templates/cloudground/.github/dependabot.yml", "npm", new[] { "@types/node" })]
+    [InlineData(".github/dependabot.yml", "npm", new[] { "@types/node", "typescript" })]
+    [InlineData("templates/cloudground/.github/dependabot.yml", "npm", new[] { "@types/node", "typescript" })]
     [InlineData(".github/dependabot.yml", "docker", new[] { "node" })]
     [InlineData("templates/cloudground/.github/dependabot.yml", "docker", new[] { "node" })]
-    public void Dependabot_ignores_major_updates_of_lts_bound_packages(string configuration, string ecosystem, string[] ltsBound)
+    public void Dependabot_leaves_major_updates_to_deliberate_pull_requests(string configuration, string ecosystem, string[] deliberate)
     {
         var lines = File.ReadAllLines(Path.Combine(RepositoryRoot.Find(), configuration));
 
-        var ignored = EcosystemSection(lines, ecosystem)
-            .Select(line => IgnoredDependency().Match(line))
-            .Where(match => match.Success)
-            .Select(match => match.Groups["dependency"].Value);
+        var ignored = IgnoredUpdates(lines, ecosystem)
+            .Where(update => update.UpdateTypes.Contains(MajorUpdates))
+            .Select(update => update.Dependency);
 
-        Assert.Equal(ltsBound.Order(), ignored.Order());
+        Assert.Equal(deliberate.Order(), ignored.Order());
+    }
+
+    [Theory]
+    [InlineData(".github/dependabot.yml")]
+    [InlineData("templates/cloudground/.github/dependabot.yml")]
+    public void Dependabot_leaves_typescript_minor_and_major_updates_to_angular(string configuration)
+    {
+        var lines = File.ReadAllLines(Path.Combine(RepositoryRoot.Find(), configuration));
+
+        var typescript = Assert.Single(IgnoredUpdates(lines, "npm"), update => update.Dependency == "typescript");
+        Assert.Equal([MajorUpdates, MinorUpdates], typescript.UpdateTypes.Order());
+    }
+
+    [Theory]
+    [InlineData(".github/dependabot.yml")]
+    [InlineData("templates/cloudground/.github/dependabot.yml")]
+    public void Angular_and_typescript_update_apart_from_the_other_npm_packages(string configuration)
+    {
+        var lines = File.ReadAllLines(Path.Combine(RepositoryRoot.Find(), configuration));
+
+        var groups = EcosystemSection(lines, "npm")
+            .Select(line => GroupPatterns().Match(line))
+            .Where(match => match.Success)
+            .Select(match => match.Groups["patterns"].Value)
+            .ToList();
+
+        Assert.Equal(["\"@angular/*\", \"angular-eslint\", \"typescript\"", "\"*\""], groups);
+    }
+
+    [Theory]
+    [InlineData(".github/dependabot.yml")]
+    [InlineData("templates/cloudground/.github/dependabot.yml")]
+    public void Every_update_is_committed_as_a_fix(string configuration)
+    {
+        var lines = File.ReadAllLines(Path.Combine(RepositoryRoot.Find(), configuration));
+
+        var ecosystems = lines
+            .Select(line => EcosystemStart().Match(line))
+            .Where(match => match.Success)
+            .Select(match => match.Groups["ecosystem"].Value)
+            .ToList();
+
+        Assert.NotEmpty(ecosystems);
+        Assert.All(ecosystems, ecosystem =>
+        {
+            var section = EcosystemSection(lines, ecosystem).ToList();
+            Assert.Contains(section, line => FixPrefix().IsMatch(line));
+            Assert.Contains(section, line => ScopeIncluded().IsMatch(line));
+        });
+    }
+
+    private static List<(string Dependency, string[] UpdateTypes)> IgnoredUpdates(string[] lines, string ecosystem)
+    {
+        var section = EcosystemSection(lines, ecosystem).ToList();
+
+        return section
+            .Select((line, index) => (Dependency: IgnoredDependency().Match(line), Index: index))
+            .Where(entry => entry.Dependency.Success)
+            .Select(entry => (entry.Dependency.Groups["dependency"].Value, IgnoredUpdateTypes(section.ElementAtOrDefault(entry.Index + 1))))
+            .ToList();
+    }
+
+    private static string[] IgnoredUpdateTypes(string? line)
+    {
+        var types = UpdateTypes().Match(line ?? string.Empty);
+
+        return types.Success
+            ? types.Groups["types"].Value.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            : [MajorUpdates, MinorUpdates, PatchUpdates];
     }
 
     private static List<string> GithubActionsDirectories(string[] lines) => EcosystemDirectories(lines, "github-actions");
@@ -97,8 +169,20 @@ public sealed partial class DependabotConfigurationTests
             && Directory.EnumerateFiles(scanned).Any(file => file.EndsWith(".yml", StringComparison.Ordinal) || file.EndsWith(".yaml", StringComparison.Ordinal));
     }
 
-    [GeneratedRegex(@"^\s*- package-ecosystem:")]
+    [GeneratedRegex(@"^\s*- package-ecosystem: (?<ecosystem>\S+)")]
     private static partial Regex EcosystemStart();
+
+    [GeneratedRegex(@"^\s+update-types: \[(?<types>[^\]]*)\]\s*$")]
+    private static partial Regex UpdateTypes();
+
+    [GeneratedRegex(@"^\s+prefix: fix\s*$")]
+    private static partial Regex FixPrefix();
+
+    [GeneratedRegex(@"^\s+include: scope\s*$")]
+    private static partial Regex ScopeIncluded();
+
+    [GeneratedRegex(@"^\s+patterns: \[(?<patterns>[^\]]*)\]\s*$")]
+    private static partial Regex GroupPatterns();
 
     [GeneratedRegex(@"^\s+- (?<directory>/\S*)\s*$")]
     private static partial Regex DirectoryEntry();
