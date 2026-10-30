@@ -37,6 +37,26 @@ public sealed class KeycloakTests(AppHostFixture fixture)
     }
 
     [Fact]
+    public async Task Realm_states_its_session_lifetimes()
+    {
+        await using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.CloudGround_App_AppHost>(Cancellation);
+        using var realm = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(appHost.AppHostDirectory, "Realms", "realm.json"), Cancellation));
+
+        Assert.Equal(1800, realm.RootElement.GetProperty("ssoSessionIdleTimeout").GetInt32());
+        Assert.Equal(36000, realm.RootElement.GetProperty("ssoSessionMaxLifespan").GetInt32());
+        Assert.Equal(300, realm.RootElement.GetProperty("accessTokenLifespan").GetInt32());
+    }
+
+    [Fact]
+    public async Task Tokens_follow_the_session_lifetimes_of_the_realm()
+    {
+        var tokens = await Tokens.GrantAsync(fixture.App, "alice", Cancellation);
+
+        Assert.Equal(300, tokens.GetProperty("expires_in").GetInt32());
+        Assert.Equal(1800, tokens.GetProperty("refresh_expires_in").GetInt32());
+    }
+
+    [Fact]
     public async Task Used_refresh_tokens_stay_valid()
     {
         var refreshToken = (await Tokens.GrantAsync(fixture.App, "alice", Cancellation)).GetProperty("refresh_token").GetString()!;
