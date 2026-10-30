@@ -10,9 +10,9 @@ deployment must work with the identity provider an organization already runs.
 ## Decision
 
 The AppHost runs Keycloak with the realm in `src/CloudGround.App.AppHost/Realms/realm.json`: demo
-users, the `editor` role, the BFF client and a client for the tests. The deployment leaves Keycloak
-out; the API and the BFF take the authority from `Keycloak:Url`, and any OpenID Connect provider
-with the same client, audience and role claims works.
+users, the `editor` role, the API's client and a client for the tests. The deployment leaves
+Keycloak out; the API takes the authority from `Keycloak:Url`, and any OpenID Connect provider with
+the same client, audience and role claims works.
 
 ## Alternatives
 

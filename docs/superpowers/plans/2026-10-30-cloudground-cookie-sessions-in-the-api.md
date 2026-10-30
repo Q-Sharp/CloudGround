@@ -4,7 +4,7 @@
 
 **Goal:** Remove the BFF. The API signs browsers in itself with a cookie session and still accepts bearer tokens, and it forwards every request it does not handle to the Angular SSR server, so the browser keeps seeing one origin.
 
-**Architecture:** The API gets a policy scheme that picks JWT bearer when the request has an `Authorization: Bearer` header and the session cookie otherwise. The cookie scheme keeps its ticket in Garnet (`sessions/{guid}`), Data Protection keys live in Garnet (`data-protection-keys`), OpenID Connect against Keycloak (authorization code with PKCE) signs in through the client `cloudground-app-api`. The session lasts 8 hours without sliding expiration; there is no token refresh and no token forwarding. XSRF is checked for unsafe methods on cookie-authenticated requests only. `/account/login`, `/account/logout` and `/account/user` replace `/bff/*`. A YARP route with the lowest order forwards every path outside `/api` and `/account` to the web app, without `Cookie` and `Authorization`.
+**Architecture:** The API gets a policy scheme that picks JWT bearer when the request has an `Authorization: Bearer` header and the session cookie otherwise. The cookie scheme keeps its ticket in Garnet (`sessions/{guid}`), Data Protection keys live in Garnet (`data-protection-keys`), OpenID Connect against Keycloak (authorization code with PKCE) signs in through the client `cloudground-app-api`. The session keeps the tokens and slides; when the cookie is validated and the access token is due, the API refreshes it at Keycloak, and a failed refresh rejects the cookie and signs the user out (the BFF's `AccessTokenRefresher` and `RefreshingCookieEvents` move into the API). Tokens are never forwarded. XSRF is checked for unsafe methods on cookie-authenticated requests only. `/account/login`, `/account/logout` and `/account/user` replace `/bff/*`. A YARP route with the lowest order forwards every path outside `/api` and `/account` to the web app, without `Cookie` and `Authorization`.
 
 **Tech Stack:** unchanged; the API takes over the BFF's packages (`Microsoft.AspNetCore.DataProtection.StackExchangeRedis`, `Yarp.ReverseProxy`, `Microsoft.Extensions.ServiceDiscovery.Yarp`).
 
@@ -15,6 +15,7 @@
 - Everything in the Global Constraints of the phase 1 to 7 plans still holds.
 - Realm client `cloudground-app-api` (confidential, standard flow, PKCE `S256`, roles in the ID token), secret `${API_CLIENT_SECRET}` from the AppHost parameter `api-client-secret`, passed to the API as `Keycloak:ClientSecret`. The test client `cloudground-app-tests` and the demo users stay.
 - In the Compose file only the API and the dashboard publish ports, both on the loopback interface.
+- **Author**, 2026-10-30, during Task 2: keep the token refresh instead of a fixed 8-hour session without refresh, so that Keycloak can still end a session early.
 
 ## Review Focus
 
@@ -29,9 +30,9 @@
 
 **Files:**
 - Modify: Api `Authentication.cs`, `Program.cs`, csproj; AppHost `AppHost.cs`; `Realms/realm.json`; `.slnx`
-- Create: Api `DistributedTicketStore.cs`, `XsrfProtection.cs`, `AccountEndpoints.cs`; `tests/CloudGround.App.Api.Tests/` (`AuthenticationTests`, `DistributedTicketStoreTests`, `HealthEndpointTests`); Integration `BrowserLogin.cs`, `ApiInstances.cs`, `AccountTests.cs`, `SessionTests.cs`, `ProjectsInTheBrowserTests.cs`
+- Create: Api `DistributedTicketStore.cs`, `XsrfProtection.cs`, `AccountEndpoints.cs`, `AccessTokenRefresher.cs`, `RefreshingCookieEvents.cs`, `TokenRefresh.cs`; `tests/CloudGround.App.Api.Tests/` (`AuthenticationTests`, `DistributedTicketStoreTests`, `HealthEndpointTests`, `AccessTokenRefresherTests`, `RefreshingCookieEventsTests`); Integration `BrowserLogin.cs`, `ApiInstances.cs`, `AccountTests.cs`, `SessionTests.cs`, `ProjectsInTheBrowserTests.cs`
 
-- [ ] **Step 1:** Failing unit tests: bearer header selects the bearer scheme, anything else the cookie; the session lasts 8 hours without sliding; both schemes take the authority from `Keycloak:Url`; ticket round trip under `sessions/`.
+- [ ] **Step 1:** Failing unit tests: bearer header selects the bearer scheme, anything else the cookie; the session slides and refreshes its access token, and a failed refresh signs the user out; both schemes take the authority from `Keycloak:Url`; ticket round trip under `sessions/`.
 - [ ] **Step 2:** Failing integration tests against `api`: anonymous `/account/user` → 401; `/account/login` redirects to Keycloak with `code_challenge_method=S256`; a real sign-in returns name and roles only; foreign return URLs land on `/`; logout ends the session and needs the XSRF token; sessions and keys live in Garnet; ten requests on new connections succeed on two API instances; signed-in writes need the XSRF header, bearer writes do not.
 - [ ] **Step 3:** Implement; run both; expect PASS. Commit `feat: sign browsers in at the api`.
 

@@ -15,7 +15,7 @@ updates its record.
 | 0006 | [Migrations through Aspire and migration bundles](0006-migrations-through-aspire.md) | Accepted |
 | 0007 | [HybridCache on Garnet](0007-hybridcache-on-garnet.md) | Accepted |
 | 0008 | [Integration events through RabbitMQ and Wolverine's outbox](0008-rabbitmq-and-wolverine.md) | Accepted |
-| 0009 | [Backend for frontend with cookie sessions and YARP](0009-backend-for-frontend.md) | Accepted |
+| 0009 | [Backend for frontend with cookie sessions and YARP](0009-backend-for-frontend.md) | Superseded by 0022 |
 | 0010 | [Keycloak locally, any OpenID Connect provider in operation](0010-keycloak-and-openid-connect.md) | Accepted |
 | 0011 | [Angular with server-side rendering per route](0011-angular-with-server-side-rendering.md) | Accepted |
 | 0012 | [Mapperly for object mapping](0012-mapperly.md) | Accepted |
@@ -28,3 +28,4 @@ updates its record.
 | 0019 | [Newest LTS versions and Dependabot](0019-version-policy.md) | Accepted |
 | 0020 | [Devcontainer with its own Docker daemon](0020-devcontainer.md) | Accepted |
 | 0021 | [Rules, skills and tools for AI agents in the repository](0021-ai-collaboration-kit.md) | Accepted |
+| 0022 | [Cookie sessions in the API](0022-cookie-sessions-in-the-api.md) | Accepted |

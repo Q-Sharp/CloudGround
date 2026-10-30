@@ -4,14 +4,14 @@ Status: Accepted
 
 ## Context
 
-Read paths should be cached, and the cache must stay correct with several API instances. The BFF
-needs a shared store for sessions and Data Protection keys.
+Read paths should be cached, and the cache must stay correct with several API instances. The API
+also needs a shared store for sessions and Data Protection keys.
 
 ## Decision
 
 `HybridCache` uses Garnet as its distributed cache, reached through the Redis client and Aspire's
 integration. Cached reads skip the in-process level, so an entry that one instance removes is gone
-for all of them. The BFF keeps session tickets and Data Protection keys in Garnet.
+for all of them. The API keeps session tickets and Data Protection keys in Garnet.
 
 ## Alternatives
 
