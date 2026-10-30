@@ -21,7 +21,7 @@ public sealed class WebProxyTests
         var context = new DefaultHttpContext { RequestServices = provider };
         context.Request.Method = HttpMethods.Get;
         context.Request.Path = "/explore";
-        context.Request.Headers.Cookie = "session=key; XSRF-TOKEN=token";
+        context.Request.Headers.Cookie = "cloudground-app-session=key; cloudground-app-xsrf=token";
         context.Request.Headers.Authorization = "Bearer token";
 
         var transformer = provider.GetRequiredService<ITransformBuilder>().Build(WebProxy.WebRoute, WebProxy.WebCluster);
@@ -33,9 +33,10 @@ public sealed class WebProxyTests
     }
 
     [Fact]
-    public async Task Web_route_maps_without_a_cache_connection_as_during_code_generation()
+    public async Task Web_route_maps_with_the_unresolved_configuration_of_code_generation()
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = Environments.Production });
+        builder.Configuration["services:web:http:0"] = "{web.bindings.http.url}";
         builder.AddServiceDefaults();
         builder.AddRedisDistributedCache("cache");
         builder.AddApiAuthentication();

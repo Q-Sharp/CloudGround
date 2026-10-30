@@ -25,8 +25,8 @@ internal static class WebProxy
     {
         builder.Services.AddReverseProxy()
             .LoadFromMemory([WebRoute], [WebCluster])
-            .AddWebProxyTransforms()
-            .AddServiceDiscoveryDestinationResolver();
+            .AddWebProxyTransforms();
+        builder.Services.AddServiceDiscoveryForwarderFactory();
 
         return builder;
     }
