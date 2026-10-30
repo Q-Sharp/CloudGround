@@ -355,8 +355,9 @@ The deployment contains:
   interface, and nothing else is reachable from outside the Compose network except the dashboard
 - health checks for PostgreSQL and RabbitMQ, which the services that need them wait for, and a
   restart policy for every service that keeps running
-- Aspire's dashboard on `http://127.0.0.1:18888`, which receives the logs, traces and metrics of
-  every service; it asks for the login token that `docker compose logs compose-dashboard` prints.
+- Aspire's dashboard on `http://127.0.0.1:18888`, from the released dashboard image of the
+  AppHost's Aspire version, which receives the logs, traces and metrics of every service; it asks
+  for the login token that `docker compose logs compose-dashboard` prints.
   Point `OTEL_EXPORTER_OTLP_ENDPOINT` of the services elsewhere to use another OTLP backend
 
 Keycloak is not part of it: the realm in `Realms/realm.json` with its demo users and test client is

@@ -3,6 +3,7 @@ using CloudGround.App.AppHost;
 var builder = DistributedApplication.CreateBuilder(args);
 
 builder.AddDockerComposeEnvironment("compose")
+    .WithDashboard(ComposeDeployment.UseReleasedDashboard)
     .ConfigureComposeFile(ComposeDeployment.Configure);
 
 var database = builder.AddPostgres("postgres")

@@ -51,6 +51,20 @@ public sealed class ContainerImageTests(TemplatePackage package)
     }
 
     [Fact]
+    public async Task Publishing_the_api_without_a_build_fails_with_the_reason()
+    {
+        var solution = await package.GenerateAsync("NoBuild.App");
+        var api = Path.Combine("src", "NoBuild.App.Api");
+        var build = await DotnetCli.RunAsync(solution.Root, "build", api, "-c", "Release");
+        Assert.True(build.ExitCode == 0, build.Output);
+
+        var publish = await DotnetCli.RunAsync(solution.Root, "publish", api, "-c", "Release", "--no-build", "-o", Path.Combine(solution.Root, "artifacts", "api"));
+
+        Assert.NotEqual(0, publish.ExitCode);
+        Assert.Contains("NoBuild.App.Api cannot be published with --no-build", publish.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Stale_generated_handlers_do_not_break_the_build()
     {
         var solution = await package.GenerateAsync("Stale.App");

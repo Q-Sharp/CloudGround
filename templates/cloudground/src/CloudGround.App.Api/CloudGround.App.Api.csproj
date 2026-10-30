@@ -31,4 +31,8 @@
     <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Build" Properties="WolverineCodeGenerated=true" />
   </Target>
 
+  <Target Name="RequireBuildForWolverineCode" BeforeTargets="PrepareForPublish" Condition="'$(NoBuild)' == 'true'">
+    <Error Text="$(MSBuildProjectName) cannot be published with --no-build, because Wolverine generates its handler code from the built API during publish." />
+  </Target>
+
 </Project>
