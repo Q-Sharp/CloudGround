@@ -6,7 +6,11 @@ public sealed class TemplatePackage : IAsyncLifetime
 
     private readonly string workspace = Directory.CreateTempSubdirectory("cloudground-tests-").FullName;
 
+    private string? solutionsOwner;
+
     private string Hive => Path.Combine(workspace, "hive");
+
+    private string Solutions => Path.Combine(workspace, "solutions");
 
     public string PackagePath { get; private set; } = string.Empty;
 
@@ -21,9 +25,24 @@ public sealed class TemplatePackage : IAsyncLifetime
         Assert.True(install.ExitCode == 0, install.Output);
     }
 
+    public void RemoveSolutionsExceptOf(string? test)
+    {
+        if (test == solutionsOwner)
+        {
+            return;
+        }
+
+        solutionsOwner = test;
+        if (Directory.Exists(Solutions))
+        {
+            Directory.Delete(Solutions, recursive: true);
+        }
+    }
+
     public async ValueTask<GeneratedSolution> GenerateAsync(string name, params string[] options)
     {
-        var root = Path.Combine(workspace, "solutions", Guid.NewGuid().ToString("N"), name);
+        RemoveSolutionsExceptOf(TestContext.Current.Test?.UniqueID);
+        var root = Path.Combine(Solutions, Guid.NewGuid().ToString("N"), name);
         var generate = await DotnetCli.RunAsync(workspace, ["new", "cloudground", "-n", name, "-o", root, "--debug:custom-hive", Hive, .. options]);
         Assert.True(generate.ExitCode == 0, generate.Output);
         return new GeneratedSolution(root, name);
