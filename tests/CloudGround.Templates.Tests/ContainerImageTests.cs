@@ -16,13 +16,11 @@ public sealed class ContainerImageTests(TemplatePackage package)
         ["ConnectionStrings__cache"] = "127.0.0.1:1",
     };
 
-    [Theory]
-    [InlineData("Api")]
-    [InlineData("Bff")]
-    public async Task Services_build_on_ubuntu_lts_chiseled_images(string service)
+    [Fact]
+    public async Task Api_builds_on_an_ubuntu_lts_chiseled_image()
     {
         var solution = await package.GenerateAsync("Images.App");
-        var project = Path.Combine("src", $"Images.App.{service}", $"Images.App.{service}.csproj");
+        var project = Path.Combine("src", "Images.App.Api", "Images.App.Api.csproj");
 
         var result = await DotnetCli.RunAsync(solution.Root, "msbuild", project, "-restore", "-target:ComputeContainerBaseImage", "-getProperty:ContainerBaseImage");
 

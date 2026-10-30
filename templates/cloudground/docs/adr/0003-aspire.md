@@ -4,9 +4,9 @@ Status: Accepted
 
 ## Context
 
-Running the API, the BFF, the web app, PostgreSQL, Garnet, RabbitMQ and Keycloak together needs
-wiring: connection strings, ports, start order, health checks and telemetry, locally, in tests and
-in a deployment.
+Running the API, the web app, PostgreSQL, Garnet, RabbitMQ and Keycloak together needs wiring:
+connection strings, ports, start order, health checks and telemetry, locally, in tests and in a
+deployment.
 
 ## Decision
 

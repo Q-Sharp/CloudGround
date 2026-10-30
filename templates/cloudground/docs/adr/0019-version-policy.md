@@ -14,7 +14,7 @@ devcontainer features and GitHub Actions in grouped weekly pull requests and pro
 updates for components that follow an LTS line. Angular, majors included, updates in a group with
 TypeScript apart from the other npm packages; TypeScript stays in the range the current Angular
 release supports, so Dependabot proposes only its patch updates. Dependabot's pull requests are
-`fix(deps)` or `fix(deps-dev)` commits.
+`fix` commits.
 
 ## Alternatives
 

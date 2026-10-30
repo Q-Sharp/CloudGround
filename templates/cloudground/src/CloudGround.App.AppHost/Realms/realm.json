@@ -1,6 +1,9 @@
 {
   "realm": "cloudground-app",
   "enabled": true,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "accessTokenLifespan": 300,
   "revokeRefreshToken": false,
   "roles": {
     "realm": [
@@ -51,13 +54,13 @@
   ],
   "clients": [
     {
-      "clientId": "cloudground-app-bff",
-      "name": "BFF",
+      "clientId": "cloudground-app-api",
+      "name": "API",
       "enabled": true,
       "protocol": "openid-connect",
       "publicClient": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "${BFF_CLIENT_SECRET}",
+      "secret": "${API_CLIENT_SECRET}",
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": false,
       "redirectUris": [
@@ -71,18 +74,6 @@
         "pkce.code.challenge.method": "S256"
       },
       "protocolMappers": [
-        {
-          "name": "api audience",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-audience-mapper",
-          "consentRequired": false,
-          "config": {
-            "included.custom.audience": "cloudground-app-api",
-            "access.token.claim": "true",
-            "id.token.claim": "false",
-            "introspection.token.claim": "true"
-          }
-        },
         {
           "name": "realm roles",
           "protocol": "openid-connect",

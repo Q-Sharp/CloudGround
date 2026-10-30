@@ -13,7 +13,7 @@ public sealed class ProjectsWebTests(AppHostFixture fixture)
         using var api = await fixture.CreateApiClientAsync("alice");
         using var created = await api.PostAsJsonAsync(new Uri("/api/projects", UriKind.Relative), new { Name = "Rendered on the server" }, Cancellation);
         Assert.Equal(HttpStatusCode.Created, created.StatusCode);
-        using var browser = fixture.App.CreateHttpClient("bff", "http");
+        using var browser = fixture.CreateApiClient();
 
         var page = await browser.GetStringAsync(new Uri("/explore", UriKind.Relative), Cancellation);
 

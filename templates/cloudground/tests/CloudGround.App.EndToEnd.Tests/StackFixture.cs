@@ -12,11 +12,11 @@ public sealed class RunningApp : ICollectionFixture<StackFixture>
 
 public sealed class StackFixture : IAsyncLifetime
 {
-    private static readonly string[] Resources = ["api", "keycloak", "bff", "web"];
+    private static readonly string[] Resources = ["api", "keycloak", "web"];
 
     private DistributedApplication? app;
 
-    public Uri BffAddress => (app ?? throw new InvalidOperationException("The AppHost has not been started.")).GetEndpoint("bff", "http");
+    public Uri AppAddress => (app ?? throw new InvalidOperationException("The AppHost has not been started.")).GetEndpoint("api", "http");
 
     public async ValueTask InitializeAsync()
     {

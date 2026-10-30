@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using System.Web;
 
 namespace CloudGround.App.Integration.Tests;
 
@@ -36,6 +37,26 @@ public sealed class KeycloakTests(AppHostFixture fixture)
     }
 
     [Fact]
+    public async Task Realm_states_its_session_lifetimes()
+    {
+        await using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.CloudGround_App_AppHost>(Cancellation);
+        using var realm = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(appHost.AppHostDirectory, "Realms", "realm.json"), Cancellation));
+
+        Assert.Equal(1800, realm.RootElement.GetProperty("ssoSessionIdleTimeout").GetInt32());
+        Assert.Equal(36000, realm.RootElement.GetProperty("ssoSessionMaxLifespan").GetInt32());
+        Assert.Equal(300, realm.RootElement.GetProperty("accessTokenLifespan").GetInt32());
+    }
+
+    [Fact]
+    public async Task Tokens_follow_the_session_lifetimes_of_the_realm()
+    {
+        var tokens = await Tokens.GrantAsync(fixture.App, "alice", Cancellation);
+
+        Assert.Equal(300, tokens.GetProperty("expires_in").GetInt32());
+        Assert.Equal(1800, tokens.GetProperty("refresh_expires_in").GetInt32());
+    }
+
+    [Fact]
     public async Task Used_refresh_tokens_stay_valid()
     {
         var refreshToken = (await Tokens.GrantAsync(fixture.App, "alice", Cancellation)).GetProperty("refresh_token").GetString()!;
@@ -45,6 +66,21 @@ public sealed class KeycloakTests(AppHostFixture fixture)
 
         Assert.True(first.TryGetProperty("access_token", out _));
         Assert.True(second.TryGetProperty("access_token", out _));
+    }
+
+    [Fact]
+    public async Task Api_client_cannot_sign_in_without_pkce()
+    {
+        using var keycloak = new HttpClient(new SocketsHttpHandler { AllowAutoRedirect = false }) { BaseAddress = fixture.App.GetEndpoint("keycloak", "http") };
+        var redirectUri = Uri.EscapeDataString("http://localhost/signin-oidc");
+
+        using var response = await keycloak.GetAsync(
+            new Uri($"/realms/{Tokens.Realm}/protocol/openid-connect/auth?client_id=cloudground-app-api&response_type=code&scope=openid&redirect_uri={redirectUri}", UriKind.Relative),
+            Cancellation);
+
+        var error = HttpUtility.ParseQueryString(response.Headers.Location?.Query ?? string.Empty);
+        Assert.Equal("invalid_request", error["error"]);
+        Assert.Contains("code_challenge_method", error["error_description"], StringComparison.Ordinal);
     }
 
     private static List<string> Audiences(JsonElement payload) =>

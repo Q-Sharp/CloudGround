@@ -4,6 +4,8 @@ namespace CloudGround.Templates.Tests;
 
 public static partial class MarkdownDocuments
 {
+    private const string SupersededStatus = "Status: Superseded by ";
+
     private static readonly string[] CheckedRoots = ["src/", "tests/", "docs/", "templates/", ".github/", ".claude/", ".devcontainer/", ".config/"];
 
     private static readonly string[] UncheckedFragments = ["<", "*", "/bin/", "/obj/"];
@@ -36,6 +38,11 @@ public static partial class MarkdownDocuments
                 .Where(target => !ExternalSchemes.Any(scheme => target.StartsWith(scheme, StringComparison.Ordinal)))
                 .Where(target => !Exists(Path.Combine(Path.GetDirectoryName(file)!, Uri.UnescapeDataString(target))))
                 .Select(target => $"{name}: {target}"));
+
+            if (IsSupersededDecisionRecord(text))
+            {
+                continue;
+            }
 
             broken.AddRange(CodeSpan().Matches(text)
                 .Select(match => match.Groups["path"].Value)
@@ -108,6 +115,9 @@ public static partial class MarkdownDocuments
         line.StartsWith('#') && line.IndexOf(' ', StringComparison.Ordinal) is var end && end > 0 && end + 1 <= level.Length && line[..end].All(character => character == '#');
 
     private static bool Exists(string path) => File.Exists(path) || Directory.Exists(path);
+
+    private static bool IsSupersededDecisionRecord(string markdown) =>
+        markdown.Split('\n').Any(line => line.StartsWith(SupersededStatus, StringComparison.Ordinal));
 
     [GeneratedRegex(@"^[ \t]*```.*?^[ \t]*```[^\n]*$", RegexOptions.Multiline | RegexOptions.Singleline)]
     private static partial Regex FencedBlock();

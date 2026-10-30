@@ -15,6 +15,8 @@ builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 builder.AddMessaging();
 builder.AddApiAuthentication();
+builder.AddXsrfProtection();
+builder.AddWebProxy();
 #if (sample)
 builder.AddProjectsModule();
 builder.AddTasksModule();
@@ -31,6 +33,7 @@ app.UseExceptionHandler(new ExceptionHandlerOptions
 app.UseStatusCodePages();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseXsrfProtection();
 
 if (app.Environment.IsDevelopment())
 {
@@ -39,9 +42,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapDefaultEndpoints();
+app.MapAccountEndpoints();
 #if (sample)
 app.MapProjectsModule();
 app.MapTasksModule();
 #endif
+app.MapWebProxy();
 
 return await app.RunJasperFxCommands(args);

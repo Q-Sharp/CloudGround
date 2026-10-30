@@ -35,6 +35,16 @@ public sealed class ProjectsApiTests(AppHostFixture fixture)
     }
 
     [Fact]
+    public async Task Wrong_method_on_the_projects_route_returns_404_problem_details()
+    {
+        using var client = await fixture.CreateApiClientAsync("alice");
+
+        using var response = await client.PutAsJsonAsync(ProjectsUri, new { Name = "Put instead of posted" }, Cancellation);
+
+        AssertProblem(response, HttpStatusCode.NotFound);
+    }
+
+    [Fact]
     public async Task Reads_stay_anonymous()
     {
         using var client = fixture.CreateApiClient();

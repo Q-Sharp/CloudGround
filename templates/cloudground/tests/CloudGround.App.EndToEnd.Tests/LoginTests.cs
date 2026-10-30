@@ -11,7 +11,7 @@ public sealed class LoginTests(StackFixture stack) : StackTest(stack)
 
         await page.GetByRole(AriaRole.Button, new() { Name = "Log out" }).ClickAsync();
 
-        await Expect(page).ToHaveURLAsync(Stack.BffAddress.ToString());
+        await Expect(page).ToHaveURLAsync(Stack.AppAddress.ToString());
         await page.GetByRole(AriaRole.Link, new() { Name = "Log in" }).ClickAsync();
         await Expect(page.Locator("#kc-login")).ToBeVisibleAsync();
     }

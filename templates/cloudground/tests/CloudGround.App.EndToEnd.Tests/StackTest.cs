@@ -6,7 +6,7 @@ public abstract class StackTest(StackFixture stack) : BrowserTest
 
     protected async Task<IPage> NewPageAsync(bool javaScriptEnabled = true)
     {
-        var context = await NewContext(new() { BaseURL = Stack.BffAddress.ToString(), JavaScriptEnabled = javaScriptEnabled });
+        var context = await NewContext(new() { BaseURL = Stack.AppAddress.ToString(), JavaScriptEnabled = javaScriptEnabled });
         return await context.NewPageAsync();
     }
 

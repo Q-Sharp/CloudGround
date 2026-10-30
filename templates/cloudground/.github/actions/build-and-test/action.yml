@@ -76,3 +76,4 @@ runs:
       run: |
         dotnet aspire do prepare-compose --non-interactive --nologo --apphost src/CloudGround.App.AppHost/CloudGround.App.AppHost.csproj --output-path artifacts/compose -- --Parameters:keycloak-url=https://keycloak.example
         docker compose --env-file artifacts/compose/.env.Production --file artifacts/compose/docker-compose.yaml config --quiet
+        grep --line-regexp 'API_PORT=8080' artifacts/compose/.env.Production

@@ -13,7 +13,8 @@ patterns.
 Angular, always on its newest stable major, with standalone components, signals, zoneless change
 detection and built-in control flow. Each route has a render mode: public pages are rendered on the
 server for each request, the signed-in area in the browser. Server rendering reads the API's
-anonymous endpoints directly; the browser calls the API through the BFF.
+anonymous endpoints directly; the browser calls the API on the origin that serves its pages, because
+the API forwards page requests to the Node server.
 
 ## Alternatives
 

@@ -15,7 +15,7 @@ export class SessionService {
 
   constructor() {
     if (isPlatformBrowser(inject(PLATFORM_ID))) {
-      this.http.get<User>('/bff/user').subscribe({
+      this.http.get<User>('/account/user').subscribe({
         next: (user) => this.user.set(user),
         error: () => this.user.set(null),
       });

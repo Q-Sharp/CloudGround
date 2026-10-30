@@ -1,6 +1,6 @@
 # 0009. Backend for frontend with cookie sessions and YARP
 
-Status: Accepted
+Status: Superseded by [0022](0022-cookie-sessions-in-the-api.md)
 
 ## Context
 

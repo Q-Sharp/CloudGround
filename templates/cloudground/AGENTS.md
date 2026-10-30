@@ -12,9 +12,8 @@ locally and publishes it as a Docker Compose deployment.
 |---|---|
 | `src/CloudGround.App.AppHost` | the Aspire AppHost: wires every service and container and publishes the deployment |
 | `src/CloudGround.App.ServiceDefaults` | OpenTelemetry, health checks, resilience and service discovery for every .NET service |
-| `src/CloudGround.App.Api` | the API host: composes the modules and owns errors, OpenAPI, caching, messaging and token validation |
+| `src/CloudGround.App.Api` | the API host: composes the modules and owns errors, OpenAPI, caching, messaging, sign-in, the session cookie, XSRF protection, token validation and forwarding pages to the web app |
 | `src/Modules` | one class library per module, and a contracts project for each module that others use |
-| `src/CloudGround.App.Bff` | the backend for frontend: login, session cookie, XSRF protection and the `/api` proxy |
 | `src/CloudGround.App.Web` | the Angular app with server-side rendering |
 | `tests` | architecture, unit, integration and end-to-end tests |
 | `docs/adr` | architecture decision records |
@@ -50,7 +49,8 @@ end-to-end tests start the whole application and need Docker or Podman.
 - HTTP endpoints are Minimal APIs, grouped per module and feature; there are no MVC controllers.
   An endpoint calls its handler directly; there is no mediator.
 - Requests are validated by .NET's built-in Minimal API validation; errors are `ProblemDetails`.
-- The browser talks only to the BFF, and tokens never reach it.
+- The browser talks only to the API, which keeps the session behind an HttpOnly cookie and forwards
+  every request that none of its endpoints handles to the web app; tokens never reach the browser.
 
 The architecture tests in `tests/CloudGround.App.Architecture.Tests` and the AppHost model tests in
 `tests/CloudGround.App.Integration.Tests` check these rules for every module they find.
@@ -106,7 +106,7 @@ directly. Any other third-party library needs an ADR first.
 - `@angular/ssr`, `@angular/platform-server` and `express` are imported only in
   `src/CloudGround.App.Web/src/server.ts` and `*.server.ts` files, so they stay out of the browser
   bundle; ESLint rejects them elsewhere.
-- Requests go to relative `/api/...` and `/bff/...` URLs through `HttpClient`; the browser never
+- Requests go to relative `/api/...` and `/account/...` URLs through `HttpClient`; the browser never
   holds a token.
 - Angular Material for UI components; `npm run build` fails on ESLint errors.
 
