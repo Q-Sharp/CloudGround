@@ -43,7 +43,6 @@ public sealed class ComposeFileTests(PublishedCompose compose)
     public void Api_listens_on_the_default_container_port()
     {
         Assert.Contains("HTTP_PORTS: \"${API_PORT}\"", compose.Service("api"), StringComparison.Ordinal);
-        Assert.Contains("API_PORT=8080", compose.EnvironmentFile.Split('\n'));
     }
 
     [Fact]

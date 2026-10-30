@@ -316,10 +316,6 @@ Chromium's system libraries, install them once after a build:
 pwsh tests/CloudGround.App.EndToEnd.Tests/bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
 ```
 
-The Compose tests in `tests/CloudGround.App.Integration.Tests` run the publish pipeline up to
-`prepare-compose`, so they build every container image, and each run adds tagged images to the local
-image store.
-
 `--filter-not-trait Category=EndToEnd` leaves the end-to-end tests out. CI builds, lints and tests
 the web app, runs every test level, end-to-end included, builds the container images and checks the
 Compose file on every push.
