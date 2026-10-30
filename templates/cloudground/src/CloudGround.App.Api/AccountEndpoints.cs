@@ -37,5 +37,5 @@ internal static class AccountEndpoints
             : TypedResults.Unauthorized();
 
     private static bool IsLocal(string? url) =>
-        url is ['/', not '/' and not '\\', ..] or "/";
+        url is ['/', not '/' and not '\\', ..] or "/" && !url.Any(char.IsControl);
 }

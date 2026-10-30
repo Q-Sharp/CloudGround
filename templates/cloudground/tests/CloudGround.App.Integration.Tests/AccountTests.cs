@@ -51,10 +51,15 @@ public sealed class AccountTests(AppHostFixture fixture)
         Assert.Contains("editor", user.GetProperty("roles").EnumerateArray().Select(role => role.GetString()));
     }
 
-    [Fact]
-    public async Task Login_ignores_foreign_return_urls()
+    [Theory]
+    [InlineData("https://evil.example/")]
+    [InlineData("//evil.example")]
+    [InlineData("/\\evil.example")]
+    [InlineData("/\t/evil.example")]
+    [InlineData("/\n/evil.example")]
+    public async Task Login_ignores_foreign_return_urls(string returnUrl)
     {
-        using var session = await BrowserLogin.LogInAsync(fixture, "alice", returnUrl: "https://evil.example/");
+        using var session = await BrowserLogin.LogInAsync(fixture, "alice", returnUrl);
 
         Assert.Equal(session.Client.BaseAddress!.Authority, session.LandingPage.Authority);
         Assert.Equal("/", session.LandingPage.AbsolutePath);
