@@ -4,6 +4,7 @@ public static class SkillScaffold
 {
     private const string ModuleToken = "ModuleName";
     private const string LowercaseModuleToken = "modulename";
+    private const string ModulePlaceholder = "<Module>";
     private const string GlobalUsingsFile = "GlobalUsings.cs";
 
     public static async Task ApplyModuleAsync(GeneratedSolution solution, string module)
@@ -37,13 +38,10 @@ public static class SkillScaffold
 
         AddGlobalUsings(
             Path.Combine(moduleDirectory, GlobalUsingsFile),
-            "System.ComponentModel.DataAnnotations",
-            $"{modulePrefix}.Domain",
-            $"{modulePrefix}.Features",
-            "Microsoft.AspNetCore.Http.HttpResults",
-            "Microsoft.EntityFrameworkCore.Metadata.Builders",
-            "Riok.Mapperly.Abstractions");
-        AddGlobalUsings(Path.Combine(solution.Root, "tests", $"{modulePrefix}.Tests", GlobalUsingsFile), $"{modulePrefix}.Domain");
+            ImportsInFeatureSkill(solution, $"src/Modules/{solution.Name}.Modules.{ModulePlaceholder}/{GlobalUsingsFile}", module));
+        AddGlobalUsings(
+            Path.Combine(solution.Root, "tests", $"{modulePrefix}.Tests", GlobalUsingsFile),
+            ImportsInFeatureSkill(solution, $"tests/{solution.Name}.Modules.{ModulePlaceholder}.Tests/{GlobalUsingsFile}", module));
 
         var context = Path.Combine(moduleDirectory, "Persistence", $"{module}DbContext.cs");
         InsertAfterLast(context, line => line.Contains("public const string Schema", StringComparison.Ordinal), string.Empty, "    public DbSet<Item> Items => Set<Item>();");
@@ -99,10 +97,26 @@ public static class SkillScaffold
     private static bool IsModuleCall(string line, string start) =>
         line.StartsWith(start, StringComparison.Ordinal) && line.EndsWith("Module();", StringComparison.Ordinal);
 
-    private static void AddGlobalUsings(string file, params string[] namespaces)
+    private static List<string> ImportsInFeatureSkill(GeneratedSolution solution, string file, string module)
+    {
+        var lines = File.ReadAllLines(Path.Combine(solution.Root, ".claude", "skills", "add-feature", "SKILL.md"));
+        var bullet = Array.FindIndex(lines, line => line.Contains($"`{file}`", StringComparison.Ordinal));
+        Assert.True(bullet >= 0, $"The add-feature skill lists no imports for {file}.");
+
+        var imports = string.Concat(lines.Skip(bullet + 1).TakeWhile(line => !line.TrimStart().StartsWith('-')))
+            .Split('`')
+            .Where((_, index) => index % 2 == 1)
+            .Select(name => name.Replace(ModulePlaceholder, module, StringComparison.Ordinal))
+            .ToList();
+        Assert.NotEmpty(imports);
+        return imports;
+    }
+
+    private static void AddGlobalUsings(string file, params IEnumerable<string> namespaces)
     {
         var directives = File.ReadAllLines(file)
             .Concat(namespaces.Select(name => $"global using {name};"))
+            .Distinct()
             .OrderByDescending(directive => directive.StartsWith("global using System", StringComparison.Ordinal))
             .ThenBy(directive => directive.TrimEnd(';'), StringComparer.Ordinal)
             .ToList();
