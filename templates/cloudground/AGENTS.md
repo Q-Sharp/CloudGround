@@ -111,7 +111,8 @@ directly. Any other third-party library needs an ADR first.
 
 Every component is on its newest LTS release, or on its newest stable release where it has no LTS
 line. Dependabot proposes updates. A major update of a component that follows an LTS line is a
-deliberate pull request with an ADR.
+deliberate pull request with an ADR. TypeScript stays in the range the current Angular release
+supports; `ng update` moves both together.
 
 ## Commits and pull requests
 

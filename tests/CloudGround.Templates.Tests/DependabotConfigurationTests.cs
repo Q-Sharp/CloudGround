@@ -4,6 +4,9 @@ namespace CloudGround.Templates.Tests;
 
 public sealed partial class DependabotConfigurationTests
 {
+    private const string MajorUpdates = "version-update:semver-major";
+    private const string MinorUpdates = "version-update:semver-minor";
+
     [Theory]
     [InlineData(".github/dependabot.yml", "")]
     [InlineData("templates/cloudground/.github/dependabot.yml", "templates/cloudground")]
@@ -64,12 +67,50 @@ public sealed partial class DependabotConfigurationTests
     {
         var lines = File.ReadAllLines(Path.Combine(RepositoryRoot.Find(), configuration));
 
-        var ignored = EcosystemSection(lines, ecosystem)
-            .Select(line => IgnoredDependency().Match(line))
-            .Where(match => match.Success)
-            .Select(match => match.Groups["dependency"].Value);
+        var ignored = IgnoredUpdates(lines, ecosystem)
+            .Where(update => update.UpdateTypes == MajorUpdates)
+            .Select(update => update.Dependency);
 
         Assert.Equal(ltsBound.Order(), ignored.Order());
+    }
+
+    [Theory]
+    [InlineData(".github/dependabot.yml")]
+    [InlineData("templates/cloudground/.github/dependabot.yml")]
+    public void Dependabot_leaves_typescript_minor_and_major_updates_to_angular(string configuration)
+    {
+        var lines = File.ReadAllLines(Path.Combine(RepositoryRoot.Find(), configuration));
+
+        Assert.Contains(("typescript", $"{MajorUpdates}, {MinorUpdates}"), IgnoredUpdates(lines, "npm"));
+    }
+
+    [Theory]
+    [InlineData(".github/dependabot.yml")]
+    [InlineData("templates/cloudground/.github/dependabot.yml")]
+    public void Every_update_is_committed_as_a_chore(string configuration)
+    {
+        var lines = File.ReadAllLines(Path.Combine(RepositoryRoot.Find(), configuration));
+
+        var ecosystems = lines
+            .Select(line => EcosystemStart().Match(line))
+            .Where(match => match.Success)
+            .Select(match => match.Groups["ecosystem"].Value)
+            .ToList();
+
+        Assert.NotEmpty(ecosystems);
+        Assert.All(ecosystems, ecosystem =>
+            Assert.Contains(EcosystemSection(lines, ecosystem), line => ChorePrefix().IsMatch(line)));
+    }
+
+    private static List<(string Dependency, string UpdateTypes)> IgnoredUpdates(string[] lines, string ecosystem)
+    {
+        var section = EcosystemSection(lines, ecosystem).ToList();
+
+        return section
+            .Select((line, index) => (Dependency: IgnoredDependency().Match(line), Index: index))
+            .Where(entry => entry.Dependency.Success)
+            .Select(entry => (entry.Dependency.Groups["dependency"].Value, UpdateTypes().Match(section[entry.Index + 1]).Groups["types"].Value))
+            .ToList();
     }
 
     private static List<string> GithubActionsDirectories(string[] lines) => EcosystemDirectories(lines, "github-actions");
@@ -97,8 +138,14 @@ public sealed partial class DependabotConfigurationTests
             && Directory.EnumerateFiles(scanned).Any(file => file.EndsWith(".yml", StringComparison.Ordinal) || file.EndsWith(".yaml", StringComparison.Ordinal));
     }
 
-    [GeneratedRegex(@"^\s*- package-ecosystem:")]
+    [GeneratedRegex(@"^\s*- package-ecosystem: (?<ecosystem>\S+)")]
     private static partial Regex EcosystemStart();
+
+    [GeneratedRegex(@"^\s+update-types: \[(?<types>[^\]]*)\]\s*$")]
+    private static partial Regex UpdateTypes();
+
+    [GeneratedRegex(@"^\s+prefix: chore\s*$")]
+    private static partial Regex ChorePrefix();
 
     [GeneratedRegex(@"^\s+- (?<directory>/\S*)\s*$")]
     private static partial Regex DirectoryEntry();
