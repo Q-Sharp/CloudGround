@@ -16,6 +16,7 @@
 - Realm client `cloudground-app-api` (confidential, standard flow, PKCE `S256`, roles in the ID token), secret `${API_CLIENT_SECRET}` from the AppHost parameter `api-client-secret`, passed to the API as `Keycloak:ClientSecret`. The test client `cloudground-app-tests` and the demo users stay.
 - In the Compose file only the API and the dashboard publish ports, both on the loopback interface.
 - **Author**, 2026-10-30, during Task 2: keep the token refresh instead of a fixed 8-hour session without refresh, so that Keycloak can still end a session early.
+- **Author**, 2026-10-30, during Task 3: the realm states Keycloak's default lifetimes (`ssoSessionIdleTimeout` 1800, `ssoSessionMaxLifespan` 36000, `accessTokenLifespan` 300), pinned by `Realm_states_its_session_lifetimes`; the API stays in front of the web app, so the whole site is down while the API is down.
 
 ## Review Focus
 

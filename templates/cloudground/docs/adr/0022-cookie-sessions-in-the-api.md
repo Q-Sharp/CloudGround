@@ -49,8 +49,13 @@ without the `Cookie` and `Authorization` headers, so the browser still sees one 
 - One service less in the deployment and in every request.
 - The API owns sessions, antiforgery, the token refresh and the forwarding of pages besides its
   endpoints, and it is the service that the deployment publishes.
-- Active users stay signed in as long as their Keycloak session lives; a blocked user loses access
-  within the lifetime of an access token. Logging out of the application ends both sessions.
+- The API stands in front of the web app, so when the API is down, the whole site is down, public
+  pages included.
+- A session lasts as long as the identity provider's session. With the local realm it ends after
+  30 minutes without requests and at the latest 10 hours after sign-in, also while someone is
+  working; a user blocked in Keycloak loses access within the access token's lifetime of 5 minutes.
+  In operation the operator's identity provider sets these times, not the template. Logging out of
+  the application ends both sessions.
 - Parallel requests of one session may refresh with the same refresh token, so the realm keeps used
   refresh tokens valid.
 - Clients without a browser still call the API with bearer tokens and need no XSRF token.

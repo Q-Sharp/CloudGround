@@ -160,15 +160,19 @@ PKCE, and offers:
 - `POST /account/logout` ends the session at the API and at Keycloak
 - `GET /account/user` returns the user's name and roles, or 401
 
-A signed-in browser holds only an HttpOnly session cookie. The session ticket with the user's
-tokens and the Data Protection keys live in Garnet, so several API instances share the same
-sessions; the integration tests run two of them. The API refreshes the access token a minute before
-it expires and signs the user out when Keycloak refuses the refresh, so active users stay signed in
-as long as their Keycloak session lives and a blocked user loses access within the lifetime of an
-access token. Parallel requests of one session may refresh at the same time with the same refresh
-token, so the realm keeps used refresh tokens valid (`revokeRefreshToken: false`); turning rotation
-on needs a lock around the refresh first. While Keycloak is unreachable, a session keeps its access
-token until it expires. The API never forwards the tokens; they only keep the session alive.
+A signed-in browser holds only an HttpOnly session cookie. The session ticket with the user's tokens
+and the Data Protection keys live in Garnet, so several API instances share the same sessions; the
+integration tests run two of them. The API refreshes the access token a minute before it expires and
+signs the user out when Keycloak refuses the refresh, so a session lasts as long as the identity
+provider's session. With the local realm it ends after 30 minutes without requests
+(`ssoSessionIdleTimeout`) and at the latest 10 hours after sign-in (`ssoSessionMaxLifespan`), also
+while someone is working, and a user blocked in Keycloak loses access within the access token's
+lifetime of 5 minutes (`accessTokenLifespan`). In operation the operator's identity provider sets
+these times, not the template. Parallel requests of one session may refresh at the same time with
+the same refresh token, so the realm keeps used refresh tokens valid (`revokeRefreshToken: false`);
+turning rotation on needs a lock around the refresh first. While Keycloak is unreachable, a session
+keeps its access token until it expires. The API never forwards the tokens; they only keep the
+session alive.
 
 For a signed-in user, the API sets an `XSRF-TOKEN` cookie and expects its value in the
 `X-XSRF-TOKEN` header on every state-changing request with the session cookie, which is what
