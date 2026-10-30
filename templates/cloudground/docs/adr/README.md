@@ -1,8 +1,9 @@
 # Architecture decision records
 
 Each record describes one significant decision behind this solution: the situation, what was
-decided, the alternatives and why they lost, and what follows from it. A decision that changes gets
-a new record that supersedes the old one.
+decided, the alternatives and why they lost, and what follows from it. A change that reverses a
+decision gets a new record that supersedes the old one; a change that only refines a decision
+updates its record.
 
 | ADR | Decision | Status |
 |---|---|---|

@@ -123,5 +123,5 @@ squash-merged, so the title becomes the commit message and decides the next vers
 
 ## Decisions
 
-Significant decisions are recorded in `docs/adr/`. A change that reverses or extends a decision
-updates or supersedes its ADR.
+Significant decisions are recorded in `docs/adr/`. A change that reverses a decision gets a new ADR
+that supersedes the old one; a change that only refines a decision updates its ADR.

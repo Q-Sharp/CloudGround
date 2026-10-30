@@ -57,7 +57,8 @@ that are part of it:
 - **Decisions**: [`docs/adr/`](docs/adr/README.md) records the repository's own decisions, with the
   alternatives and why they lost.
 - **Process**: every test is written first and seen to fail; every phase ends with a review of the
-  whole branch by a separate model and lands as a pull request with CI; commits carry the agent's
+  whole branch by a separate model and lands as a pull request with
+  [CI](https://github.com/Q-Sharp/CloudGround/actions/workflows/ci.yml); commits carry the agent's
   co-author trailer in the [history](https://github.com/Q-Sharp/CloudGround/commits/main).
 
 Every generated solution carries the same kind of kit for its own development: rules for agents,
