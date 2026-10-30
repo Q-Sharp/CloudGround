@@ -20,8 +20,7 @@ the parts you need and rename `Item` to your entity:
 | `example/integration-tests/` | `tests/CloudGround.App.Integration.Tests/` |
 
 Replace `ModuleName` with the module name and `modulename` with its lowercase form, as in the
-add-module skill. The example files have no `using` directives; step 5 adds their namespaces to the
-projects' `GlobalUsings.cs`.
+add-module skill.
 
 ## Steps
 
@@ -44,9 +43,9 @@ projects' `GlobalUsings.cs`.
 4. **Mapping.** Map entities to response records with a Mapperly `[Mapper]` class in `Features/`, as
    `ItemMapper` does; a response member without a source fails the build. Map queries with a
    projection (`ProjectToResponse`) so only the needed columns are read.
-5. **Imports.** Every project keeps all its imports in the `GlobalUsings.cs` at its root, and no
-   other C# file has a `using` directive. Add the namespaces your files use as `global using` lines
-   in sorted order. The example needs these:
+5. **Imports.** Follow the `GlobalUsings.cs` rule under "Code" in `AGENTS.md`. Add the namespaces
+   your files use to the `GlobalUsings.cs` of their project, but only those the file does not have
+   yet: a repeated import fails the build. The example needs these:
    - in `src/Modules/CloudGround.App.Modules.<Module>/GlobalUsings.cs`:
      `System.ComponentModel.DataAnnotations`, `CloudGround.App.Modules.<Module>.Domain`,
      `CloudGround.App.Modules.<Module>.Features`, `Microsoft.AspNetCore.Http.HttpResults`,

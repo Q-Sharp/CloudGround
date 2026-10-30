@@ -93,5 +93,4 @@ module first needs it:
   through a contract interface, asynchronously through an integration event (see "Add an
   integration event" in `README.md`).
 - The schema is the lowercase module name; the architecture tests compare them.
-- Every namespace import goes into the `GlobalUsings.cs` at the project's root, in sorted order. No
-  other C# file has a `using` directive; the architecture tests check this.
+- Namespace imports follow the `GlobalUsings.cs` rule under "Code" in `AGENTS.md`.

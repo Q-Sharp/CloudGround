@@ -90,11 +90,11 @@ directly. Any other third-party library needs an ADR first.
   `.gitignore`. Names, small functions and tests carry the meaning. Tool directives without
   explanation, such as `#pragma warning disable` or `// eslint-disable-next-line`, are allowed.
   Generated files such as EF Core migrations stay as the tool writes them.
-- Every project keeps all its namespace imports in one `GlobalUsings.cs` at its root, as sorted
-  `global using` lines that do not repeat the implicit usings. No other C# file has a `using`
-  directive and no project file has a `<Using>` item; the architecture tests check this. `using`
-  statements and declarations are not directives and stay where they are, and EF Core migrations
-  stay as the tool writes them.
+- Every project keeps all its namespace imports in one `GlobalUsings.cs` at its root, `System`
+  first, then alphabetical, without repeating the implicit usings. No other C# file has a `using`
+  directive, apart from the generated files in `Persistence/Migrations` and `Internal/Generated`,
+  and no project file has a `<Using>` item; the architecture tests check this. `using` statements
+  and declarations are not directives and stay where they are.
 - Write the failing test first, watch it fail, then make it pass. .NET tests use xUnit v3 on
   Microsoft.Testing.Platform; filter them with `--filter-class` or `--filter-method`.
 - Everything is in English.
