@@ -6,11 +6,11 @@ public sealed partial class GlobalUsingsTests
 
     private static readonly string[] SourceFolders = ["src", "tests"];
 
-    private static readonly string[] SkippedFolders = ["bin", "obj", "node_modules", "Migrations"];
+    private static readonly string[] SkippedFolders = ["bin", "obj", "node_modules"];
 
     private static readonly string[] MsBuildFilePatterns = ["*.csproj", "*.props", "*.targets"];
 
-    private static readonly string GeneratedFolder = Path.Combine("Internal", "Generated");
+    private static readonly string[] ToolWrittenFolders = [Path.Combine("Internal", "Generated"), Path.Combine("Persistence", "Migrations")];
 
     [Fact]
     public void Every_project_with_source_has_a_global_usings_file() =>
@@ -28,14 +28,18 @@ public sealed partial class GlobalUsingsTests
     public void No_project_file_has_a_using_item() =>
         Assert.All(
             MsBuildFiles(),
-            file => Assert.False(File.ReadAllText(file).Contains("<Using ", StringComparison.Ordinal), $"{file} has a Using item; it belongs in the {GlobalUsingsFile} of its project."));
+            file => Assert.False(UsingItem().IsMatch(File.ReadAllText(file)), $"{file} has a Using item; it belongs in the {GlobalUsingsFile} of its project."));
 
     [Theory]
     [InlineData("using System.Net;")]
     [InlineData("global using System.Net;")]
     [InlineData("using static System.Math;")]
     [InlineData("global using static System.Math;")]
+    [InlineData("using static Foo<Bar>;")]
+    [InlineData("using unsafe P = int*;")]
+    [InlineData("global using unsafe P = int*;")]
     [InlineData("using Json = System.Text.Json.JsonSerializer;")]
+    [InlineData("namespace X; using Y;")]
     [InlineData("    using System.Net;")]
     public void Using_directive_is_recognized(string line) =>
         Assert.Matches(UsingDirective(), line);
@@ -46,8 +50,28 @@ public sealed partial class GlobalUsingsTests
     [InlineData("await using var app = builder.Build();")]
     [InlineData("using (response)")]
     [InlineData("using HttpClient client = new();")]
+    [InlineData("namespace X;")]
     public void Using_statement_is_not_a_directive(string line) =>
         Assert.DoesNotMatch(UsingDirective(), line);
+
+    [Theory]
+    [InlineData("<Using Include=\"Xunit\" />")]
+    [InlineData("<Using\n    Include=\"Xunit\" />")]
+    public void Using_item_is_recognized(string element) =>
+        Assert.Matches(UsingItem(), element);
+
+    [Fact]
+    public void Using_task_is_not_a_using_item() =>
+        Assert.DoesNotMatch(UsingItem(), "<UsingTask TaskName=\"Build\" />");
+
+    [Theory]
+    [InlineData("src/Modules/Shop/Persistence/Migrations", false)]
+    [InlineData("src/CloudGround.App.Api/Internal/Generated", false)]
+    [InlineData("src/Modules/Shop/Migrations", true)]
+    [InlineData("src/Modules/Shop/Seed/Migrations", true)]
+    [InlineData("src/Modules/Shop/OldPersistence/Migrations", true)]
+    public void Only_folders_a_tool_writes_are_skipped(string folder, bool walked) =>
+        Assert.Equal(walked, IsWalked(folder.Replace('/', Path.DirectorySeparatorChar)));
 
     private static bool IsGlobalUsingsFileOfAProject(string file) =>
         Path.GetFileName(file) == GlobalUsingsFile
@@ -66,8 +90,11 @@ public sealed partial class GlobalUsingsTests
 
     private static bool IsWalked(string folder) =>
         !SkippedFolders.Contains(Path.GetFileName(folder))
-        && !folder.EndsWith(GeneratedFolder, StringComparison.Ordinal);
+        && !ToolWrittenFolders.Any(written => folder.EndsWith(Path.DirectorySeparatorChar + written, StringComparison.Ordinal));
 
-    [GeneratedRegex(@"^\s*(global\s+)?using\s+(static\s+)?[\w.:]+\s*(;|=)")]
+    [GeneratedRegex(@"^\s*(namespace\s+[\w.]+\s*[;{]\s*)?(global\s+)?using\s+(static\s|unsafe\s|[\w.:]+\s*[;=])")]
     private static partial Regex UsingDirective();
+
+    [GeneratedRegex(@"<Using\s")]
+    private static partial Regex UsingItem();
 }
