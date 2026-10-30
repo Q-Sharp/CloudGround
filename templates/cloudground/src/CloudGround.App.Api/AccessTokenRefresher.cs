@@ -52,7 +52,7 @@ internal sealed class AccessTokenRefresher(HttpClient tokenClient, TimeProvider 
                 return stillValid;
             }
 
-            if (!IdTokens.CanReadToken(tokens.IdToken))
+            if (!BelongToTheSameUser(tokens.IdToken, properties.GetTokenValue("id_token")))
             {
                 return TokenRefresh.Failed;
             }
@@ -62,6 +62,24 @@ internal sealed class AccessTokenRefresher(HttpClient tokenClient, TimeProvider 
             properties.UpdateTokenValue("refresh_token", tokens.RefreshToken ?? refreshToken);
             properties.UpdateTokenValue("expires_at", now.AddSeconds(tokens.ExpiresIn).ToString("o", CultureInfo.InvariantCulture));
             return TokenRefresh.Refreshed;
+        }
+    }
+
+    private static bool BelongToTheSameUser(string? idToken, string? sessionIdToken) =>
+        Read(idToken) is { IsEncrypted: false } current
+        && Read(sessionIdToken) is { IsEncrypted: false } session
+        && current.Subject == session.Subject
+        && current.Issuer == session.Issuer;
+
+    private static JsonWebToken? Read(string? idToken)
+    {
+        try
+        {
+            return IdTokens.CanReadToken(idToken) ? new JsonWebToken(idToken) : null;
+        }
+        catch (Exception exception) when (exception is ArgumentException or FormatException)
+        {
+            return null;
         }
     }
 

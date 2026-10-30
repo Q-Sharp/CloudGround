@@ -22,6 +22,7 @@ public sealed class RefreshingCookieEventsTests
 
         await EventsFor(new StubTokenEndpoint(HttpStatusCode.OK, TokensWithRoles("reader"))).ValidatePrincipal(context);
 
+        Assert.True(context.ShouldRenew);
         Assert.Equal(["reader"], context.Principal!.FindAll(Authentication.RoleClaim).Select(role => role.Value));
         Assert.Equal("alice", context.Principal.FindFirst("preferred_username")?.Value);
     }
@@ -42,6 +43,33 @@ public sealed class RefreshingCookieEventsTests
         var (context, authentication) = SessionExpiringSoon();
 
         await EventsFor(new StubTokenEndpoint(HttpStatusCode.OK, TokensWithoutIdToken)).ValidatePrincipal(context);
+
+        Assert.Null(context.Principal);
+        Assert.True(authentication.SignedOut);
+    }
+
+    [Theory]
+    [InlineData("mallory", "https://identity.example")]
+    [InlineData("alice", "https://other.example")]
+    public async Task Id_token_of_someone_else_ends_the_session(string subject, string issuer)
+    {
+        var (context, authentication) = SessionExpiringSoon();
+        var tokens = TokensWith(IdToken(subject, ["editor"], issuer));
+
+        await EventsFor(new StubTokenEndpoint(HttpStatusCode.OK, tokens)).ValidatePrincipal(context);
+
+        Assert.Null(context.Principal);
+        Assert.True(authentication.SignedOut);
+    }
+
+    [Theory]
+    [InlineData("eyJhbGciOiJBMjU2S1cifQ.YWFh.YWFh.YWFh.YWFh")]
+    [InlineData("eyJhbGciOiJBMjU2S1cifQ.a.b.c.d")]
+    public async Task Id_token_the_api_cannot_read_ends_the_session(string idToken)
+    {
+        var (context, authentication) = SessionExpiringSoon();
+
+        await EventsFor(new StubTokenEndpoint(HttpStatusCode.OK, TokensWith(idToken))).ValidatePrincipal(context);
 
         Assert.Null(context.Principal);
         Assert.True(authentication.SignedOut);

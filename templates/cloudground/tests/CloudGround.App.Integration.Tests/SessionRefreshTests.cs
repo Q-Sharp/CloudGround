@@ -11,7 +11,7 @@ public sealed class SessionRefreshTests(AppHostFixture fixture)
     [Fact]
     public async Task Role_taken_in_keycloak_ends_at_the_next_refresh()
     {
-        await using var admin = await KeycloakAdmin.ConnectAsync(fixture.App);
+        await using var admin = new KeycloakAdmin(fixture.App);
         await admin.RefreshAccessTokensOnEveryRequestAsync();
         var name = NewUserName();
         var id = await admin.CreateEditorAsync(name);
@@ -26,7 +26,7 @@ public sealed class SessionRefreshTests(AppHostFixture fixture)
     [Fact]
     public async Task User_blocked_in_keycloak_is_signed_out_at_the_next_refresh()
     {
-        await using var admin = await KeycloakAdmin.ConnectAsync(fixture.App);
+        await using var admin = new KeycloakAdmin(fixture.App);
         await admin.RefreshAccessTokensOnEveryRequestAsync();
         var name = NewUserName();
         var id = await admin.CreateEditorAsync(name);
