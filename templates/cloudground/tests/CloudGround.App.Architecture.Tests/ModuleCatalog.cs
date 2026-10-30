@@ -43,7 +43,7 @@ internal static class ModuleCatalog
             : [];
     }
 
-    private static string SolutionRoot()
+    public static string SolutionRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory is not null && !directory.EnumerateFiles("*.slnx").Any())
