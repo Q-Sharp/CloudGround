@@ -11,7 +11,7 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(withHttpTransferCacheOptions({ includePostRequests: false })),
     provideHttpClient(
       withFetch(),
-      withXsrfConfiguration({ cookieName: 'XSRF-TOKEN', headerName: 'X-XSRF-TOKEN' }),
+      withXsrfConfiguration({ cookieName: 'cloudground-app-xsrf', headerName: 'X-XSRF-TOKEN' }),
     ),
   ],
 };

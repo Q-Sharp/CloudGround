@@ -9,7 +9,7 @@ internal sealed class BrowserSession(HttpClient client, LocalhostBrowserHandler 
 
     public Uri LandingPage { get; } = landingPage;
 
-    public string? XsrfToken => browser.Cookie("XSRF-TOKEN");
+    public string? XsrfToken => browser.Cookie("cloudground-app-xsrf");
 
     public void Dispose() => Client.Dispose();
 }

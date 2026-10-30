@@ -5,12 +5,12 @@ namespace CloudGround.App.Api;
 internal static class XsrfProtection
 {
     private const string HeaderName = "X-XSRF-TOKEN";
-    private const string CookieName = "XSRF-TOKEN";
-    private const string AntiforgeryCookieName = "antiforgery";
+    private const string CookieName = "cloudground-app-xsrf";
+    private const string AntiforgeryCookieName = "cloudground-app-antiforgery";
 
     public static WebApplicationBuilder AddXsrfProtection(this WebApplicationBuilder builder)
     {
-        var secure = builder.Environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+        var secure = SecurePolicy(builder.Environment);
         builder.Services.AddAntiforgery(options =>
         {
             options.HeaderName = HeaderName;
@@ -22,8 +22,18 @@ internal static class XsrfProtection
         return builder;
     }
 
-    public static IApplicationBuilder UseXsrfProtection(this IApplicationBuilder app) =>
-        app.Use(async (context, next) =>
+    public static IApplicationBuilder UseXsrfProtection(this IApplicationBuilder app)
+    {
+        var xsrfCookie = new CookieBuilder
+        {
+            Name = CookieName,
+            HttpOnly = false,
+            SameSite = SameSiteMode.Strict,
+            SecurePolicy = SecurePolicy(app.ApplicationServices.GetRequiredService<IHostEnvironment>()),
+            Path = "/",
+        };
+
+        return app.Use(async (context, next) =>
         {
             if (!IsSignedInWithTheSessionCookie(context))
             {
@@ -44,16 +54,14 @@ internal static class XsrfProtection
             }
 
             var tokens = antiforgery.GetAndStoreTokens(context);
-            context.Response.Cookies.Append(CookieName, tokens.RequestToken!, new CookieOptions
-            {
-                HttpOnly = false,
-                SameSite = SameSiteMode.Strict,
-                Secure = context.Request.IsHttps,
-                Path = "/",
-            });
+            context.Response.Cookies.Append(CookieName, tokens.RequestToken!, xsrfCookie.Build(context));
 
             await next(context);
         });
+    }
+
+    private static CookieSecurePolicy SecurePolicy(IHostEnvironment environment) =>
+        environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
 
     private static bool IsSignedInWithTheSessionCookie(HttpContext context) =>
         context.User.Identity?.IsAuthenticated == true && !Authentication.UsesBearerToken(context.Request);

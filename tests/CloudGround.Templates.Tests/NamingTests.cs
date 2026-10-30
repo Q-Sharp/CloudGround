@@ -7,6 +7,8 @@ public sealed class NamingTests(TemplatePackage package)
 {
     private static readonly string[] SourceNameForms = ["cloudground.app", "cloudground_app", "cloudground-app", "cloudgroundapp"];
 
+    private static readonly string[] ApiCookieNames = ["contoso-shop-session", "contoso-shop-antiforgery", "contoso-shop-xsrf", "contoso-shop-correlation.", "contoso-shop-nonce."];
+
     [Fact]
     public async Task Generated_solution_contains_no_source_name_form()
     {
@@ -27,6 +29,18 @@ public sealed class NamingTests(TemplatePackage package)
 
         Assert.Equal("contoso-shop", realm.RootElement.GetProperty("realm").GetString());
         Assert.Equal(["contoso-shop-api", "contoso-shop-tests"], clients.Order());
+    }
+
+    [Fact]
+    public async Task Cookie_names_follow_the_solution_name()
+    {
+        var solution = await package.GenerateAsync("Contoso.Shop");
+        var api = File.ReadAllText(Path.Combine(solution.Root, "src", "Contoso.Shop.Api", "Authentication.cs"))
+            + File.ReadAllText(Path.Combine(solution.Root, "src", "Contoso.Shop.Api", "XsrfProtection.cs"));
+        var web = File.ReadAllText(Path.Combine(solution.Root, "src", "Contoso.Shop.Web", "src", "app", "app.config.ts"));
+
+        Assert.All(ApiCookieNames, name => Assert.Contains($"\"{name}\"", api, StringComparison.Ordinal));
+        Assert.Contains("cookieName: 'contoso-shop-xsrf'", web, StringComparison.Ordinal);
     }
 
     [Fact]

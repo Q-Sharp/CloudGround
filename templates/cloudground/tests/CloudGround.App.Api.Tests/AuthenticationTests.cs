@@ -66,6 +66,19 @@ public sealed class AuthenticationTests
         Assert.IsType<DistributedTicketStore>(cookie.SessionStore);
     }
 
+    [Fact]
+    public void Session_and_sign_in_cookies_are_named_after_the_solution()
+    {
+        using var services = Services();
+
+        var cookie = services.GetRequiredService<IOptionsMonitor<CookieAuthenticationOptions>>().Get(CookieAuthenticationDefaults.AuthenticationScheme);
+        var openIdConnect = services.GetRequiredService<IOptionsMonitor<OpenIdConnectOptions>>().Get(OpenIdConnectDefaults.AuthenticationScheme);
+
+        Assert.Equal("cloudground-app-session", cookie.Cookie.Name);
+        Assert.StartsWith("cloudground-app-", openIdConnect.CorrelationCookie.Name, StringComparison.Ordinal);
+        Assert.StartsWith("cloudground-app-", openIdConnect.NonceCookie.Name, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData(IdentityProviderUrl)]
     [InlineData(IdentityProviderUrl + "/")]

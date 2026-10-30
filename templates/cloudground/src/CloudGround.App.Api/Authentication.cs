@@ -23,7 +23,9 @@ internal static class Authentication
     private const string ClientId = "cloudground-app-api";
     private const string Audience = "cloudground-app-api";
     private const string BearerPrefix = "Bearer ";
-    private const string SessionCookieName = "session";
+    private const string SessionCookieName = "cloudground-app-session";
+    private const string CorrelationCookiePrefix = "cloudground-app-correlation.";
+    private const string NonceCookiePrefix = "cloudground-app-nonce.";
     private const string ApplicationName = "CloudGround.App.Api";
     private const string DataProtectionKeys = "data-protection-keys";
     private static readonly TimeSpan SessionLifetime = TimeSpan.FromHours(8);
@@ -85,8 +87,10 @@ internal static class Authentication
 
                 options.TokenValidationParameters.NameClaimType = NameClaim;
                 options.TokenValidationParameters.RoleClaimType = RoleClaim;
+                options.CorrelationCookie.Name = CorrelationCookiePrefix;
                 options.CorrelationCookie.SameSite = SameSiteMode.Lax;
                 options.CorrelationCookie.SecurePolicy = cookieSecurity;
+                options.NonceCookie.Name = NonceCookiePrefix;
                 options.NonceCookie.SameSite = SameSiteMode.Lax;
                 options.NonceCookie.SecurePolicy = cookieSecurity;
             })
