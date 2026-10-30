@@ -1,6 +1,3 @@
-using Aspire.Hosting.EntityFrameworkCore;
-using Aspire.Hosting.Pipelines;
-
 namespace CloudGround.App.AppHost;
 
 internal static class MigrationBundles

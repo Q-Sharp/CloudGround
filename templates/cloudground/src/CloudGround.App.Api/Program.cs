@@ -1,11 +1,3 @@
-using CloudGround.App.Api;
-#if (sample)
-using CloudGround.App.Modules.Projects;
-using CloudGround.App.Modules.Tasks;
-#endif
-using JasperFx;
-using Scalar.AspNetCore;
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();

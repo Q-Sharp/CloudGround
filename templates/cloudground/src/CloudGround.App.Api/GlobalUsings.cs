@@ -1,0 +1,33 @@
+global using System.Globalization;
+global using System.Net;
+global using System.Security.Claims;
+global using System.Text.Json.Serialization;
+global using CloudGround.App.Api;
+#if (sample)
+global using CloudGround.App.Modules.Projects;
+global using CloudGround.App.Modules.Tasks;
+#endif
+global using JasperFx;
+global using JasperFx.CodeGeneration;
+global using Microsoft.AspNetCore.Antiforgery;
+global using Microsoft.AspNetCore.Authentication;
+global using Microsoft.AspNetCore.Authentication.Cookies;
+global using Microsoft.AspNetCore.Authentication.JwtBearer;
+global using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+global using Microsoft.AspNetCore.DataProtection;
+global using Microsoft.AspNetCore.DataProtection.KeyManagement;
+global using Microsoft.AspNetCore.DataProtection.StackExchangeRedis;
+global using Microsoft.AspNetCore.Http.HttpResults;
+global using Microsoft.Extensions.Caching.Distributed;
+global using Microsoft.Extensions.DependencyInjection.Extensions;
+global using Microsoft.Extensions.Options;
+global using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+global using Scalar.AspNetCore;
+global using StackExchange.Redis;
+global using Wolverine;
+global using Wolverine.EntityFrameworkCore;
+global using Wolverine.ErrorHandling;
+global using Wolverine.Postgresql;
+global using Wolverine.RabbitMQ;
+global using Yarp.ReverseProxy.Configuration;
+global using Yarp.ReverseProxy.Transforms;

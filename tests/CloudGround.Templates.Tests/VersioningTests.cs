@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace CloudGround.Templates.Tests;
 
 [Collection(SharedTemplatePackage.Name)]

@@ -1,15 +1,3 @@
-using CloudGround.App.Modules.Projects.Contracts;
-using CloudGround.App.Modules.Projects.Features;
-using CloudGround.App.Modules.Projects.Persistence;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Migrations;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
-
 namespace CloudGround.App.Modules.Projects;
 
 public static class ProjectsModule

@@ -1,10 +1,3 @@
-using CloudGround.App.Modules.ModuleName.Persistence;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-
 namespace CloudGround.App.Modules.ModuleName.Features;
 
 internal sealed class GetItemHandler(ModuleNameDbContext database)

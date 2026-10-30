@@ -1,12 +1,3 @@
-using System.Net;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-using static CloudGround.App.Api.Tests.TokenSessions;
-
 namespace CloudGround.App.Api.Tests;
 
 public sealed class RefreshingCookieEventsTests
@@ -36,7 +27,7 @@ public sealed class RefreshingCookieEventsTests
     }
 
     private static RefreshingCookieEvents EventsFor(HttpMessageHandler endpoint) =>
-        new(AccessTokenRefresherTests.RefresherFor(endpoint), new FixedOptionsMonitor<OpenIdConnectOptions>(Options()));
+        new(AccessTokenRefresherTests.RefresherFor(endpoint), new FixedOptionsMonitor<OpenIdConnectOptions>(OpenIdOptions()));
 
     private static (CookieValidatePrincipalContext Context, SignOutRecorder Authentication) SessionExpiringSoon()
     {

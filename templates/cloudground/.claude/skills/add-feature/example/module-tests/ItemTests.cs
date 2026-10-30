@@ -1,5 +1,3 @@
-using CloudGround.App.Modules.ModuleName.Domain;
-
 namespace CloudGround.App.Modules.ModuleName.Tests;
 
 public sealed class ItemTests

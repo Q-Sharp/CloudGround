@@ -1,7 +1,3 @@
-using CloudGround.App.Modules.ModuleName.Domain;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
 namespace CloudGround.App.Modules.ModuleName.Persistence;
 
 internal sealed class ItemConfiguration : IEntityTypeConfiguration<Item>

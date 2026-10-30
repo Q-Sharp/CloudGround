@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Options;
-
 namespace CloudGround.App.Api.Tests;
 
 internal sealed class FixedOptionsMonitor<T>(T value) : IOptionsMonitor<T>

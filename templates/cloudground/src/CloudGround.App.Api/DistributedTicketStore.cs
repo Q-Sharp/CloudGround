@@ -1,8 +1,3 @@
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.Extensions.Caching.Distributed;
-using StackExchange.Redis;
-
 namespace CloudGround.App.Api;
 
 internal sealed partial class DistributedTicketStore(IDistributedCache cache, ILogger<DistributedTicketStore> logger) : ITicketStore

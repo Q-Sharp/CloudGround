@@ -1,7 +1,3 @@
-using Aspire.Hosting.ApplicationModel;
-using Aspire.Hosting.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-
 namespace CloudGround.App.Integration.Tests;
 
 public sealed class AppHostModelTests

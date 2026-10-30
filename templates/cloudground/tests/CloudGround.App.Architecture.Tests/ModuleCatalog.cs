@@ -1,7 +1,3 @@
-using System.Reflection;
-using ArchUnitNET.Loader;
-using ArchitectureModel = ArchUnitNET.Domain.Architecture;
-
 namespace CloudGround.App.Architecture.Tests;
 
 internal static class ModuleCatalog
@@ -43,7 +39,7 @@ internal static class ModuleCatalog
             : [];
     }
 
-    private static string SolutionRoot()
+    public static string SolutionRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory is not null && !directory.EnumerateFiles("*.slnx").Any())

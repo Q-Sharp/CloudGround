@@ -1,7 +1,3 @@
-using System.Net;
-using System.Net.Http.Json;
-using static CloudGround.App.Integration.Tests.ModuleAssertions;
-
 namespace CloudGround.App.Integration.Tests;
 
 public sealed class ProjectsInTheBrowserTests(AppHostFixture fixture)

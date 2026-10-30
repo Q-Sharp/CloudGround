@@ -1,10 +1,3 @@
-using CloudGround.App.Modules.Projects.Persistence;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-
 namespace CloudGround.App.Modules.Projects.Features;
 
 internal sealed class ListProjectsHandler(ProjectsDbContext database)

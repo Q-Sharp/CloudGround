@@ -1,6 +1,3 @@
-using CloudGround.App.Modules.Projects.Domain;
-using Microsoft.EntityFrameworkCore;
-
 namespace CloudGround.App.Modules.Projects.Persistence;
 
 internal sealed class ProjectsDbContext(DbContextOptions<ProjectsDbContext> options) : DbContext(options)

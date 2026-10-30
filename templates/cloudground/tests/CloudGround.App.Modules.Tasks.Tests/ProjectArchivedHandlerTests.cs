@@ -1,9 +1,3 @@
-using CloudGround.App.Modules.Projects.Contracts;
-using CloudGround.App.Modules.Tasks.Domain;
-using CloudGround.App.Modules.Tasks.Features;
-using CloudGround.App.Modules.Tasks.Messaging;
-using Microsoft.EntityFrameworkCore;
-
 namespace CloudGround.App.Modules.Tasks.Tests;
 
 public sealed class ProjectArchivedHandlerTests

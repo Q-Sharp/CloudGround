@@ -1,13 +1,3 @@
-using CloudGround.App.Modules.ModuleName.Persistence;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Migrations;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
-
 namespace CloudGround.App.Modules.ModuleName;
 
 public static class ModuleNameModule

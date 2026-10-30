@@ -43,10 +43,21 @@ add-module skill.
 4. **Mapping.** Map entities to response records with a Mapperly `[Mapper]` class in `Features/`, as
    `ItemMapper` does; a response member without a source fails the build. Map queries with a
    projection (`ProjectToResponse`) so only the needed columns are read.
-5. **Registration.** In `<Module>Module.cs`, register each handler in `Add<Module>Module` with
+5. **Imports.** Follow the `GlobalUsings.cs` rule under "Code" in `AGENTS.md`. Add the namespaces
+   your files use to the `GlobalUsings.cs` of their project, but only those the file does not have
+   yet: a repeated import fails the build. The example needs these:
+   - in `src/Modules/CloudGround.App.Modules.<Module>/GlobalUsings.cs`:
+     `System.ComponentModel.DataAnnotations`, `CloudGround.App.Modules.<Module>.Domain`,
+     `CloudGround.App.Modules.<Module>.Features`, `Microsoft.AspNetCore.Http.HttpResults`,
+     `Microsoft.EntityFrameworkCore.Metadata.Builders` and `Riok.Mapperly.Abstractions`
+   - in `tests/CloudGround.App.Modules.<Module>.Tests/GlobalUsings.cs`:
+     `CloudGround.App.Modules.<Module>.Domain`
+   - nothing in `tests/CloudGround.App.Integration.Tests/GlobalUsings.cs`, which already has what
+     `ItemsApiTests` uses
+6. **Registration.** In `<Module>Module.cs`, register each handler in `Add<Module>Module` with
    `builder.Services.AddScoped<<UseCase>Handler>();` and chain `.Map<UseCase>()` after
    `.WithTags("<Module>")` in `Map<Module>Module`.
-6. **Migration.** Build, then add a migration with the pinned `dotnet ef` from the solution root:
+7. **Migration.** Build, then add a migration with the pinned `dotnet ef` from the solution root:
 
    ```bash
    dotnet build
@@ -57,14 +68,14 @@ add-module skill.
    ```
 
    Leave the generated files as they are. The AppHost applies the migration before the API starts.
-7. **Tests.** Write them first and watch them fail:
+8. **Tests.** Write them first and watch them fail:
    - unit tests of the domain and of handler logic in the module's test project
    - integration tests through the API in `tests/CloudGround.App.Integration.Tests`, with
      `fixture.CreateApiClientAsync("alice")` for an editor, `"bob"` for a signed-in user without
      roles and `fixture.CreateApiClient()` for an anonymous caller; cover the success path, the role
      check and validation
    - an end-to-end test in `tests/CloudGround.App.EndToEnd.Tests` only for a page
-8. **Page (optional).** Follow the Angular rules in `AGENTS.md`. A page is a standalone component in
+9. **Page (optional).** Follow the Angular rules in `AGENTS.md`. A page is a standalone component in
    its own folder under `src/CloudGround.App.Web/src/app/`, like
    `src/CloudGround.App.Web/src/app/home/home.ts`. Add its route to
    `src/CloudGround.App.Web/src/app/app.routes.ts` and its render mode to
@@ -72,15 +83,15 @@ add-module skill.
    with data, `RenderMode.Client` for pages behind the login. Call the API with relative
    `/api/<module>` URLs through `HttpClient`, and put the component's unit test next to it in a
    `.spec.ts` file.
-9. **Verify.**
+10. **Verify.**
 
-   ```bash
-   dotnet build
-   dotnet format --verify-no-changes
-   dotnet test --solution CloudGround.App.slnx
-   ```
+    ```bash
+    dotnet build
+    dotnet format --verify-no-changes
+    dotnet test --solution CloudGround.App.slnx
+    ```
 
-   For a page, also run `npm run build` and `npm test` in `src/CloudGround.App.Web`.
+    For a page, also run `npm run build` and `npm test` in `src/CloudGround.App.Web`.
 
 ## Related
 

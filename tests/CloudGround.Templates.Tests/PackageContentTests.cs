@@ -1,5 +1,3 @@
-using System.IO.Compression;
-
 namespace CloudGround.Templates.Tests;
 
 [Collection(SharedTemplatePackage.Name)]

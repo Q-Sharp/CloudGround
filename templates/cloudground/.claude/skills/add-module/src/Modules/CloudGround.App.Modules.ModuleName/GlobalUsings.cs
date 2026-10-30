@@ -1,0 +1,9 @@
+global using CloudGround.App.Modules.ModuleName.Persistence;
+global using Microsoft.AspNetCore.Builder;
+global using Microsoft.AspNetCore.Http;
+global using Microsoft.AspNetCore.Routing;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.EntityFrameworkCore.Migrations;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.DependencyInjection.Extensions;
+global using Microsoft.Extensions.Hosting;

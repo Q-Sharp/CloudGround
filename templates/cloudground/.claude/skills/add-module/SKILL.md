@@ -28,10 +28,11 @@ module applies its migrations before the API starts.
      --project src/CloudGround.App.Api/CloudGround.App.Api.csproj
    ```
 
-4. Register the module in `src/CloudGround.App.Api/Program.cs`: add
-   `using CloudGround.App.Modules.<Module>;`, call `builder.Add<Module>Module();` after the other
-   `builder.Add…` calls, and `app.Map<Module>Module();` after `app.MapDefaultEndpoints();` and the
-   other modules' `Map…Module()` calls.
+4. Register the module in the API: add `global using CloudGround.App.Modules.<Module>;` to
+   `src/CloudGround.App.Api/GlobalUsings.cs`, then in `src/CloudGround.App.Api/Program.cs` call
+   `builder.Add<Module>Module();` after the other `builder.Add…` calls, and
+   `app.Map<Module>Module();` after `app.MapDefaultEndpoints();` and the other modules'
+   `Map…Module()` calls.
 5. Apply its migrations before the API starts: in `src/CloudGround.App.AppHost/AppHost.cs`, add
    `api.WithModuleMigrations("<Module>", database);` before `builder.TagImagesWithVersion();`.
    Modules migrate one after another, in the order of these calls.
@@ -70,6 +71,8 @@ module first needs it:
 
 3. Put the public interfaces and integration events there. Other modules never reference the module
    itself, and contracts depend on no module, ASP.NET Core, EF Core or Wolverine.
+4. Add a `GlobalUsings.cs` at the root of the contracts project together with its first C# file,
+   even if it stays empty; the project has none until then.
 
 ## What the copied files contain
 
@@ -80,6 +83,7 @@ module first needs it:
   policy name and the role, `Persistence/<Module>DbContext` the schema.
 - `CloudGround.App.Modules.<Module>.Tests`: the module's unit tests, starting with one that pins the
   edit policy.
+- `GlobalUsings.cs` in both projects: all their namespace imports.
 
 ## Rules
 
@@ -89,3 +93,4 @@ module first needs it:
   through a contract interface, asynchronously through an integration event (see "Add an
   integration event" in `README.md`).
 - The schema is the lowercase module name; the architecture tests compare them.
+- Namespace imports follow the `GlobalUsings.cs` rule under "Code" in `AGENTS.md`.

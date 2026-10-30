@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-
 namespace CloudGround.App.Architecture.Tests;
 
 public sealed class EndpointTests

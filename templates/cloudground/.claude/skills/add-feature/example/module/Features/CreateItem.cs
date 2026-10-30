@@ -1,11 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-using CloudGround.App.Modules.ModuleName.Domain;
-using CloudGround.App.Modules.ModuleName.Persistence;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Routing;
-
 namespace CloudGround.App.Modules.ModuleName.Features;
 
 public sealed record CreateItemRequest([Required, StringLength(Item.NameMaxLength)] string Name);

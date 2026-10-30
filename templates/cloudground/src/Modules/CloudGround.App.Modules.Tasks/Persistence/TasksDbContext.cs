@@ -1,6 +1,3 @@
-using CloudGround.App.Modules.Tasks.Domain;
-using Microsoft.EntityFrameworkCore;
-
 namespace CloudGround.App.Modules.Tasks.Persistence;
 
 internal sealed class TasksDbContext(DbContextOptions<TasksDbContext> options) : DbContext(options)

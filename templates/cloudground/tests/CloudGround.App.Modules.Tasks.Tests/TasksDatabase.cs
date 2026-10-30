@@ -1,6 +1,3 @@
-using CloudGround.App.Modules.Tasks.Persistence;
-using Microsoft.EntityFrameworkCore;
-
 namespace CloudGround.App.Modules.Tasks.Tests;
 
 internal static class TasksDatabase

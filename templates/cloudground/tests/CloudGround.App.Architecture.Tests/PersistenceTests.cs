@@ -1,8 +1,3 @@
-using System.Reflection;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-
 namespace CloudGround.App.Architecture.Tests;
 
 public sealed class PersistenceTests

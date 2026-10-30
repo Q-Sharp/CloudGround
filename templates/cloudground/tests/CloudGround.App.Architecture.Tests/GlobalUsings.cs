@@ -1,0 +1,13 @@
+global using System.Reflection;
+global using System.Text.RegularExpressions;
+global using System.Xml.Linq;
+global using ArchUnitNET.xUnitV3;
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.EntityFrameworkCore.Migrations;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Hosting;
+global using Xunit;
+global using static ArchUnitNET.Fluent.ArchRuleDefinition;
+global using ArchitectureModel = ArchUnitNET.Domain.Architecture;
+global using ArchLoader = ArchUnitNET.Loader.ArchLoader;

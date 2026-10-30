@@ -1,6 +1,3 @@
-using System.Net;
-using System.Net.Http.Json;
-
 namespace CloudGround.App.Integration.Tests;
 
 public sealed class ItemsApiTests(AppHostFixture fixture)

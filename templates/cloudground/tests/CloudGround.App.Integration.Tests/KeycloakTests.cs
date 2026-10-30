@@ -1,7 +1,3 @@
-using System.Net;
-using System.Text.Json;
-using System.Web;
-
 namespace CloudGround.App.Integration.Tests;
 
 public sealed class KeycloakTests(AppHostFixture fixture)
