@@ -4,9 +4,10 @@
 
 CloudGround is a `dotnet new` template for container-based .NET solutions. One command creates a
 production-shaped solution with a visible architecture: a modular monolith with Minimal APIs, an
-Angular frontend with server-side rendering, sign-in through a backend for frontend, messaging with
-a transactional outbox, tests at every level, container images and a Docker Compose deployment.
-One more command runs all of it locally through [Aspire](https://aspire.dev).
+Angular frontend with server-side rendering, sign-in with a cookie session that keeps tokens out of
+the browser, messaging with a transactional outbox, tests at every level, container images and a
+Docker Compose deployment. One more command runs all of it locally through
+[Aspire](https://aspire.dev).
 
 > **Status:** all seven phases of the first version are built. The package is not on NuGet yet;
 > install it from source as shown below.
@@ -27,18 +28,16 @@ dotnet run --project src/Contoso.Shop.AppHost
 ```
 
 The Aspire dashboard opens in the browser and shows every resource, its logs and its traces. The
-`bff` resource serves the application; sign in as `alice` with the password `alice`.
+`api` resource serves the application; sign in as `alice` with the password `alice`.
 
 ```mermaid
 flowchart LR
-    Browser -->|cookie, same origin| BFF[BFF<br/>ASP.NET Core + YARP]
-    BFF -->|pages| SSR[Angular SSR<br/>Node]
-    BFF -->|/api with access token| API[API<br/>modular monolith]
+    Browser -->|cookie, same origin| API[API<br/>modular monolith + YARP]
+    API -->|pages, without cookies| SSR[Angular SSR<br/>Node]
     SSR -->|public endpoints, anonymous| API
-    BFF -->|OIDC| KC[Keycloak]
+    API -->|OIDC| KC[Keycloak]
     API --> PG[(PostgreSQL)]
-    API --> RD[(Garnet)]
-    BFF --> RD
+    API -->|cache, sessions| RD[(Garnet)]
     API <-->|integration events| MQ[[RabbitMQ]]
 ```
 
@@ -72,11 +71,12 @@ records.
 - an Angular frontend with server-side rendering per route: public pages rendered on the server
   from the API's anonymous endpoints, a browser-rendered area for signed-in users, Angular
   Material, angular-eslint, unit tests, OpenTelemetry in Node and a Dockerfile
-- a BFF that serves the frontend, signs users in against Keycloak, keeps sessions in Garnet,
-  protects writes with Angular-compatible XSRF tokens and forwards `/api/*` with the user's access
-  token, so tokens never reach the browser
 - a modular Minimal API host: `ProblemDetails`, built-in validation, OpenAPI with Scalar, role
   checks on writes, `HybridCache` on Garnet
+- sign-in in the API: OpenID Connect against Keycloak, an HttpOnly session cookie with the session
+  and its refreshed tokens in Garnet, Angular-compatible XSRF tokens on writes, and bearer tokens
+  for clients without a browser, so tokens never reach the browser; the API forwards every page
+  request to the frontend, so the browser sees one origin
 - *Projects* and *Tasks* sample modules, each with its own schema, EF Core migrations that Aspire
   applies before the API starts, Mapperly mapping and caching on a read path
 - modules that meet only through contracts: a contract interface for synchronous calls and an
@@ -98,14 +98,14 @@ records.
   devcontainer features and GitHub Actions
 - an AI collaboration kit: `AGENTS.md` with the solution's rules, `CLAUDE.md`, skills that create a
   module and add a feature slice end to end, and the Angular CLI's MCP server
-- a README with C4 context and container diagrams and a module map, and 21 architecture decision
+- a README with C4 context and container diagrams and a module map, and 22 architecture decision
   records
 
 ## Options
 
 `--sample false` creates the solution without the *Projects* and *Tasks* sample modules and their
-pages; the module infrastructure, messaging, the BFF, the login and the web app's shell stay, and
-the add-module skill creates the first module.
+pages; the module infrastructure, messaging, the session cookie, the login and the web app's shell
+stay, and the add-module skill creates the first module.
 
 The name becomes the namespace, so characters that are not valid there turn into underscores:
 `--name my-shop` creates `my_shop.slnx` and the project `my_shop.Api`.

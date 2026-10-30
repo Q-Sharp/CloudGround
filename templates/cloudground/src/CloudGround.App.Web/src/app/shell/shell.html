@@ -7,7 +7,7 @@
   <span class="spacer"></span>
   @if (session.user(); as user) {
     <span data-test="user">{{ user.name }}</span>
-    <form data-test="logout" method="post" action="/bff/logout">
+    <form data-test="logout" method="post" action="/account/logout">
       <input type="hidden" name="__RequestVerificationToken" [value]="xsrfToken()" />
       <button mat-button type="submit">Log out</button>
     </form>

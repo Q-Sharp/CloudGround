@@ -11,20 +11,20 @@ dotnet run --project src/Contoso.Shop.AppHost
 
 A generated solution contains an Aspire AppHost with PostgreSQL, Garnet, RabbitMQ and Keycloak,
 shared service defaults (OpenTelemetry, health checks, resilience, service discovery), an Angular
-frontend with per-route server-side rendering, a BFF that serves it, signs users in and keeps
-tokens away from the browser, a modular Minimal API host with ProblemDetails, validation, OpenAPI,
-HybridCache and role checks on writes, messaging with Wolverine and a transactional outbox,
-*Projects* and *Tasks* sample modules that meet only through contracts, architecture tests,
-integration tests that start the whole application, Playwright end-to-end tests, versioned
-container images, a Docker Compose deployment with EF Core migration bundles, a devcontainer,
-automatic semantic versioning from Git tags, GitHub Actions and Dependabot.
+frontend with per-route server-side rendering, a modular Minimal API host that serves it, signs
+users in with a cookie session and keeps tokens away from the browser, with ProblemDetails,
+validation, OpenAPI, HybridCache and role checks on writes, messaging with Wolverine and a
+transactional outbox, *Projects* and *Tasks* sample modules that meet only through contracts,
+architecture tests, integration tests that start the whole application, Playwright end-to-end tests,
+versioned container images, a Docker Compose deployment with EF Core migration bundles, a
+devcontainer, automatic semantic versioning from Git tags, GitHub Actions and Dependabot.
 
 Every solution also ships an AI collaboration kit, `AGENTS.md` with its rules, `CLAUDE.md`, skills
 that create a module and add a feature slice, and the Angular CLI's MCP server, together with C4
 diagrams, a module map and architecture decision records.
 
 `--sample false` leaves out the sample modules and their pages and keeps the module infrastructure,
-messaging, the BFF, the login and the web app's shell; the add-module skill creates the first
-module.
+messaging, the session cookie, the login and the web app's shell; the add-module skill creates the
+first module.
 
 Source and documentation: <https://github.com/Q-Sharp/CloudGround>

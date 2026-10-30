@@ -49,14 +49,26 @@ public sealed class AppHostModelTests
     }
 
     [Fact]
-    public async Task Tests_run_two_bff_instances()
+    public async Task Browser_reaches_the_solution_only_through_the_api()
     {
         await using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.CloudGround_App_AppHost>(TestContext.Current.CancellationToken);
 
-        appHost.WithTwoBffInstances();
+        var external = appHost.Resources
+            .Where(resource => resource.Annotations.OfType<EndpointAnnotation>().Any(endpoint => endpoint.IsExternal))
+            .Select(resource => resource.Name);
 
-        var bff = appHost.Resources.Single(resource => resource.Name == "bff");
-        Assert.Equal(BffInstances.Count, Assert.Single(bff.Annotations.OfType<ReplicaAnnotation>()).Replicas);
+        Assert.Equal(["api"], external);
+    }
+
+    [Fact]
+    public async Task Tests_run_two_api_instances()
+    {
+        await using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.CloudGround_App_AppHost>(TestContext.Current.CancellationToken);
+
+        appHost.WithTwoApiInstances();
+
+        var api = appHost.Resources.Single(resource => resource.Name == "api");
+        Assert.Equal(ApiInstances.Count, Assert.Single(api.Annotations.OfType<ReplicaAnnotation>()).Replicas);
     }
 
     [Fact]

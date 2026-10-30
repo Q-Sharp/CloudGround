@@ -4,8 +4,8 @@ Status: Accepted
 
 ## Context
 
-One request crosses the BFF, the Node server, the API, the database and the broker. Following it
-needs correlated logs, traces and metrics.
+One page request crosses the API, the Node server, the API again for the page's data, the database
+and the broker. Following it needs correlated logs, traces and metrics.
 
 ## Decision
 
@@ -22,6 +22,6 @@ dashboard, in operation to whatever `OTEL_EXPORTER_OTLP_ENDPOINT` names.
 
 ## Consequences
 
-- A trace follows a request from the BFF through Node and the API into the handler of an integration
-  event.
+- A trace follows a page request from the API through Node and back into the API, and a write into
+  the handler of an integration event.
 - The backend can change without code changes.

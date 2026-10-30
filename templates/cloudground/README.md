@@ -23,9 +23,9 @@ realm survive restarts; remove the volume whose name ends in `postgres-data`, `c
 database and a freshly imported realm.
 Before the API starts, the AppHost applies the EF Core migrations of every module. In Development
 the API serves its OpenAPI document at `/openapi/v1.json` and the Scalar UI at `/scalar`. The
-dashboard links the RabbitMQ management UI of the `messaging` resource. The API and the BFF answer
-`/health` (all their checks) and `/alive` (the process only) in every environment, the web app
-answers `/health`.
+dashboard links the RabbitMQ management UI of the `messaging` resource. The API answers `/health`
+(all its checks) and `/alive` (the process only) in every environment, the web app answers
+`/health`.
 
 ## Architecture
 
@@ -55,31 +55,30 @@ flowchart LR
     idp["Identity provider<br/>[Keycloak]"]
 
     subgraph solution["CloudGround.App"]
-        bff["BFF<br/>[ASP.NET Core, YARP]<br/>login, session, proxy"]
+        api["API<br/>[ASP.NET Core, YARP]<br/>modular monolith, sign-in, sessions"]
         web["Web<br/>[Angular SSR on Node]<br/>pages"]
-        api["API<br/>[ASP.NET Core]<br/>modular monolith"]
         migrations["Migrations<br/>[EF Core]<br/>one per module"]
         database[("PostgreSQL<br/>one schema per module")]
         cache[("Garnet<br/>cache, sessions")]
         broker[["RabbitMQ<br/>integration events"]]
     end
 
-    browser -->|cookie, same origin| bff
-    bff -->|pages| web
-    bff -->|/api with access token| api
+    browser -->|cookie, same origin| api
+    api -->|pages, without cookies| web
     web -->|public endpoints| api
-    bff -->|OpenID Connect| idp
-    bff -->|sessions, Data Protection keys| cache
+    api -->|OpenID Connect| idp
     api -->|EF Core| database
-    api -->|HybridCache| cache
+    api -->|HybridCache, sessions, Data Protection keys| cache
     api <-->|Wolverine outbox and inbox| broker
     migrations -->|before the API starts| database
 ```
 
-The browser talks only to the BFF, which keeps the session and attaches the access token when it
-forwards `/api/*`; tokens never reach the browser. The web app renders public pages on the server
-and reads the API's anonymous endpoints directly. The AppHost in `src/CloudGround.App.AppHost`
-starts all of these locally and publishes them as a Docker Compose deployment.
+The browser talks only to the API. The API signs users in, keeps their session in Garnet behind an
+HttpOnly cookie and forwards every request that none of its endpoints handles to the web app, so
+the browser sees one origin and tokens never reach it. The web app renders public pages on the
+server and reads the API's anonymous endpoints directly. The AppHost in
+`src/CloudGround.App.AppHost` starts all of these locally and publishes them as a Docker Compose
+deployment.
 
 ### Module map
 
@@ -109,7 +108,8 @@ This solution has no modules yet. Create the first with
 ### Modules
 
 The API host in `src/CloudGround.App.Api` is a modular monolith. It owns the cross-cutting
-concerns: errors as `ProblemDetails`, OpenAPI, and `HybridCache` backed by Garnet. Each module in
+concerns: errors as `ProblemDetails`, OpenAPI, sign-in and sessions, `HybridCache` backed by Garnet,
+and forwarding pages to the web app. Each module in
 `src/Modules/` is a class library that owns its endpoints, handlers, persistence and its own
 PostgreSQL schema. A feature slice keeps its request, handler and endpoint in one file, and the
 endpoint calls the handler directly. Cached reads skip `HybridCache`'s in-process copy and use
@@ -145,34 +145,53 @@ the alternatives that were considered and why they lost.
 
 ## Sign-in
 
-The browser talks only to the BFF in `src/CloudGround.App.Bff`; tokens never reach it. Open the
-`bff` resource from the dashboard, choose *Log in* and sign in as one of the demo users:
+The browser talks only to the API in `src/CloudGround.App.Api`; tokens never reach it. Open the
+`api` resource from the dashboard, choose *Log in* and sign in as one of the demo users:
 
 | User | Password | Roles |
 |---|---|---|
 | `alice` | `alice` | `editor` |
 | `bob` | `bob` | none |
 
-The BFF signs users in with OpenID Connect against Keycloak and offers:
+The API signs users in with OpenID Connect against Keycloak, with the authorization code flow and
+PKCE, and offers:
 
-- `GET /bff/login?returnUrl=/path` starts the login and returns only to local paths
-- `POST /bff/logout` ends the session at the BFF and at Keycloak
-- `GET /bff/user` returns the user's name and roles, or 401
-- `/api/*` is forwarded to the API with the user's access token; the browser's cookies stay at the BFF
+- `GET /account/login?returnUrl=/path` starts the login and returns only to local paths
+- `POST /account/logout` ends the session at the API and at Keycloak
+- `GET /account/user` returns the user's name and roles, or 401
 
-For a signed-in user, the BFF sets an `XSRF-TOKEN` cookie and expects its value in the
-`X-XSRF-TOKEN` header on every state-changing request, which is what Angular's `HttpClient` does
-on its own. The session ticket and the Data Protection keys live in Garnet, so several BFF
-instances share the same sessions; the integration tests run two of them. Access tokens are
-refreshed a minute before they expire. Parallel requests of one session may refresh at the same
-time with the same refresh token, so the realm keeps used refresh tokens valid
-(`revokeRefreshToken: false`); turning rotation on needs a lock around the refresh first. While
-Keycloak is unreachable, a session keeps its access token until it expires.
+Sign-in uses pushed authorization requests when the identity provider offers them, as Keycloak does,
+so the browser's redirect carries only a reference to the authorization request.
 
-The API accepts Keycloak access tokens for the `cloudground-app-api` audience. Reads are anonymous;
-every write endpoint requires the policy of its module (`<Module>Policies.Edit`), which requires
-the `editor` realm role. A test reads the OpenAPI document and checks that every write endpoint
-rejects anonymous callers.
+A signed-in browser holds only an HttpOnly session cookie. The session ticket with the user's tokens
+and the Data Protection keys live in Garnet, so several API instances share the same sessions; the
+integration tests run two of them. The API refreshes the access token a minute before it expires and
+signs the user out when Keycloak refuses the refresh, so a session lasts as long as the identity
+provider's session. With the local realm it ends after 30 minutes without requests
+(`ssoSessionIdleTimeout`) and at the latest 10 hours after sign-in (`ssoSessionMaxLifespan`), also
+while someone is working, and a user blocked in Keycloak loses access within the access token's
+lifetime of 5 minutes (`accessTokenLifespan`). In operation the operator's identity provider sets
+these times, not the template. Parallel requests of one session may refresh at the same time with
+the same refresh token, so the realm keeps used refresh tokens valid (`revokeRefreshToken: false`);
+turning rotation on needs a lock around the refresh first. While Keycloak is unreachable, a session
+keeps working until its access token expires; after that, the next request signs the user out, and
+signing in fails until Keycloak is back. While Garnet is unreachable, requests with a session cookie
+count as anonymous: public pages and anonymous API calls keep working, endpoints that need a user
+answer 401, and the same cookie works again once Garnet is back with its data. Signing in and
+renewing a session need Garnet and fail while it is down. Logging out still removes the cookie, but
+the stored session stays in Garnet until it expires, and the session at Keycloak may stay open. The
+API never forwards the tokens; they only keep the session alive.
+
+For a signed-in user, the API sets a readable `cloudground-app-xsrf` cookie and expects its value in
+the `X-XSRF-TOKEN` header on every state-changing request with the session cookie, which is what
+Angular's `HttpClient` does on its own; the logout form sends it as a form field. Every cookie of the
+solution starts with `cloudground-app-`, so two solutions on `localhost` keep their own sessions.
+
+Clients without a browser call the API with Keycloak access tokens for the `cloudground-app-api`
+audience in an `Authorization: Bearer` header; a request with that header is authenticated by its
+token alone and needs no XSRF token. Reads are anonymous; every write endpoint requires the policy
+of its module (`<Module>Policies.Edit`), which requires the `editor` realm role. A test reads the
+OpenAPI document and checks that every write endpoint rejects anonymous callers.
 
 The realm lives in `src/CloudGround.App.AppHost/Realms/realm.json` and is imported
 when Keycloak starts on an empty volume; after editing the file, remove the `keycloak-data`
@@ -184,8 +203,8 @@ Keycloak serves plain HTTP, so the solution runs without a trusted developer cer
 
 The Angular app in `src/CloudGround.App.Web` uses the current Angular defaults: standalone
 components, signals, zoneless change detection and Angular Material. The AppHost runs it with
-`npm run dev`, and the BFF forwards every path that is not `/api/*` or `/bff/*` to it, so the
-browser sees one origin.
+`npm run dev`, and the API forwards every path outside `/api/*` and `/account/*` that none of its
+endpoints handles to it, without the browser's cookies, so the browser sees one origin.
 
 <!--#if (sample) -->
 Each route chooses its render mode in `src/CloudGround.App.Web/src/app/app.routes.server.ts`, the
@@ -204,14 +223,14 @@ Each route chooses its render mode in `src/CloudGround.App.Web/src/app/app.route
 | anything else | server, per request | not-found page with status 404 |
 
 Server-rendered pages are anonymous: the Node server calls the API's public endpoints directly,
-found through Aspire service discovery. In the browser the same relative `/api/...` calls go
-through the BFF with the session cookie, and Angular's `HttpClient` sends the XSRF token itself.
+found through Aspire service discovery. In the browser the same relative `/api/...` calls reach the
+API with the session cookie, and Angular's `HttpClient` sends the XSRF token itself.
 Responses fetched during server rendering travel with the page, so the browser does not request
 them again. The toolbar shows the signed-in user with a logout button, or a login link that
 returns to the current page.
 
 `src/CloudGround.App.Web/src/instrumentation.mjs` starts the OpenTelemetry Node SDK, so the dashboard shows the Node
-server's incoming requests and its calls to the API in the same traces as the BFF and the API.
+server's incoming requests and its calls to the API in the same traces as the API.
 
 To work on the app on its own, run `npm ci` once in `src/CloudGround.App.Web`. `npm run dev` serves
 it on <http://localhost:4200>; pages that call the API need the AppHost. `npm run build` lints and
@@ -299,9 +318,9 @@ Chromium's system libraries, install them once after a build:
 pwsh tests/CloudGround.App.EndToEnd.Tests/bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
 ```
 
-`--filter-not-trait Category=EndToEnd` leaves them out. CI builds, lints and tests the web app,
-runs every test level, end-to-end included, builds the container images and checks the Compose
-file on every push.
+`--filter-not-trait Category=EndToEnd` leaves the end-to-end tests out. CI builds, lints and tests
+the web app, runs every test level, end-to-end included, builds the container images and checks the
+Compose file on every push.
 
 ## Working with AI agents
 
@@ -328,14 +347,14 @@ local tool of this solution, so it needs no global install:
 dotnet tool restore
 dotnet aspire do push --non-interactive --apphost src/CloudGround.App.AppHost/CloudGround.App.AppHost.csproj \
   --output-path artifacts/compose -- \
-  --Parameters:keycloak-url=https://id.example.com --Parameters:bff-client-secret=<client secret>
+  --Parameters:keycloak-url=https://id.example.com --Parameters:api-client-secret=<client secret>
 dotnet aspire do prepare-compose --non-interactive --apphost src/CloudGround.App.AppHost/CloudGround.App.AppHost.csproj \
   --output-path artifacts/compose -- \
-  --Parameters:keycloak-url=https://id.example.com --Parameters:bff-client-secret=<client secret>
+  --Parameters:keycloak-url=https://id.example.com --Parameters:api-client-secret=<client secret>
 docker compose --env-file artifacts/compose/.env.Production --file artifacts/compose/docker-compose.yaml up -d
 ```
 
-`push` builds an image for the API, the BFF, the web app and every module's migrations and tags
+`push` builds an image for the API, the web app and every module's migrations and tags
 each with the solution's version from MinVer, for example `api:1.4.0`. Without a container
 registry in the AppHost it only tags them locally; to deploy to another machine, push them to your
 registry and change the image names in the env file. `prepare-compose` writes
@@ -351,8 +370,8 @@ The deployment contains:
   name (`docker compose -p`) starts on empty volumes
 - one container per module that applies its EF Core migration bundle; they run one after another
   on every `up`, apply only what is missing, and the API starts after the last one succeeded
-- the API, the web app and the BFF; the BFF serves plain HTTP on port 8080 of the host's loopback
-  interface, and nothing else is reachable from outside the Compose network except the dashboard
+- the API and the web app; the API serves plain HTTP on port 8080 of the host's loopback interface,
+  and nothing else is reachable from outside the Compose network except the dashboard
 - health checks for PostgreSQL and RabbitMQ, which the services that need them wait for, and a
   restart policy for every service that keeps running
 - Aspire's dashboard on `http://127.0.0.1:18888`, from the released dashboard image of the
@@ -365,21 +384,23 @@ for development only. The deployment needs:
 
 | Parameter | Env file | Value |
 |---|---|---|
-| `keycloak-url` | `KEYCLOAK_URL` | HTTPS address of your Keycloak without a path; the API and the BFF use `<address>/realms/cloudground-app` as OpenID Connect authority |
-| `bff-client-secret` | `BFF_CLIENT_SECRET` | secret of the `cloudground-app-bff` client in your Keycloak; without it Aspire generates a random one and every login fails |
+| `keycloak-url` | `KEYCLOAK_URL` | HTTPS address of your Keycloak without a path; the API uses `<address>/realms/cloudground-app` as OpenID Connect authority |
+| `api-client-secret` | `API_CLIENT_SECRET` | secret of the `cloudground-app-api` client in your Keycloak; without it Aspire generates a random one and every login fails |
 
-The realm `cloudground-app` needs the realm role `editor`, a confidential client
-`cloudground-app-bff` with the standard flow, PKCE (`S256`), the redirect URI
-`https://<host>/signin-oidc` and the post-logout redirect URI `https://<host>/signout-callback-oidc`,
-and the mappers that put the audience `cloudground-app-api` and the realm roles into its access
-tokens, as `Realms/realm.json` does.
+The realm `cloudground-app` needs the realm role `editor` and a confidential client
+`cloudground-app-api` with the standard flow, PKCE (`S256`), the redirect URI
+`https://<host>/signin-oidc`, the post-logout redirect URI `https://<host>/signout-callback-oidc`
+and a mapper that puts the realm roles into its ID tokens as `roles`, as `Realms/realm.json` does.
+Clients that call the API with bearer tokens need the audience `cloudground-app-api` and the realm
+roles in their access tokens, like the realm's `cloudground-app-tests` client.
 
-Terminate TLS in a reverse proxy in front of the BFF, on the same host at `127.0.0.1:8080` or as
-another service in the Compose network at `bff:8080`, and keep the BFF reachable only through it.
-The proxy forwards the original `Host` header and sets `X-Forwarded-Proto: https`; the BFF trusts
+Terminate TLS in a reverse proxy in front of the API, on the same host at `127.0.0.1:8080` or as
+another service in the Compose network at `api:8080`, and keep the API reachable only through it.
+The proxy forwards the original `Host` header and sets `X-Forwarded-Proto: https`; the API trusts
 forwarded headers in the deployment (`ASPNETCORE_FORWARDEDHEADERS_ENABLED`), builds its redirect
 URIs from them and sends its cookies only over HTTPS. Keep `/health` and `/alive` out of the
-proxy's public routes: they run the BFF's checks against Garnet on every call.
+proxy's public routes: they run the API's checks against its database, cache and broker on every
+call.
 
 ## Devcontainer
 

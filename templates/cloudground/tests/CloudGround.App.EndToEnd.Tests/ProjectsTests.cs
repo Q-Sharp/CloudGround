@@ -22,10 +22,12 @@ public sealed class ProjectsTests(StackFixture stack) : StackTest(stack)
         var page = await NewPageAsync();
         var requestedPaths = new List<string>();
         page.Request += (_, request) => requestedPaths.Add(new Uri(request.Url).AbsolutePath);
+        var hydrated = page.WaitForRequestAsync(request => new Uri(request.Url).AbsolutePath == "/account/user");
 
-        await page.GotoAsync("/explore", new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.GotoAsync("/explore");
+        await hydrated;
+        await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-        Assert.Contains("/bff/user", requestedPaths);
         Assert.DoesNotContain(requestedPaths, path => path.StartsWith("/api/", StringComparison.Ordinal));
     }
 

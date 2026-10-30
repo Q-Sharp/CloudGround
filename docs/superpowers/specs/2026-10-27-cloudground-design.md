@@ -1,7 +1,7 @@
 # CloudGround — Design
 
 **Date:** 2026-10-27
-**Status:** Implemented in phases 1–7
+**Status:** Implemented in phases 1–7; sign-in moved from a BFF into the API on 2026-10-30 (7.1, 8.1)
 **Repository:** `Q-Sharp/CloudGround` (local at `~/Sources/CloudGround`; public on GitHub from the start, see section 9)
 
 Markers used below: **Author** means the author decided it. **Approved** means it was proposed during
@@ -100,8 +100,8 @@ The project fails, even if it technically works, if any of these is true:
 | UI components | Angular Material | Default |
 | API style | Minimal APIs, one endpoint group per feature | Author |
 | Backend shape | Modular monolith with feature slices | Approved |
-| Auth | BFF in ASP.NET Core, cookie session, OpenID Connect against Keycloak | Approved |
-| Reverse proxy in BFF | YARP | Approved |
+| Auth | Cookie session in the API, OpenID Connect against Keycloak; bearer tokens for clients without a browser | **Author**, 2026-10-30: cookie authentication in the API instead of a BFF (until then: BFF in ASP.NET Core, cookie session, OpenID Connect against Keycloak, Approved) |
+| Reverse proxy | YARP, in the API, forwarding pages to the SSR server | Approved for the BFF; in the API since 2026-10-30 (**Author**) |
 | Database | PostgreSQL with EF Core (Npgsql) | Approved |
 | Cache | `HybridCache` backed by Garnet (Microsoft, MIT, Redis-compatible), accessed through the Redis client | Author |
 | Messaging | RabbitMQ as broker, Wolverine for messaging with a transactional outbox on EF Core and PostgreSQL | Author |
@@ -160,31 +160,43 @@ The project fails, even if it technically works, if any of these is true:
 
 ```mermaid
 flowchart LR
-    Browser -->|cookie, same origin| BFF[BFF<br/>ASP.NET Core + YARP]
-    BFF -->|pages| SSR[Angular SSR<br/>Node]
-    BFF -->|/api with access token| API[API<br/>modular monolith]
+    Browser -->|cookie, same origin| API[API<br/>modular monolith + YARP]
+    API -->|pages, without cookies| SSR[Angular SSR<br/>Node]
     SSR -->|public endpoints, anonymous| API
-    BFF -->|OIDC| KC[Keycloak]
+    API -->|OIDC| KC[Keycloak]
     API --> PG[(PostgreSQL)]
-    API --> RD[(Garnet)]
-    BFF --> RD
+    API -->|cache, sessions| RD[(Garnet)]
     API <-->|integration events| MQ[[RabbitMQ]]
 ```
 
-- The browser only ever talks to the BFF. Tokens never reach the browser.
-- The BFF owns login, logout and a user-info endpoint, attaches the access token when forwarding
-  `/api/*`, and protects state-changing requests with antiforgery that works with Angular's built-in
-  XSRF support.
+- **Author**, 2026-10-30: cookie authentication in the API instead of a BFF. The reason: less code
+  and less effort; the API does not need to stay a plain resource server. Until then a separate BFF
+  held the session, attached the access token when forwarding `/api/*` and served the pages; the
+  points below describe the API since that change.
+- The browser only ever talks to the API. Tokens never reach the browser.
+- The API owns login, logout and a user-info endpoint (`/account/*`), authenticates requests with
+  an `Authorization: Bearer` header by their token and all others by the session cookie, and
+  protects state-changing requests with the cookie with antiforgery that works with Angular's
+  built-in XSRF support. The session keeps the tokens; the API refreshes the access token when it
+  is due and signs the user out when the refresh fails, but never forwards it.
+- The API forwards every request that none of its endpoints handles to the SSR server, without the
+  browser's cookies and authorization header.
+- **Author**, 2026-10-30: when Garnet is unreachable, requests with a session cookie count as
+  anonymous and the same cookie works again afterwards; when Keycloak is unreachable for longer than
+  an access token lives, the API signs the user out at the next request and sign-in fails until
+  Keycloak is back; a wrong method on an existing API path stays 404; the whole site is down while
+  the API is down.
 - SSR renders public pages anonymously. It does not need the user's session. When a public page
   needs data, the SSR server calls the API's anonymous public endpoints directly, using Aspire
   service discovery. Routes that need data are server-rendered at request time, not prerendered at
   build time, because no API runs during the image build. (**Default**)
-- BFF session state and Data Protection keys are persisted outside the process so the BFF can run
-  more than one instance. (**Builder:** Garnet, 2026-10-28.)
+- Session state and Data Protection keys are persisted outside the process so the API, like the BFF
+  before it, can run more than one instance. (**Builder:** Garnet, 2026-10-28.)
 - Keycloak keeps its data in a volume like PostgreSQL; the realm file is imported on an empty
-  volume (**Author**, 2026-10-28). Locally Keycloak serves plain HTTP and the BFF reaches the API
-  over its http endpoint, so a solution works without a trusted developer certificate; the demo
-  realm contains a password-grant client for the integration tests only. (**Builder**, 2026-10-28)
+  volume (**Author**, 2026-10-28). Locally Keycloak serves plain HTTP and the API reaches the web
+  app (until 2026-10-30: the BFF reached the API) over its http endpoint, so a solution works
+  without a trusted developer certificate; the demo realm contains a password-grant client for the
+  integration tests only. (**Builder**, 2026-10-28)
 - The Aspire AppHost wires all of the above, including a Keycloak realm import with demo users and
   roles, so `dotnet run` on the AppHost is the whole quickstart.
 
@@ -225,8 +237,8 @@ flowchart LR
   shows the same things better.
 - Template option to omit the sample (**Default** name: `--sample false`). Without it, the solution
   contains no domain modules but keeps the module infrastructure (module registration, messaging, schema
-  convention, architecture tests, BFF, auth, observability, Angular shell with login). It still
-  builds, runs and passes its tests. Architecture tests are written as rules over whatever modules
+  convention, architecture tests, auth with the session cookie, observability, Angular shell with
+  login). It still builds, runs and passes its tests. Architecture tests are written as rules over whatever modules
   exist, plus a test that module discovery itself works, so they are meaningful from the first
   module on. (**Default**)
 
@@ -235,18 +247,19 @@ flowchart LR
 - Angular CLI project with the current defaults (standalone, zoneless, signals, built-in control
   flow, the CLI's default unit test runner).
 - Route-level render modes as in 7.1.
-- Calls go to the same origin (`/api/...`, `/bff/...`); no tokens in the browser.
+- Calls go to the same origin (`/api/...`, `/account/...`, `/bff/...` until 2026-10-30); no tokens
+  in the browser.
 - ESLint via angular-eslint; the build fails on lint errors.
 - Containerized with its own Dockerfile (the .NET SDK's container publishing does not cover Node).
 
 ### 8.4 Observability
 
 - OpenTelemetry logs, traces and metrics in every .NET service through Aspire ServiceDefaults,
-  including the BFF and the YARP hop.
+  including the YARP hop to the SSR server (through the BFF until 2026-10-30).
 - The Angular SSR server is instrumented with the OpenTelemetry Node SDK and exports via OTLP, so a
   trace continues through Node. (**Default**)
 - Locally: Aspire dashboard. In operation: OTLP export to any backend, configured, not hardcoded.
-- Logs carry trace IDs so one request can be followed from the BFF to the database, and on through
+- Logs carry trace IDs so one request can be followed from the API to the database, and on through
   an integration event into the handler that consumes it.
 - Health checks for every service.
 
@@ -273,8 +286,8 @@ module structure says it should not.
   them. Keycloak with the demo realm stays a development concern of the AppHost. CI checks that the
   generated Compose file is valid. It does not run a login flow against it.
 - **Builder** (2026-10-29): in publish mode the AppHost leaves the Keycloak container out and passes
-  the parameter `keycloak-url` to the API and the BFF as `Keycloak:Url`, which sets the OIDC
-  authority (Aspire's Keycloak integration otherwise uses a service-discovery address that HTTPS
+  the parameter `keycloak-url` to the API (and to the BFF until 2026-10-30) as `Keycloak:Url`,
+  which sets the OIDC authority (Aspire's Keycloak integration otherwise uses a service-discovery address that HTTPS
   metadata validation rejects); migrations ship as bundle containers that run one after another
   and that the API waits for; PostgreSQL and RabbitMQ report their health, and services wait until
   they are healthy; every image Aspire builds is tagged with the AppHost's MinVer
@@ -372,7 +385,6 @@ Contoso.Shop/
 │   ├── Contoso.Shop.AppHost/
 │   ├── Contoso.Shop.ServiceDefaults/
 │   ├── Contoso.Shop.Api/
-│   ├── Contoso.Shop.Bff/
 │   ├── Contoso.Shop.Web/                      Angular workspace
 │   └── Modules/
 │       ├── Contoso.Shop.Modules.Projects/
@@ -380,6 +392,7 @@ Contoso.Shop/
 │       ├── Contoso.Shop.Modules.Tasks/
 │       └── Contoso.Shop.Modules.Tasks.Contracts/
 ├── tests/
+│   ├── Contoso.Shop.Api.Tests/
 │   ├── Contoso.Shop.Architecture.Tests/
 │   ├── Contoso.Shop.Integration.Tests/
 │   ├── Contoso.Shop.EndToEnd.Tests/
@@ -486,6 +499,6 @@ CloudGround/
 
 - Exact versions within the version policy (7.4): check at build time which releases are the newest
   LTS or newest stable, including the Aspire integrations for Keycloak, Garnet and RabbitMQ.
-- Architecture-test library (7.3), BFF session store (8.1), E2E schedule (8.5), package ID (9).
+- Architecture-test library (7.3), session store (8.1), E2E schedule (8.5), package ID (9).
 - Sample domain, as long as it demonstrates everything listed in 8.2.
 - Keycloak realm details (realm name, demo users, roles).
