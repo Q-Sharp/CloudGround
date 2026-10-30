@@ -169,9 +169,10 @@ integration tests run two of them. The API refreshes the access token a minute b
 signs the user out when Keycloak refuses the refresh, so a session lasts as long as the identity
 provider's session. With the local realm it ends after 30 minutes without requests
 (`ssoSessionIdleTimeout`) and at the latest 10 hours after sign-in (`ssoSessionMaxLifespan`), also
-while someone is working, and a user blocked in Keycloak loses access within the access token's
-lifetime of 5 minutes (`accessTokenLifespan`). In operation the operator's identity provider sets
-these times, not the template. Parallel requests of one session may refresh at the same time with
+while someone is working. Every refresh also replaces the session's roles with those of the new ID
+token, so a role taken away in Keycloak ends, and a user blocked there loses access, within the
+access token's lifetime of 5 minutes (`accessTokenLifespan`). In operation the operator's identity
+provider sets these times, not the template. Parallel requests of one session may refresh at the same time with
 the same refresh token, so the realm keeps used refresh tokens valid (`revokeRefreshToken: false`);
 turning rotation on needs a lock around the refresh first. While Keycloak is unreachable, a session
 keeps working until its access token expires; after that, the next request signs the user out, and
