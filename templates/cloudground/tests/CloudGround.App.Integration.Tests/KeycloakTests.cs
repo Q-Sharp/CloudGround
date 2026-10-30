@@ -2,6 +2,10 @@ namespace CloudGround.App.Integration.Tests;
 
 public sealed class KeycloakTests(AppHostFixture fixture)
 {
+    private const int AccessTokenSeconds = 300;
+    private const int SessionIdleSeconds = 1800;
+    private const int SecondsLostBeforeTheResponse = 5;
+
     private static CancellationToken Cancellation => TestContext.Current.CancellationToken;
 
     [Fact]
@@ -48,8 +52,8 @@ public sealed class KeycloakTests(AppHostFixture fixture)
     {
         var tokens = await Tokens.GrantAsync(fixture.App, "alice", Cancellation);
 
-        Assert.Equal(300, tokens.GetProperty("expires_in").GetInt32());
-        Assert.Equal(1800, tokens.GetProperty("refresh_expires_in").GetInt32());
+        Assert.InRange(tokens.GetProperty("expires_in").GetInt32(), AccessTokenSeconds - SecondsLostBeforeTheResponse, AccessTokenSeconds);
+        Assert.InRange(tokens.GetProperty("refresh_expires_in").GetInt32(), SessionIdleSeconds - SecondsLostBeforeTheResponse, SessionIdleSeconds);
     }
 
     [Fact]
