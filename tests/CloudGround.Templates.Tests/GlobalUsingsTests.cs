@@ -1,5 +1,3 @@
-using System.Text.RegularExpressions;
-
 namespace CloudGround.Templates.Tests;
 
 public sealed partial class GlobalUsingsTests

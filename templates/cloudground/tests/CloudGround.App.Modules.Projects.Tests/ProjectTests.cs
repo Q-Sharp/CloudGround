@@ -1,5 +1,3 @@
-using CloudGround.App.Modules.Projects.Domain;
-
 namespace CloudGround.App.Modules.Projects.Tests;
 
 public sealed class ProjectTests

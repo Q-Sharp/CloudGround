@@ -1,8 +1,3 @@
-using System.Reflection;
-using System.Text.RegularExpressions;
-using Aspire.Hosting.ApplicationModel;
-using Aspire.Hosting.Docker;
-
 namespace CloudGround.App.Integration.Tests;
 
 [Collection(PublishedDeployment.Name)]

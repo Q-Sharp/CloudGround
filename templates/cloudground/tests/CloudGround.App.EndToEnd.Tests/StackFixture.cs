@@ -1,5 +1,3 @@
-using CloudGround.App.Integration.Tests;
-
 [assembly: Trait("Category", "EndToEnd")]
 
 namespace CloudGround.App.EndToEnd.Tests;

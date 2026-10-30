@@ -1,5 +1,3 @@
-using Aspire.Hosting.EntityFrameworkCore;
-
 namespace CloudGround.App.AppHost;
 
 internal static class ModuleMigrations

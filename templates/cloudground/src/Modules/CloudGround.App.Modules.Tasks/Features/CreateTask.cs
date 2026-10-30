@@ -1,13 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-using CloudGround.App.Modules.Projects.Contracts;
-using CloudGround.App.Modules.Tasks.Domain;
-using CloudGround.App.Modules.Tasks.Persistence;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-
 namespace CloudGround.App.Modules.Tasks.Features;
 
 public sealed record CreateTaskRequest([Required, StringLength(TaskItem.TitleMaxLength)] string Title);

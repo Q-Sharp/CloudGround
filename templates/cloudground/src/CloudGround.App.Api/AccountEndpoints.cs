@@ -1,9 +1,3 @@
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.AspNetCore.Http.HttpResults;
-
 namespace CloudGround.App.Api;
 
 internal sealed record AccountUser(string Name, IReadOnlyList<string> Roles);

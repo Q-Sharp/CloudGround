@@ -1,5 +1,3 @@
-using System.Reflection;
-
 namespace CloudGround.App.AppHost;
 
 internal static class ContainerImages

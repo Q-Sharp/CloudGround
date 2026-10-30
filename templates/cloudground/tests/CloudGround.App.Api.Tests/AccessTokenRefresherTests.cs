@@ -1,8 +1,3 @@
-using System.Globalization;
-using System.Net;
-using Microsoft.AspNetCore.Authentication;
-using static CloudGround.App.Api.Tests.TokenSessions;
-
 namespace CloudGround.App.Api.Tests;
 
 public sealed class AccessTokenRefresherTests

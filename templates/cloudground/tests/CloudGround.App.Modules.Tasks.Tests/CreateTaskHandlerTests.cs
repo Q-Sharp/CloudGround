@@ -1,7 +1,3 @@
-using CloudGround.App.Modules.Projects.Contracts;
-using CloudGround.App.Modules.Tasks.Features;
-using Microsoft.EntityFrameworkCore;
-
 namespace CloudGround.App.Modules.Tasks.Tests;
 
 public sealed class CreateTaskHandlerTests

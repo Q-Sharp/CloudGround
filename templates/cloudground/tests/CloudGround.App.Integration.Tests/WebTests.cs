@@ -1,5 +1,3 @@
-using System.Net;
-
 namespace CloudGround.App.Integration.Tests;
 
 public sealed class WebTests(AppHostFixture fixture)

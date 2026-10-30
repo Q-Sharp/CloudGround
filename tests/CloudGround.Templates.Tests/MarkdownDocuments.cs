@@ -1,5 +1,3 @@
-using System.Text.RegularExpressions;
-
 namespace CloudGround.Templates.Tests;
 
 public static partial class MarkdownDocuments

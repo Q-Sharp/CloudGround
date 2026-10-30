@@ -1,8 +1,3 @@
-using System.Globalization;
-using Aspire.Hosting.Docker;
-using Aspire.Hosting.Docker.Resources;
-using Aspire.Hosting.Docker.Resources.ServiceNodes;
-
 namespace CloudGround.App.AppHost;
 
 internal static class ComposeDeployment

@@ -1,9 +1,3 @@
-using System.Net;
-using System.Net.Http.Json;
-using System.Text;
-using System.Text.Json;
-using static CloudGround.App.Integration.Tests.ModuleAssertions;
-
 namespace CloudGround.App.Integration.Tests;
 
 public sealed class ProjectsApiTests(AppHostFixture fixture)

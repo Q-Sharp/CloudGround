@@ -1,9 +1,3 @@
-using System.Globalization;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.IdentityModel.Protocols;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-
 namespace CloudGround.App.Api.Tests;
 
 internal static class TokenSessions

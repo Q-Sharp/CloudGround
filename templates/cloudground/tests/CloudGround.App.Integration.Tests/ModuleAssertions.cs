@@ -1,6 +1,3 @@
-using System.Net;
-using System.Text.Json;
-
 namespace CloudGround.App.Integration.Tests;
 
 internal static class ModuleAssertions

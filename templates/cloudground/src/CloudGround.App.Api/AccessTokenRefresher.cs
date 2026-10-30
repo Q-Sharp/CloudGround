@@ -1,10 +1,3 @@
-using System.Globalization;
-using System.Net;
-using System.Net.Http.Json;
-using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-
 namespace CloudGround.App.Api;
 
 internal sealed class AccessTokenRefresher(HttpClient tokenClient, TimeProvider clock)

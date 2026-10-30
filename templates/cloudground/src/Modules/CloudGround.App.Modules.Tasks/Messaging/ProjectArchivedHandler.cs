@@ -1,5 +1,3 @@
-using CloudGround.App.Modules.Projects.Contracts;
-
 namespace CloudGround.App.Modules.Tasks.Messaging;
 
 public static class ProjectArchivedHandler

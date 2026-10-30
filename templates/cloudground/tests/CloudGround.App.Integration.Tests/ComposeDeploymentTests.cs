@@ -1,7 +1,3 @@
-using Aspire.Hosting.Docker.Resources;
-using Aspire.Hosting.Docker.Resources.ComposeNodes;
-using CloudGround.App.AppHost;
-
 namespace CloudGround.App.Integration.Tests;
 
 public sealed class ComposeDeploymentTests

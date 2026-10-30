@@ -1,8 +1,3 @@
-using System.Net;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
-
 namespace CloudGround.App.Api.Tests;
 
 public sealed class HealthEndpointTests

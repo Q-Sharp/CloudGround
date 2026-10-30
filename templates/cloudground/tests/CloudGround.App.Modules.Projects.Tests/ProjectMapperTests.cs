@@ -1,6 +1,3 @@
-using CloudGround.App.Modules.Projects.Domain;
-using CloudGround.App.Modules.Projects.Features;
-
 namespace CloudGround.App.Modules.Projects.Tests;
 
 public sealed class ProjectMapperTests

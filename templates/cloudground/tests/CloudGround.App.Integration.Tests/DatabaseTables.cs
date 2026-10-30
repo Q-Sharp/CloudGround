@@ -1,5 +1,3 @@
-using Npgsql;
-
 namespace CloudGround.App.Integration.Tests;
 
 internal static class DatabaseTables

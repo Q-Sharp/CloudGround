@@ -1,10 +1,3 @@
-using CloudGround.App.Modules.Tasks.Persistence;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-
 namespace CloudGround.App.Modules.Tasks.Features;
 
 internal sealed class GetTaskHandler(TasksDbContext database)

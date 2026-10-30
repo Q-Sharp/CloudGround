@@ -1,7 +1,3 @@
-using System.Reflection;
-using ArchUnitNET.Loader;
-using ArchitectureModel = ArchUnitNET.Domain.Architecture;
-
 namespace CloudGround.App.Architecture.Tests;
 
 internal static class ModuleCatalog

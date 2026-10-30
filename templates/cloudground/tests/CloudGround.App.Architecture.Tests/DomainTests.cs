@@ -1,6 +1,3 @@
-using ArchUnitNET.xUnitV3;
-using static ArchUnitNET.Fluent.ArchRuleDefinition;
-
 namespace CloudGround.App.Architecture.Tests;
 
 public sealed class DomainTests
