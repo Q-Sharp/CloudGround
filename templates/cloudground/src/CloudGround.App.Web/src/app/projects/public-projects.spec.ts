@@ -20,6 +20,21 @@ describe('PublicProjects', () => {
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Website relaunch');
   });
 
+  it('shows neither projects nor a message while loading', async () => {
+    await TestBed.configureTestingModule({
+      imports: [PublicProjects],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(PublicProjects);
+
+    fixture.detectChanges();
+
+    const page = fixture.nativeElement as HTMLElement;
+    expect(page.textContent).not.toContain('No projects yet.');
+    expect(page.querySelector('[role=alert]')).toBeNull();
+    TestBed.inject(HttpTestingController).expectOne('/api/projects');
+  });
+
   it('says so when the projects cannot be loaded', async () => {
     await TestBed.configureTestingModule({
       imports: [PublicProjects],

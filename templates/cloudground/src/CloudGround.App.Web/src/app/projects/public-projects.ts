@@ -17,11 +17,11 @@ import { ProjectsApi } from './projects.api';
           <p>No projects yet.</p>
         }
       </mat-list>
-    } @else {
+    } @else if (projects() === null) {
       <p role="alert">The projects could not be loaded.</p>
     }
   `,
 })
 export class PublicProjects {
-  protected readonly projects = toSignal(inject(ProjectsApi).list().pipe(catchError(() => of(null))), { initialValue: [] });
+  protected readonly projects = toSignal(inject(ProjectsApi).list().pipe(catchError(() => of(null))));
 }

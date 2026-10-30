@@ -42,7 +42,7 @@ module.exports = defineConfig([
         {
           patterns: [
             {
-              group: ['@angular/ssr', '@angular/ssr/*', '@angular/platform-server', 'express'],
+              group: ['@angular/ssr', '@angular/platform-server', 'express'],
               message: 'Server-only code belongs in src/server.ts or a *.server.ts file.',
             },
           ],

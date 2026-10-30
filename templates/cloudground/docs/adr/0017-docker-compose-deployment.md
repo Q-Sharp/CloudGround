@@ -11,7 +11,9 @@ The application must run outside development without a second, hand-maintained d
 Aspire's Docker publisher writes `docker-compose.yaml` and `.env.Production` from the AppHost. The
 AppHost adds what a production baseline needs: health checks, restart policies, ports on the
 loopback interface only, fixed volume names, migration bundles and the dashboard as default OTLP
-backend. The identity provider, TLS termination and secrets come from the operator's configuration.
+backend. The dashboard runs the released `mcr.microsoft.com/dotnet/aspire-dashboard` image of the
+AppHost's Aspire major and minor version instead of Aspire's default nightly image. The identity
+provider, TLS termination and secrets come from the operator's configuration.
 
 ## Alternatives
 
