@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Aspire.Hosting.ApplicationModel;
+using Aspire.Hosting.Docker;
 
 namespace CloudGround.App.Integration.Tests;
 
@@ -36,6 +37,14 @@ public sealed class ComposeFileTests(PublishedCompose compose)
     public void Published_ports_listen_on_the_loopback_interface_only(string service, string port)
     {
         Assert.Contains($"- \"127.0.0.1:{port}:{port}\"", compose.Service(service), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Dashboard_runs_the_released_image_of_the_aspire_version()
+    {
+        var aspire = typeof(DockerComposeEnvironmentResource).Assembly.GetName().Version!;
+
+        Assert.Contains($"image: \"mcr.microsoft.com/dotnet/aspire-dashboard:{aspire.Major}\"", compose.Service("compose-dashboard"), StringComparison.Ordinal);
     }
 
     [Fact]

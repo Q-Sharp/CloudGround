@@ -11,6 +11,7 @@ public sealed class AppHostFixture : IAsyncLifetime
     public async ValueTask InitializeAsync()
     {
         var cancellation = TestContext.Current.CancellationToken;
+        await using var startLock = await AppHostStartLock.AcquireAsync(cancellation);
         var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.CloudGround_App_AppHost>(cancellation);
         app = await appHost.WithoutDataVolumes().WithTwoBffInstances().BuildAsync(cancellation);
         await app.StartAsync(cancellation);

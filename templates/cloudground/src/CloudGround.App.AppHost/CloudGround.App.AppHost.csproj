@@ -18,6 +18,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="CloudGround.App.Integration.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="../CloudGround.App.Api/CloudGround.App.Api.csproj" />
     <ProjectReference Include="../CloudGround.App.Bff/CloudGround.App.Bff.csproj" />
   </ItemGroup>

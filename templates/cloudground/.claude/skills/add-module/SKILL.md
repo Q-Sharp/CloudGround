@@ -1,6 +1,6 @@
 ---
 name: add-module
-description: Creates a new module in this solution with its project, contracts project, database schema, registration, migrations resource and test project. Use when asked for a new module or bounded context, including in a solution that has no modules yet.
+description: Creates a new module in this solution with its project, database schema, registration, migrations resource and test project, and its contracts project once another module needs one. Use when asked for a new module or bounded context, including in a solution that has no modules yet.
 ---
 
 # Add a module

@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="../CloudGround.App.Integration.Tests/AppHostStartLock.cs" Link="AppHostStartLock.cs" />
     <Compile Include="../CloudGround.App.Integration.Tests/FreshData.cs" Link="FreshData.cs" />
   </ItemGroup>
 

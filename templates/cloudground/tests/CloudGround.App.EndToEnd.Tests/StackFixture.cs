@@ -23,6 +23,7 @@ public sealed class StackFixture : IAsyncLifetime
         Assert.Equal(0, Microsoft.Playwright.Program.Main(["install", "chromium"]));
 
         var cancellation = TestContext.Current.CancellationToken;
+        await using var startLock = await AppHostStartLock.AcquireAsync(cancellation);
         var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.CloudGround_App_AppHost>(cancellation);
         app = await appHost.WithoutDataVolumes().BuildAsync(cancellation);
         await app.StartAsync(cancellation);

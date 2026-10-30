@@ -34,6 +34,23 @@ module.exports = defineConfig([
     },
   },
   {
+    files: ['**/*.ts'],
+    ignores: ['src/server.ts', '**/*.server.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@angular/ssr', '@angular/platform-server', 'express'],
+              message: 'Server-only code belongs in src/server.ts or a *.server.ts file.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['**/*.html'],
     extends: [angular.configs.templateRecommended, angular.configs.templateAccessibility],
     rules: {},

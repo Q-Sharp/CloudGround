@@ -66,7 +66,8 @@ public static class ProcessRunner
             }
         });
 
-        await Task.WhenAny(process.WaitForExitAsync(), matched.Task, Task.Delay(limit));
+        using var limitReached = new CancellationTokenSource(limit);
+        await Task.WhenAny(process.WaitForExitAsync(limitReached.Token), matched.Task);
         if (!process.HasExited)
         {
             process.Kill(entireProcessTree: true);

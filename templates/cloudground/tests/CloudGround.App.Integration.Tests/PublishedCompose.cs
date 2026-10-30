@@ -23,6 +23,7 @@ public sealed class PublishedCompose : IAsyncLifetime
     public async ValueTask InitializeAsync()
     {
         var cancellation = TestContext.Current.CancellationToken;
+        await using var startLock = await AppHostStartLock.AcquireAsync(cancellation);
         await using var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.CloudGround_App_AppHost>(
             ["--operation", "publish", "--step", "publish", "--output-path", OutputDirectory],
             cancellation);

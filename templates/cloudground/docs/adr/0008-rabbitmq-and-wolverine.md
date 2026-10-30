@@ -30,5 +30,6 @@ directly.
 - Wolverine needs public handlers; a module exposes them in its `Messaging` namespace and forwards
   to its internals through an interface.
 - Development compiles handler code at runtime; container images load code generated during
-  `dotnet publish`.
-- Wolverine can switch to Azure Service Bus by configuration.
+  `dotnet publish`, so publishing the API with `--no-build` stops with an error.
+- Moving to Azure Service Bus takes the `WolverineFx.AzureServiceBus` package and a different
+  transport in the API host; handlers, integration events and the outbox stay as they are.

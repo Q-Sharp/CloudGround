@@ -1,3 +1,5 @@
+using System.Globalization;
+using Aspire.Hosting.Docker;
 using Aspire.Hosting.Docker.Resources;
 using Aspire.Hosting.Docker.Resources.ServiceNodes;
 
@@ -14,6 +16,7 @@ internal static class ComposeDeployment
     private const string ProbeInterval = "5s";
     private const string ProbeStartPeriod = "10s";
     private const int ProbeRetries = 30;
+    private const string DashboardImage = "mcr.microsoft.com/dotnet/aspire-dashboard";
 
     public static void Configure(ComposeFile composeFile)
     {
@@ -21,6 +24,12 @@ internal static class ComposeDeployment
         PublishPortsOnLoopback(composeFile);
         RestartLongRunningServices(composeFile);
         WaitForHealthyDependencies(composeFile);
+    }
+
+    public static void UseReleasedDashboard(IResourceBuilder<DockerComposeAspireDashboardResource> dashboard)
+    {
+        var aspire = typeof(DockerComposeEnvironmentResource).Assembly.GetName().Version!;
+        dashboard.WithImage(DashboardImage, aspire.Major.ToString(CultureInfo.InvariantCulture));
     }
 
     public static Healthcheck Probe(params string[] command) => new()
@@ -62,7 +71,7 @@ internal static class ComposeDeployment
         var dependencies = composeFile.Services.Values.SelectMany(service => service.DependsOn);
         foreach (var (name, dependency) in dependencies)
         {
-            if (dependency.Condition == Started && composeFile.Services[name].Healthcheck is not null)
+            if (dependency.Condition == Started && composeFile.Services.TryGetValue(name, out var target) && target.Healthcheck is not null)
             {
                 dependency.Condition = Healthy;
             }

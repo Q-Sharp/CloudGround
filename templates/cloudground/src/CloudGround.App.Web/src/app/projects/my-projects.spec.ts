@@ -6,13 +6,13 @@ import { SessionService, User } from '../session/session.service';
 import { MyProjects } from './my-projects';
 
 describe('MyProjects', () => {
-  async function render(user: User): Promise<{ page: HTMLElement; http: HttpTestingController; detect: () => Promise<void> }> {
+  async function render(user: User | null): Promise<{ page: HTMLElement; http: HttpTestingController; detect: () => Promise<void> }> {
     await TestBed.configureTestingModule({
       imports: [MyProjects],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
-        { provide: SessionService, useValue: { user: signal(user), hasRole: (role: string) => user.roles.includes(role) } },
+        { provide: SessionService, useValue: { user: signal(user), hasRole: (role: string) => user?.roles.includes(role) ?? false } },
       ],
     }).compileComponents();
     const fixture = TestBed.createComponent(MyProjects);
@@ -33,6 +33,20 @@ describe('MyProjects', () => {
     TestBed.resetTestingModule();
     const reader = await render({ name: 'bob', roles: [] });
     expect(reader.page.querySelector('form[data-test=create]')).toBeNull();
+  });
+
+  it('asks anonymous visitors to log in', async () => {
+    const { page } = await render(null);
+
+    expect(page.querySelector('[data-test=login-hint]')?.textContent).toContain('Log in to create projects.');
+  });
+
+  it('does not send a blank name', async () => {
+    const { page, http } = await render({ name: 'alice', roles: ['editor'] });
+
+    page.querySelector<HTMLFormElement>('form[data-test=create]')!.dispatchEvent(new Event('submit'));
+
+    http.expectNone({ method: 'POST', url: '/api/projects' });
   });
 
   it('shows a message when creating is forbidden', async () => {
