@@ -3,6 +3,7 @@ namespace CloudGround.App.Api;
 internal sealed class AccessTokenRefresher(HttpClient tokenClient, TimeProvider clock)
 {
     private static readonly TimeSpan RefreshWindow = TimeSpan.FromMinutes(1);
+    private static readonly JsonWebTokenHandler IdTokens = new();
 
     public async Task<TokenRefresh> RefreshIfCloseToExpiryAsync(AuthenticationProperties properties, OpenIdConnectOptions options, CancellationToken cancellationToken)
     {
@@ -51,6 +52,12 @@ internal sealed class AccessTokenRefresher(HttpClient tokenClient, TimeProvider 
                 return stillValid;
             }
 
+            if (!BelongToTheSameUser(tokens.IdToken, properties.GetTokenValue("id_token")))
+            {
+                return TokenRefresh.Failed;
+            }
+
+            properties.UpdateTokenValue("id_token", tokens.IdToken);
             properties.UpdateTokenValue("access_token", tokens.AccessToken);
             properties.UpdateTokenValue("refresh_token", tokens.RefreshToken ?? refreshToken);
             properties.UpdateTokenValue("expires_at", now.AddSeconds(tokens.ExpiresIn).ToString("o", CultureInfo.InvariantCulture));
@@ -58,8 +65,27 @@ internal sealed class AccessTokenRefresher(HttpClient tokenClient, TimeProvider 
         }
     }
 
+    private static bool BelongToTheSameUser(string? idToken, string? sessionIdToken) =>
+        Read(idToken) is { IsEncrypted: false } current
+        && Read(sessionIdToken) is { IsEncrypted: false } session
+        && current.Subject == session.Subject
+        && current.Issuer == session.Issuer;
+
+    private static JsonWebToken? Read(string? idToken)
+    {
+        try
+        {
+            return IdTokens.CanReadToken(idToken) ? new JsonWebToken(idToken) : null;
+        }
+        catch (Exception exception) when (exception is ArgumentException or FormatException)
+        {
+            return null;
+        }
+    }
+
     private sealed record TokenResponse(
         [property: JsonPropertyName("access_token")] string AccessToken,
         [property: JsonPropertyName("refresh_token")] string? RefreshToken,
+        [property: JsonPropertyName("id_token")] string? IdToken,
         [property: JsonPropertyName("expires_in")] int ExpiresIn);
 }

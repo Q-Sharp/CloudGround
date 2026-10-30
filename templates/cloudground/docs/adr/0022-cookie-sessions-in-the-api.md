@@ -16,9 +16,9 @@ The API signs browsers in itself. It uses OpenID Connect against Keycloak, with 
 code flow and PKCE, through the client `cloudground-app-api`, and gives the browser an HttpOnly
 session cookie. The session ticket with the tokens and the Data Protection keys live in Garnet, so
 every API instance accepts every session. The session slides with activity. Whenever the cookie is
-validated and the access token is due, the API refreshes it at Keycloak; when the refresh fails,
-because the user was blocked or the Keycloak session ended, the API rejects the cookie and signs the
-user out. The API forwards no tokens: it authenticates the cookie directly.
+validated and the access token is due, the API refreshes it at Keycloak and replaces the session's
+roles with those of the new ID token; when the refresh fails, because the user was blocked or the
+Keycloak session ended, the API rejects the cookie and signs the user out. The API forwards no tokens: it authenticates the cookie directly.
 
 A request with an `Authorization: Bearer` header is authenticated as a JWT bearer token, every other
 request by the cookie. Unsafe requests with the cookie need the XSRF token that Angular sends by
@@ -54,7 +54,10 @@ without the `Cookie` and `Authorization` headers, so the browser still sees one 
   pages included.
 - A session lasts as long as the identity provider's session. With the local realm it ends after
   30 minutes without requests and at the latest 10 hours after sign-in, also while someone is
-  working; a user blocked in Keycloak loses access within the access token's lifetime of 5 minutes.
+  working; a role taken away in Keycloak ends, and a user blocked there loses access, within the
+  access token's lifetime of 5 minutes.
+- The identity provider must return an ID token with the roles on every refresh. A refresh without
+  one signs the user out, because the session could not know the current roles.
   In operation the operator's identity provider sets these times, not the template. Logging out of
   the application ends both sessions.
 - When Keycloak is unreachable for longer than an access token lives, the API signs the user out at

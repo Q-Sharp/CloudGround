@@ -21,6 +21,7 @@ global using Microsoft.AspNetCore.Http.HttpResults;
 global using Microsoft.Extensions.Caching.Distributed;
 global using Microsoft.Extensions.DependencyInjection.Extensions;
 global using Microsoft.Extensions.Options;
+global using Microsoft.IdentityModel.JsonWebTokens;
 global using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 global using Scalar.AspNetCore;
 global using StackExchange.Redis;
