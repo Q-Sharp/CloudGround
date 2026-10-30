@@ -7,7 +7,7 @@ updates:
     schedule:
       interval: weekly
     commit-message:
-      prefix: chore
+      prefix: fix
       include: scope
     groups:
       nuget:
@@ -28,7 +28,7 @@ updates:
     schedule:
       interval: weekly
     commit-message:
-      prefix: chore
+      prefix: fix
       include: scope
     groups:
       angular:
@@ -47,7 +47,7 @@ updates:
     schedule:
       interval: weekly
     commit-message:
-      prefix: chore
+      prefix: fix
       include: scope
     groups:
       docker:
@@ -62,7 +62,7 @@ updates:
     schedule:
       interval: weekly
     commit-message:
-      prefix: chore
+      prefix: fix
       include: scope
     groups:
       devcontainers:
@@ -76,7 +76,7 @@ updates:
     schedule:
       interval: weekly
     commit-message:
-      prefix: chore
+      prefix: fix
       include: scope
     groups:
       github-actions:

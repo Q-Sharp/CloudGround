@@ -105,7 +105,7 @@ public sealed partial class DependabotConfigurationTests
     [Theory]
     [InlineData(".github/dependabot.yml")]
     [InlineData("templates/cloudground/.github/dependabot.yml")]
-    public void Every_update_is_committed_as_a_chore(string configuration)
+    public void Every_update_is_committed_as_a_fix(string configuration)
     {
         var lines = File.ReadAllLines(Path.Combine(RepositoryRoot.Find(), configuration));
 
@@ -119,7 +119,7 @@ public sealed partial class DependabotConfigurationTests
         Assert.All(ecosystems, ecosystem =>
         {
             var section = EcosystemSection(lines, ecosystem).ToList();
-            Assert.Contains(section, line => ChorePrefix().IsMatch(line));
+            Assert.Contains(section, line => FixPrefix().IsMatch(line));
             Assert.Contains(section, line => ScopeIncluded().IsMatch(line));
         });
     }
@@ -175,8 +175,8 @@ public sealed partial class DependabotConfigurationTests
     [GeneratedRegex(@"^\s+update-types: \[(?<types>[^\]]*)\]\s*$")]
     private static partial Regex UpdateTypes();
 
-    [GeneratedRegex(@"^\s+prefix: chore\s*$")]
-    private static partial Regex ChorePrefix();
+    [GeneratedRegex(@"^\s+prefix: fix\s*$")]
+    private static partial Regex FixPrefix();
 
     [GeneratedRegex(@"^\s+include: scope\s*$")]
     private static partial Regex ScopeIncluded();

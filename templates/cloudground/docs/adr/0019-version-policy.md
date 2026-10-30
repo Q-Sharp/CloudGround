@@ -14,7 +14,7 @@ devcontainer features and GitHub Actions in grouped weekly pull requests and pro
 updates for components that follow an LTS line. Angular, majors included, updates in a group with
 TypeScript apart from the other npm packages; TypeScript stays in the range the current Angular
 release supports, so Dependabot proposes only its patch updates. Dependabot's pull requests are
-`chore(deps)` or `chore(deps-dev)` commits.
+`fix(deps)` or `fix(deps-dev)` commits.
 
 ## Alternatives
 
@@ -29,4 +29,6 @@ release supports, so Dependabot proposes only its patch updates. Dependabot's pu
 - A new Angular major arrives as a Dependabot pull request that fails, because it keeps the old
   TypeScript. A pull request that runs `ng update`, which moves Angular and TypeScript together and
   migrates the code, replaces it. Until then Dependabot proposes no fixes for the old major.
+- Every merged update, security fixes included, makes the release pull request propose a patch
+  release, so it reaches users with the next release.
 - Preview packages are exceptions and are recorded where they are used.
