@@ -1,5 +1,3 @@
-using Aspire.Hosting.ApplicationModel;
-
 namespace CloudGround.App.Integration.Tests;
 
 internal static class FreshData

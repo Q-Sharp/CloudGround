@@ -38,6 +38,10 @@ The content defines `sample` in `templates/cloudground/Directory.Build.props`, s
 with the sample. A solution generated with `--sample false` must build, pass its tests and mention
 no sample type.
 
+Every project keeps its imports in the `GlobalUsings.cs` at its root. An import that only the sample
+uses, including one that only files in the `!sample` exclude list use, stays in its sorted place
+there, between `#if (sample)` and `#endif`.
+
 ## Generated output
 
 Files that the content's build, tests or tools write must stay out of the package: add them to the

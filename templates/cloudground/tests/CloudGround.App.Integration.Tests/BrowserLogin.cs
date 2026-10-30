@@ -1,6 +1,3 @@
-using System.Net;
-using System.Text.RegularExpressions;
-
 namespace CloudGround.App.Integration.Tests;
 
 internal sealed class BrowserSession(HttpClient client, LocalhostBrowserHandler browser, Uri landingPage) : IDisposable

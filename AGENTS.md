@@ -33,6 +33,9 @@ Tests use xUnit v3 on Microsoft.Testing.Platform. Filter with `--filter-class` o
 - Microsoft libraries first. Every third-party package is named in the design.
 - No explanatory comments in code or configuration, including YAML, `.editorconfig` and
   `.gitignore`. Rewrite unclear code instead. Tool directives without explanation are allowed.
+- Every .NET project keeps all its namespace imports in one `GlobalUsings.cs` at its root, and no
+  other C# file has a `using` directive, except generated files such as EF Core migrations; tests
+  check this for the generated solutions and for `tests/CloudGround.Templates.Tests`.
 - Warnings are errors.
 - Everything in English.
 - Inside the template content, `CloudGround.App` and `CloudGround_App` are placeholders for the

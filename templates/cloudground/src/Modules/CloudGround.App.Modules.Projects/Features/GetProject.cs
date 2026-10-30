@@ -1,11 +1,3 @@
-using CloudGround.App.Modules.Projects.Persistence;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Hybrid;
-
 namespace CloudGround.App.Modules.Projects.Features;
 
 internal sealed class GetProjectHandler(ProjectsDbContext database, HybridCache cache)

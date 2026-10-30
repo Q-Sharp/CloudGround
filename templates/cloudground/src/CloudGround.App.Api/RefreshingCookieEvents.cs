@@ -1,8 +1,3 @@
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.Extensions.Options;
-
 namespace CloudGround.App.Api;
 
 internal sealed class RefreshingCookieEvents(AccessTokenRefresher refresher, IOptionsMonitor<OpenIdConnectOptions> openIdConnect) : CookieAuthenticationEvents

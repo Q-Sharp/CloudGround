@@ -1,11 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-using CloudGround.App.Modules.Projects.Domain;
-using CloudGround.App.Modules.Projects.Persistence;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Routing;
-
 namespace CloudGround.App.Modules.Projects.Features;
 
 public sealed record CreateProjectRequest(

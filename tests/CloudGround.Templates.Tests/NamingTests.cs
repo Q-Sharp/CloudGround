@@ -1,5 +1,3 @@
-using System.Text.Json;
-
 namespace CloudGround.Templates.Tests;
 
 [Collection(SharedTemplatePackage.Name)]

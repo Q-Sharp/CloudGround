@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Caching.Hybrid;
-
 namespace CloudGround.App.Modules.Projects.Features;
 
 internal static class ProjectCache

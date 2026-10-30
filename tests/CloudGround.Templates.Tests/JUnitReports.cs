@@ -1,5 +1,3 @@
-using System.Xml.Linq;
-
 namespace CloudGround.Templates.Tests;
 
 public static class JUnitReports

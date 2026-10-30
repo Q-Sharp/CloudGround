@@ -1,6 +1,3 @@
-using System.Diagnostics;
-using System.Text;
-
 namespace CloudGround.Templates.Tests;
 
 public sealed record CliResult(int ExitCode, string Output);

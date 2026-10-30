@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-
 namespace CloudGround.App.Modules.ModuleName.Persistence;
 
 internal sealed class ModuleNameDbContext(DbContextOptions<ModuleNameDbContext> options) : DbContext(options)

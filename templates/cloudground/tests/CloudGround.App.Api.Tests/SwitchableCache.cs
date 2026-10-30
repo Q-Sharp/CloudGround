@@ -1,8 +1,3 @@
-using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Options;
-using StackExchange.Redis;
-
 namespace CloudGround.App.Api.Tests;
 
 public enum CacheOutage

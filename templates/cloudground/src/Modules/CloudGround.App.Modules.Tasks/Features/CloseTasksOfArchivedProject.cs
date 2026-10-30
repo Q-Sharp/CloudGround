@@ -1,7 +1,3 @@
-using CloudGround.App.Modules.Tasks.Messaging;
-using CloudGround.App.Modules.Tasks.Persistence;
-using Microsoft.EntityFrameworkCore;
-
 namespace CloudGround.App.Modules.Tasks.Features;
 
 internal sealed class CloseProjectTasks(TasksDbContext database, TimeProvider clock) : ICloseProjectTasks

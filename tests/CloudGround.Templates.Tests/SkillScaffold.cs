@@ -4,6 +4,8 @@ public static class SkillScaffold
 {
     private const string ModuleToken = "ModuleName";
     private const string LowercaseModuleToken = "modulename";
+    private const string ModulePlaceholder = "<Module>";
+    private const string GlobalUsingsFile = "GlobalUsings.cs";
 
     public static async Task ApplyModuleAsync(GeneratedSolution solution, string module)
     {
@@ -15,8 +17,10 @@ public static class SkillScaffold
         await AssertSucceedsAsync(solution, "sln", "add", moduleProject, $"tests/{modulePrefix}.Tests/{modulePrefix}.Tests.csproj");
         await AssertSucceedsAsync(solution, "reference", "add", moduleProject, "--project", $"src/{solution.Name}.Api/{solution.Name}.Api.csproj");
 
-        var program = Path.Combine(solution.Root, "src", $"{solution.Name}.Api", "Program.cs");
-        InsertAfterLast(program, line => line == $"using {solution.Name}.Api;", $"using {modulePrefix};");
+        var api = Path.Combine(solution.Root, "src", $"{solution.Name}.Api");
+        AddGlobalUsings(Path.Combine(api, GlobalUsingsFile), modulePrefix);
+
+        var program = Path.Combine(api, "Program.cs");
         InsertAfterLast(program, line => line == "builder.AddApiAuthentication();" || IsModuleCall(line, "builder.Add"), $"builder.Add{module}Module();");
         InsertAfterLast(program, line => line == "app.MapDefaultEndpoints();" || IsModuleCall(line, "app.Map"), $"app.Map{module}Module();");
 
@@ -32,12 +36,17 @@ public static class SkillScaffold
         CopyReplacingTokens(SkillDirectory(solution, "add-feature", "example/module-tests"), Path.Combine(solution.Root, "tests", $"{modulePrefix}.Tests"), module);
         CopyReplacingTokens(SkillDirectory(solution, "add-feature", "example/integration-tests"), Path.Combine(solution.Root, "tests", $"{solution.Name}.Integration.Tests"), module);
 
+        AddGlobalUsings(
+            Path.Combine(moduleDirectory, GlobalUsingsFile),
+            ImportsInFeatureSkill(solution, $"src/Modules/{solution.Name}.Modules.{ModulePlaceholder}/{GlobalUsingsFile}", module));
+        AddGlobalUsings(
+            Path.Combine(solution.Root, "tests", $"{modulePrefix}.Tests", GlobalUsingsFile),
+            ImportsInFeatureSkill(solution, $"tests/{solution.Name}.Modules.{ModulePlaceholder}.Tests/{GlobalUsingsFile}", module));
+
         var context = Path.Combine(moduleDirectory, "Persistence", $"{module}DbContext.cs");
-        InsertAfterLast(context, line => line == "using Microsoft.EntityFrameworkCore;", $"using {modulePrefix}.Domain;");
         InsertAfterLast(context, line => line.Contains("public const string Schema", StringComparison.Ordinal), string.Empty, "    public DbSet<Item> Items => Set<Item>();");
 
         var moduleClass = Path.Combine(moduleDirectory, $"{module}Module.cs");
-        InsertAfterLast(moduleClass, line => line == $"using {modulePrefix}.Persistence;", $"using {modulePrefix}.Features;");
         InsertAfterLast(moduleClass, line => line.Contains("TryAddSingleton(TimeProvider.System);", StringComparison.Ordinal), "        builder.Services.AddScoped<CreateItemHandler>();", "        builder.Services.AddScoped<GetItemHandler>();");
         ReplaceLine(moduleClass, $"            .WithTags(\"{module}\");", $"            .WithTags(\"{module}\")", "            .MapCreateItem()", "            .MapGetItem();");
 
@@ -87,6 +96,32 @@ public static class SkillScaffold
 
     private static bool IsModuleCall(string line, string start) =>
         line.StartsWith(start, StringComparison.Ordinal) && line.EndsWith("Module();", StringComparison.Ordinal);
+
+    private static List<string> ImportsInFeatureSkill(GeneratedSolution solution, string file, string module)
+    {
+        var lines = File.ReadAllLines(Path.Combine(solution.Root, ".claude", "skills", "add-feature", "SKILL.md"));
+        var bullet = Array.FindIndex(lines, line => line.Contains($"`{file}`", StringComparison.Ordinal));
+        Assert.True(bullet >= 0, $"The add-feature skill lists no imports for {file}.");
+
+        var imports = string.Concat(lines.Skip(bullet + 1).TakeWhile(line => !line.TrimStart().StartsWith('-')))
+            .Split('`')
+            .Where((_, index) => index % 2 == 1)
+            .Select(name => name.Replace(ModulePlaceholder, module, StringComparison.Ordinal))
+            .ToList();
+        Assert.NotEmpty(imports);
+        return imports;
+    }
+
+    private static void AddGlobalUsings(string file, params IEnumerable<string> namespaces)
+    {
+        var directives = File.ReadAllLines(file)
+            .Concat(namespaces.Select(name => $"global using {name};"))
+            .Distinct()
+            .OrderByDescending(directive => directive.StartsWith("global using System", StringComparison.Ordinal))
+            .ThenBy(directive => directive.TrimEnd(';'), StringComparer.Ordinal)
+            .ToList();
+        File.WriteAllLines(file, directives);
+    }
 
     private static void InsertAfterLast(string file, Func<string, bool> anchor, params string[] inserted)
     {

@@ -1,6 +1,3 @@
-using System.Globalization;
-using System.Net;
-
 namespace CloudGround.App.Integration.Tests;
 
 internal sealed class LocalhostBrowserHandler() : DelegatingHandler(new SocketsHttpHandler { AllowAutoRedirect = false, UseCookies = false })

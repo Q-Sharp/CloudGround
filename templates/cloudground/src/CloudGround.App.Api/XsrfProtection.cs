@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Antiforgery;
-
 namespace CloudGround.App.Api;
 
 internal static class XsrfProtection

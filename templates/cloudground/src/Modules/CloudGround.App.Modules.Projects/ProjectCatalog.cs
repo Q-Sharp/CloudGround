@@ -1,7 +1,3 @@
-using CloudGround.App.Modules.Projects.Contracts;
-using CloudGround.App.Modules.Projects.Persistence;
-using Microsoft.EntityFrameworkCore;
-
 namespace CloudGround.App.Modules.Projects;
 
 internal sealed class ProjectCatalog(ProjectsDbContext database) : IProjectCatalog
