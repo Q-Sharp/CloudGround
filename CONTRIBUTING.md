@@ -24,8 +24,13 @@ end-to-end tests, which download Chromium on their first run; the first leaves t
 ## Releases
 
 release-please keeps a release pull request open. Merging it tags the version and runs the
-publish job, which pushes the package to NuGet with the repository secret `NUGET_API_KEY`
-(a nuget.org API key scoped to `CloudGround.Templates`). Without that secret the publish job fails.
+publish job, which pushes the package to NuGet with Trusted Publishing: the job trades a GitHub
+identity token for a nuget.org key that lives one hour, so the repository stores no API key.
+
+This needs a Trusted Publishing policy on nuget.org (repository owner `Q-Sharp`, repository
+`CloudGround`, workflow file `release-please.yml`, no environment) and the repository secret
+`NUGET_USER` with the nuget.org profile name, not the email address. Without either the publish
+job fails.
 
 ## Changing the template
 
