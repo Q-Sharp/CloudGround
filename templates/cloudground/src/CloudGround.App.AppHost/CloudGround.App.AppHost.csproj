@@ -15,6 +15,8 @@
     <PackageReference Include="Aspire.Hosting.Keycloak" />
     <PackageReference Include="Aspire.Hosting.PostgreSQL" />
     <PackageReference Include="Aspire.Hosting.RabbitMQ" />
+    <PackageReference Include="Npgsql" VersionOverride="11.0.0" />
+    <PackageReference Include="StackExchange.Redis" VersionOverride="3.4.35" />
   </ItemGroup>
 
   <ItemGroup>
