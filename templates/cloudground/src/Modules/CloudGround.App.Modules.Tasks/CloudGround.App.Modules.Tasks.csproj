@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" VersionOverride="1.21.0" />
     <PackageReference Include="Riok.Mapperly" PrivateAssets="all" ExcludeAssets="runtime" />
     <PackageReference Include="WolverineFx" />
   </ItemGroup>
